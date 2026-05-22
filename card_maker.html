@@ -1819,6 +1819,27 @@
     ctx.restore();
   }
 
+  // 이미지(data URL)를 블러 처리한 새 data URL 로 반환
+  function makeBlurredImage(srcURL, blurLevel) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const cv = document.createElement('canvas');
+          cv.width = img.naturalWidth || img.width;
+          cv.height = img.naturalHeight || img.height;
+          const ctx = cv.getContext('2d');
+          // blurLevel(슬라이더 0~20)을 이미지 해상도에 비례해 픽셀로 환산
+          const px = blurLevel * (cv.width / 540) * 2;
+          drawBlurred(ctx, img, px, 0, 0, cv.width, cv.height);
+          resolve(cv.toDataURL('image/png'));
+        } catch (e) { reject(e); }
+      };
+      img.onerror = () => reject(new Error('이미지 로드 실패'));
+      img.src = srcURL;
+    });
+  }
+
   function renderCardCanvas() {
     const scale = 2;
     const radius = parseInt($('radiusRange').value, 10) * scale;
@@ -1840,56 +1861,37 @@
     }
 
     if (blur > 0) {
-      // 화면용 blur/transform 을 잠시 제거 (html2canvas 가 못 따라 그리므로)
+      // 배경 이미지 자체를 미리 블러 처리한 data URL 로 만들어,
+      // 캡처 동안만 cardBg 에 끼워넣는다. (html2canvas 는 일반 이미지처럼 캡처)
+      const savedBgImage = cardBg.style.backgroundImage;
       const savedFilter = cardBg.style.filter;
       const savedTransform = cardBg.style.transform;
-      const savedBgVis = cardBg.style.visibility;
-      const savedOvVis = cardOverlay.style.visibility;
-      const savedCardBg = card.style.background;
 
-      cardBg.style.filter = 'none';
-      cardBg.style.transform = 'none';
+      return makeBlurredImage(state.bgImageData, blur).then(blurredURL => {
+        // 화면 blur/transform 끄고, 미리 구운 블러 이미지로 교체
+        cardBg.style.filter = 'none';
+        cardBg.style.transform = 'none';
+        cardBg.style.backgroundImage = 'url(' + blurredURL + ')';
 
-      // (A) 배경만 캡처 — 오버레이/글자 숨김
-      cardOverlay.style.visibility = 'hidden';
-      cardInner.style.visibility = 'hidden';
-      return html2canvas(card, opt).then(bgCanvas => {
-        // (B) 오버레이+글자만 캡처 — 배경 숨김 + 카드 자체 배경색도 투명 처리
-        cardBg.style.visibility = 'hidden';
-        card.style.background = 'transparent';
-        cardOverlay.style.visibility = savedOvVis;
-        cardInner.style.visibility = '';
-        return html2canvas(card, opt).then(fgCanvas => {
+        return html2canvas(card, opt).then(src => {
           // 원복
-          card.style.background = savedCardBg;
+          cardBg.style.backgroundImage = savedBgImage;
           cardBg.style.filter = savedFilter;
           cardBg.style.transform = savedTransform;
-          cardBg.style.visibility = savedBgVis;
-          cardOverlay.style.visibility = savedOvVis;
-          cardInner.style.visibility = '';
 
-          const w = bgCanvas.width, h = bgCanvas.height;
+          const w = src.width, h = src.height;
           const out = document.createElement('canvas');
           out.width = w; out.height = h;
           const ctx = out.getContext('2d');
           clipRound(ctx, w, h);
-
-          // 1) 블러된 배경 (가장자리 비침 방지로 약간 확대해 그림)
-          const ov = blur * scale * 3;
-          drawBlurred(ctx, bgCanvas, blur * scale, -ov, -ov, w + ov * 2, h + ov * 2);
-          // 2) 오버레이 + 글자
-          ctx.drawImage(fgCanvas, 0, 0);
+          ctx.drawImage(src, 0, 0);
           return out;
+        }).catch(err => {
+          cardBg.style.backgroundImage = savedBgImage;
+          cardBg.style.filter = savedFilter;
+          cardBg.style.transform = savedTransform;
+          throw err;
         });
-      }).catch(err => {
-        // 오류 시에도 화면 원복
-        card.style.background = savedCardBg;
-        cardBg.style.filter = savedFilter;
-        cardBg.style.transform = savedTransform;
-        cardBg.style.visibility = savedBgVis;
-        cardOverlay.style.visibility = savedOvVis;
-        cardInner.style.visibility = '';
-        throw err;
       });
     }
 
