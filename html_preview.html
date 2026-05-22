@@ -1007,22 +1007,37 @@
   // PNG 다운로드
   document.getElementById('pngBtn').addEventListener('click', () => {
     const doc = preview.contentDocument;
+    const win = preview.contentWindow;
     if (!doc || !doc.body) { showToast('미리보기를 불러올 수 없습니다'); return; }
     showToast('PNG 생성 중...');
+
+    // 캡처는 스크롤 위치의 영향을 받으므로, 현재 위치를 기억해두고 맨 위로 이동
+    const prevX = win ? win.scrollX : 0;
+    const prevY = win ? win.scrollY : 0;
+    if (win) win.scrollTo(0, 0);
+
     html2canvas(doc.body, {
       backgroundColor: '#ffffff',
       scale: 2,
       width: doc.body.scrollWidth,
       height: doc.body.scrollHeight,
       windowWidth: doc.body.scrollWidth,
-      windowHeight: doc.body.scrollHeight
+      windowHeight: doc.body.scrollHeight,
+      scrollX: 0,
+      scrollY: 0,
+      x: 0,
+      y: 0
     }).then(canvas => {
+      if (win) win.scrollTo(prevX, prevY); // 캡처 후 원래 스크롤 위치 복원
       const a = document.createElement('a');
       a.href = canvas.toDataURL('image/png');
       a.download = 'preview.png';
       a.click();
       showToast('PNG 이미지를 다운로드했습니다');
-    }).catch(() => showToast('PNG 생성에 실패했습니다'));
+    }).catch(() => {
+      if (win) win.scrollTo(prevX, prevY);
+      showToast('PNG 생성에 실패했습니다');
+    });
   });
 
   // ===== 새 문서 / 초기화 =====
