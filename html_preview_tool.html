@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Preview</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --bg: #f2f4f7;
+    --panel: #ffffff;
+    --border: #dde2ea;
+    --text: #1a1d24;
+    --text-dim: #74798a;
+    --accent: #2f6df0;
+    --accent-soft: #e6eefe;
+    --editor-bg: #f9fafc;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+  }
+  [data-theme="dark"] {
+    --bg: #14161c;
+    --panel: #1c1f28;
+    --border: #2b2f3b;
+    --text: #e6e8ee;
+    --text-dim: #858a99;
+    --accent: #5b9bf0;
+    --accent-soft: #1d2a44;
+    --editor-bg: #181a21;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* 영문은 앞쪽 영문 폰트가, 한글은 'Pretendard' 가 자동으로 맡음.
+     (영문 폰트엔 한글 글리프가 없으므로 한글 글자에서만 Pretendard 로 폴백됨)
+     실제 폰트 파일은 위 CDN(pretendard.min.css)이 'Pretendard' 이름으로 로드함 */
+
+  /* 코드 에디터 전용 고정폭 폰트 (줄번호·강조 정렬 유지) */
+  :root {
+    --mono: 'SF Mono', 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace, 'Pretendard Variable', 'Pretendard';
+    --ui: 'SF Mono', 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace, 'Pretendard Variable', 'Pretendard';
+  }
+
+  body {
+    font-family: var(--ui);
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  /* 한글 글자만 영문보다 살짝 작게 (JS 가 한글을 이 span 으로 감쌈) */
+  .kr { font-size: 0.92em; }
+
+  /* 폼 요소(button/input/textarea)는 inherit 가 불안정하므로 폰트를 명시 지정.
+     이렇게 해야 모달·팝업의 버튼·입력창에서도 한글이 Pretendard 로 표시됨 */
+  button, input, textarea, select {
+    font-family: var(--ui);
+  }
+  /* placeholder 도 명시적으로 지정 (일부 브라우저는 별도 처리).
+     placeholder 는 속성이라 .kr span 을 못 쓰므로 크기도 살짝 줄여 한글과 맞춤 */
+  input::placeholder, textarea::placeholder {
+    font-family: var(--ui);
+    font-size: 0.95em;
+  }
+
+  header {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+  }
+  .brand .dot {
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    background: var(--accent);
+  }
+  .brand small {
+    color: var(--text-dim);
+    font-weight: 400;
+    font-size: 11px;
+  }
+
+  .actions { display: flex; align-items: center; gap: 7px; }
+
+  button {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 7px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:active { transform: translateY(1px); }
+  button svg { width: 14px; height: 14px; }
+
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  button.primary:hover { opacity: 0.88; color: #fff; }
+
+  .icon-btn { padding: 7px; }
+
+  .sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 2px;
+  }
+
+  .autosave {
+    font-size: 12.5px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .autosave .pulse {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* 모달 */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(2px);
+  }
+  .overlay.show { display: flex; }
+
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-head {
+    padding: 16px 18px 12px;
+    font-family: var(--ui);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-body {
+    padding: 16px 18px;
+    overflow-y: auto;
+  }
+  .confirm-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .modal input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--editor-bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 11px;
+    outline: none;
+  }
+  .modal input:focus { border-color: var(--accent); }
+
+  .modal-foot {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding: 12px 18px 16px;
+  }
+
+  .slot-list { display: flex; flex-direction: column; gap: 6px; }
+  .slot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .slot:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .slot-info { min-width: 0; }
+  .slot-name {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .slot-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .slot-del {
+    flex-shrink: 0;
+    padding: 5px;
+    border-radius: 6px;
+    color: var(--text-dim);
+  }
+  .slot-del:hover { color: #e0556b; border-color: #e0556b; }
+  .slot-del svg { width: 13px; height: 13px; }
+
+  .empty {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 24px 0;
+  }
+
+  main {
+    display: flex;
+    height: calc(100vh - 52px);
+  }
+
+  .pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .pane-head {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  .char-count {
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 5px;
+    text-transform: none;
+  }
+
+  .divider {
+    width: 1px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+  }
+  .divider:hover { background: var(--accent); }
+
+  /* 에디터: 줄번호 + 구문강조 레이어 */
+  .editor-shell {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    background: var(--editor-bg);
+    position: relative;
+  }
+
+  .gutter {
+    flex-shrink: 0;
+    padding: 16px 0;
+    width: 44px;
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    background: var(--editor-bg);
+    border-right: 1px solid var(--border);
+    user-select: none;
+    overflow: hidden;
+  }
+  .gutter span { display: block; padding-right: 10px; opacity: 0.55; }
+
+  .code-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* textarea 와 highlight 레이어는 완전히 겹쳐서 정렬 */
+  #editor, #highlight {
+    margin: 0;
+    padding: 16px;
+    border: 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    tab-size: 2;
+    white-space: pre;
+    word-wrap: normal;
+    overflow: auto;
+  }
+  #highlight {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    color: var(--text);
+    z-index: 1;
+  }
+  #editor {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    resize: none;
+    outline: none;
+    background: transparent;
+    color: transparent;
+    caret-color: var(--accent);
+    z-index: 2;
+  }
+  #editor::selection { background: rgba(47,109,240,0.25); }
+
+  /* 구문 강조 토큰 색상 */
+  .tok-tag    { color: #1d6fd4; }              /* 일반 태그: div, span, p ... */
+  .tok-struct { color: #c0392b; font-weight: 600; } /* 구조 태그: html, head, body, style, script ... */
+  .tok-attr   { color: #b5651d; }              /* 속성명 */
+  .tok-str    { color: #1e8a52; }              /* 문자열 */
+  .tok-cmt    { color: var(--text-dim); font-style: italic; }
+  .tok-punc   { color: var(--text-dim); }
+  .tok-sel    { color: #8a4fd0; }              /* CSS 선택자 */
+  .tok-prop   { color: #1d6fd4; }              /* CSS 속성명 */
+  .tok-val    { color: #b5651d; }              /* CSS 값 */
+  .tok-num    { color: #c0392b; }
+  .tok-kw     { color: #8a4fd0; }              /* JS 키워드 */
+  .tok-func   { color: #1d6fd4; }              /* JS 함수 */
+  [data-theme="dark"] .tok-tag    { color: #6ab0ff; }
+  [data-theme="dark"] .tok-struct { color: #ff8a7a; }
+  [data-theme="dark"] .tok-attr   { color: #e0a060; }
+  [data-theme="dark"] .tok-str    { color: #5fcf8e; }
+  [data-theme="dark"] .tok-cmt    { color: var(--text-dim); }
+  [data-theme="dark"] .tok-sel    { color: #c39bf0; }
+  [data-theme="dark"] .tok-prop   { color: #6ab0ff; }
+  [data-theme="dark"] .tok-val    { color: #e0a060; }
+  [data-theme="dark"] .tok-num    { color: #e8736b; }
+  [data-theme="dark"] .tok-kw     { color: #c39bf0; }
+  [data-theme="dark"] .tok-func   { color: #6ab0ff; }
+
+  /* 미리보기 헤더 컨트롤 */
+  .preview-head { gap: 8px; }
+  .pv-controls { display: flex; align-items: center; gap: 4px; }
+  .pv-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .pv-btn svg { width: 14px; height: 14px; }
+  .pv-btn:hover { color: var(--accent); background: var(--accent-soft); }
+  .pv-btn.active { color: var(--accent); background: var(--accent-soft); }
+  .pv-divider { width: 1px; height: 16px; background: var(--border); margin: 0 3px; }
+
+  /* 반응형 미리보기 프레임 */
+  .preview-wrap {
+    flex: 1;
+    background: var(--editor-bg);
+    overflow: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .preview-stage {
+    width: 100%;
+    height: 100%;
+    transition: width 0.2s ease;
+  }
+  .preview-stage.framed {
+    margin: 16px 0;
+    height: calc(100% - 32px);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    background: #fff;
+  }
+  iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #fff;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: var(--bg);
+    font-family: var(--ui);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 9px 16px;
+    border-radius: 8px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+    z-index: 99;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 720px) {
+    main { flex-direction: column; }
+    .divider { display: none; }
+    .pane { height: 50%; }
+    .brand small { display: none; }
+    .autosave { display: none; }
+  }
+</style>
+</head>
+<body data-theme="light">
+
+<header>
+  <div class="brand">
+    <span class="dot"></span>
+    HTML Preview
+    <small>live editor</small>
+    <span class="autosave" id="autosave"></span>
+  </div>
+  <div class="actions">
+    <button class="icon-btn" id="themeBtn" title="Toggle theme">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+    </button>
+    <button id="newBtn" title="New document">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="12" y1="18" x2="12" y2="12"/>
+        <line x1="9" y1="15" x2="15" y2="15"/>
+      </svg>
+      New
+    </button>
+    <button id="copyBtn" title="Copy code">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      Copy
+    </button>
+    <span class="sep"></span>
+    <button id="saveBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/>
+        <polyline points="7 3 7 8 15 8"/>
+      </svg>
+      Save
+    </button>
+    <button id="loadBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+      Load
+    </button>
+    <span class="sep"></span>
+    <button id="htmlBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      HTML
+    </button>
+    <button class="primary" id="pngBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      PNG
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="pane" id="editorPane">
+    <div class="pane-head">
+      <span>Editor</span>
+      <span class="char-count" id="charCount">0 chars</span>
+    </div>
+    <div class="editor-shell">
+      <div class="gutter" id="gutter"><span>1</span></div>
+      <div class="code-area">
+        <pre id="highlight" aria-hidden="true"></pre>
+        <textarea id="editor" spellcheck="false" placeholder="Type your HTML code here..."></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="divider" id="divider"></div>
+  <div class="pane">
+    <div class="pane-head preview-head">
+      <span>Preview</span>
+      <div class="pv-controls">
+        <button class="pv-btn active" id="vpDesktop" title="Desktop" data-w="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </button>
+        <button class="pv-btn" id="vpTablet" title="Tablet" data-w="768">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/>
+          </svg>
+        </button>
+        <button class="pv-btn" id="vpMobile" title="Mobile" data-w="375">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/>
+          </svg>
+        </button>
+        <span class="pv-divider"></span>
+        <button class="pv-btn" id="pauseBtn" title="Pause live preview">
+          <svg id="pauseIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+          </svg>
+        </button>
+        <button class="pv-btn" id="refreshBtn" title="Refresh preview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.5 15"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="preview-wrap">
+      <div class="preview-stage" id="previewStage">
+        <iframe id="preview"></iframe>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<!-- 저장 모달 -->
+<div class="overlay" id="saveOverlay">
+  <div class="modal">
+    <div class="modal-head">작업 저장</div>
+    <div class="modal-body">
+      <input type="text" id="saveName" placeholder="저장할 이름을 입력하세요" maxlength="40">
+    </div>
+    <div class="modal-foot">
+      <button id="saveCancel">취소</button>
+      <button class="primary" id="saveConfirm">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 불러오기 모달 -->
+<div class="overlay" id="loadOverlay">
+  <div class="modal">
+    <div class="modal-head">저장된 작업</div>
+    <div class="modal-body">
+      <div class="slot-list" id="slotList"></div>
+    </div>
+    <div class="modal-foot">
+      <button id="loadClose">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 새 문서 확인 모달 -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal">
+    <div class="modal-head">새 문서</div>
+    <div class="modal-body">
+      <p class="confirm-text">새 문서를 시작할까요? 현재 작성 중인 코드가 초기화됩니다.</p>
+    </div>
+    <div class="modal-foot">
+      <button id="confirmCancel">취소</button>
+      <button class="primary" id="confirmOk">새로 시작</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+  const toast = document.getElementById('toast');
+  const charCount = document.getElementById('charCount');
+  const highlight = document.getElementById('highlight');
+  const gutter = document.getElementById('gutter');
+  const previewStage = document.getElementById('previewStage');
+
+  // ===== 구문 강조 (HTML / CSS / JS 다중 언어) =====
+  // 닫는 태그 문자열을 그대로 쓰면 HTML 파서가 이 스크립트를 끝내버리므로 쪼개서 정의
+  const SCRIPT_CLOSE = '</scr' + 'ipt>';
+  const STYLE_CLOSE = '</sty' + 'le>';
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // 최상위: HTML 코드를 토큰화하면서 style/script 블록은 별도 강조로 위임
+  function highlightCode(code) {
+    let out = '';
+    let i = 0;
+    const n = code.length;
+    while (i < n) {
+      // 주석
+      if (code.startsWith('<!--', i)) {
+        const end = code.indexOf('-->', i + 4);
+        const stop = end === -1 ? n : end + 3;
+        out += '<span class="tok-cmt">' + escapeHtml(code.slice(i, stop)) + '</span>';
+        i = stop;
+        continue;
+      }
+      // style 블록: 내부를 CSS 강조로 위임
+      const styleM = /^<style\b[^>]*>/i.exec(code.slice(i));
+      if (styleM) {
+        const close = code.toLowerCase().indexOf(STYLE_CLOSE, i);
+        const inner = (close === -1 ? code.slice(i + styleM[0].length) : code.slice(i + styleM[0].length, close));
+        out += colorTag(styleM[0]);
+        out += highlightCss(inner);
+        if (close === -1) { i = n; } else { out += colorTag(STYLE_CLOSE); i = close + STYLE_CLOSE.length; }
+        continue;
+      }
+      // script 블록: 내부를 JS 강조로 위임
+      const scriptM = /^<script\b[^>]*>/i.exec(code.slice(i));
+      if (scriptM) {
+        const close = code.toLowerCase().indexOf(SCRIPT_CLOSE, i);
+        const inner = (close === -1 ? code.slice(i + scriptM[0].length) : code.slice(i + scriptM[0].length, close));
+        out += colorTag(scriptM[0]);
+        out += highlightJs(inner);
+        if (close === -1) { i = n; } else { out += colorTag(SCRIPT_CLOSE); i = close + SCRIPT_CLOSE.length; }
+        continue;
+      }
+      // 일반 태그
+      if (code[i] === '<') {
+        const end = code.indexOf('>', i);
+        const stop = end === -1 ? n : end + 1;
+        out += colorTag(code.slice(i, stop));
+        i = stop;
+        continue;
+      }
+      // 텍스트 노드
+      let next = code.indexOf('<', i);
+      if (next === -1) next = n;
+      out += escapeHtml(code.slice(i, next));
+      i = next;
+    }
+    return out;
+  }
+
+  // 문서 구조를 이루는 큰 태그들 — 일반 태그와 다른 색으로 구분
+  const STRUCT_TAGS = new Set([
+    'html', 'head', 'body', 'style', 'script', 'main', 'header', 'footer',
+    'nav', 'section', 'article', 'aside', 'template', 'meta', 'link', 'title'
+  ]);
+
+  // HTML 태그 내부: 태그명 / 속성명 / 문자열
+  function colorTag(tag) {
+    let r = '<span class="tok-punc">&lt;</span>';
+    let body = tag.slice(1, tag.endsWith('>') ? -1 : tag.length);
+    const closeBracket = tag.endsWith('>') ? '<span class="tok-punc">&gt;</span>' : '';
+    const nameMatch = body.match(/^\/?[a-zA-Z0-9-]+/);
+    if (nameMatch) {
+      const bareName = nameMatch[0].replace(/^\//, '').toLowerCase();
+      const cls = STRUCT_TAGS.has(bareName) ? 'tok-struct' : 'tok-tag';
+      r += '<span class="' + cls + '">' + escapeHtml(nameMatch[0]) + '</span>';
+      body = body.slice(nameMatch[0].length);
+    }
+    let j = 0;
+    while (j < body.length) {
+      const ch = body[j];
+      if (ch === '"' || ch === "'") {
+        const close = body.indexOf(ch, j + 1);
+        const stop = close === -1 ? body.length : close + 1;
+        r += '<span class="tok-str">' + escapeHtml(body.slice(j, stop)) + '</span>';
+        j = stop;
+      } else if (/[a-zA-Z-]/.test(ch)) {
+        const m = body.slice(j).match(/^[a-zA-Z0-9-]+/);
+        r += '<span class="tok-attr">' + escapeHtml(m[0]) + '</span>';
+        j += m[0].length;
+      } else {
+        r += escapeHtml(ch);
+        j++;
+      }
+    }
+    return r + closeBracket;
+  }
+
+  // CSS 강조: 주석 / 선택자 / 속성명 / 값 / 문자열
+  function highlightCss(css) {
+    let out = '';
+    let i = 0;
+    const n = css.length;
+    let inBlock = false; // { } 내부 = 선언부
+    while (i < n) {
+      // 주석
+      if (css.startsWith('/*', i)) {
+        const end = css.indexOf('*/', i + 2);
+        const stop = end === -1 ? n : end + 2;
+        out += '<span class="tok-cmt">' + escapeHtml(css.slice(i, stop)) + '</span>';
+        i = stop;
+        continue;
+      }
+      const ch = css[i];
+      // 문자열
+      if (ch === '"' || ch === "'") {
+        const close = css.indexOf(ch, i + 1);
+        const stop = close === -1 ? n : close + 1;
+        out += '<span class="tok-str">' + escapeHtml(css.slice(i, stop)) + '</span>';
+        i = stop;
+        continue;
+      }
+      if (ch === '{') { inBlock = true; out += '<span class="tok-punc">{</span>'; i++; continue; }
+      if (ch === '}') { inBlock = false; out += '<span class="tok-punc">}</span>'; i++; continue; }
+      // 식별자 덩어리
+      if (/[a-zA-Z0-9_#.\-%@]/.test(ch)) {
+        const m = css.slice(i).match(/^[a-zA-Z0-9_#.\-%@]+/)[0];
+        if (!inBlock) {
+          out += '<span class="tok-sel">' + escapeHtml(m) + '</span>';
+        } else {
+          // 선언부: : 앞은 속성, 뒤는 값
+          const before = css.slice(0, i);
+          const lineStart = Math.max(before.lastIndexOf(';'), before.lastIndexOf('{'));
+          const seg = css.slice(lineStart + 1, i);
+          if (seg.indexOf(':') === -1) {
+            out += '<span class="tok-prop">' + escapeHtml(m) + '</span>';
+          } else if (/^[0-9]/.test(m)) {
+            out += '<span class="tok-num">' + escapeHtml(m) + '</span>';
+          } else {
+            out += '<span class="tok-val">' + escapeHtml(m) + '</span>';
+          }
+        }
+        i += m.length;
+        continue;
+      }
+      out += escapeHtml(ch);
+      i++;
+    }
+    return out;
+  }
+
+  // JS 강조: 주석 / 문자열·템플릿 / 키워드 / 숫자
+  const JS_KEYWORDS = new Set(('var let const function return if else for while do switch case break ' +
+    'continue new typeof instanceof this class extends super import export default try catch finally ' +
+    'throw await async yield delete in of void null true false undefined').split(' '));
+  function highlightJs(js) {
+    let out = '';
+    let i = 0;
+    const n = js.length;
+    while (i < n) {
+      const two = js.substr(i, 2);
+      // 한 줄 주석
+      if (two === '//') {
+        let end = js.indexOf('\n', i);
+        if (end === -1) end = n;
+        out += '<span class="tok-cmt">' + escapeHtml(js.slice(i, end)) + '</span>';
+        i = end;
+        continue;
+      }
+      // 블록 주석
+      if (two === '/*') {
+        const end = js.indexOf('*/', i + 2);
+        const stop = end === -1 ? n : end + 2;
+        out += '<span class="tok-cmt">' + escapeHtml(js.slice(i, stop)) + '</span>';
+        i = stop;
+        continue;
+      }
+      const ch = js[i];
+      // 문자열 / 템플릿 리터럴
+      if (ch === '"' || ch === "'" || ch === '`') {
+        let j = i + 1;
+        while (j < n && js[j] !== ch) { if (js[j] === '\\') j++; j++; }
+        out += '<span class="tok-str">' + escapeHtml(js.slice(i, Math.min(j + 1, n))) + '</span>';
+        i = j + 1;
+        continue;
+      }
+      // 숫자
+      if (/[0-9]/.test(ch)) {
+        const m = js.slice(i).match(/^[0-9]+\.?[0-9]*/)[0];
+        out += '<span class="tok-num">' + escapeHtml(m) + '</span>';
+        i += m.length;
+        continue;
+      }
+      // 식별자 / 키워드
+      if (/[a-zA-Z_$]/.test(ch)) {
+        const m = js.slice(i).match(/^[a-zA-Z0-9_$]+/)[0];
+        if (JS_KEYWORDS.has(m)) {
+          out += '<span class="tok-kw">' + escapeHtml(m) + '</span>';
+        } else if (js[i + m.length] === '(') {
+          out += '<span class="tok-func">' + escapeHtml(m) + '</span>';
+        } else {
+          out += escapeHtml(m);
+        }
+        i += m.length;
+        continue;
+      }
+      out += escapeHtml(ch);
+      i++;
+    }
+    return out;
+  }
+
+  function syncHighlight() {
+    let code = editor.value;
+    if (code[code.length - 1] === '\n') code += ' '; // 마지막 줄 보정
+    highlight.innerHTML = highlightCode(code);
+    // 줄번호
+    const lines = editor.value.split('\n').length;
+    let g = '';
+    for (let k = 1; k <= lines; k++) g += '<span>' + k + '</span>';
+    gutter.innerHTML = g;
+  }
+  // textarea 스크롤에 강조 레이어와 줄번호 동기화
+  editor.addEventListener('scroll', () => {
+    highlight.scrollTop = editor.scrollTop;
+    highlight.scrollLeft = editor.scrollLeft;
+    gutter.scrollTop = editor.scrollTop;
+  });
+
+  const sample = `<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    font-family: sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #2f6df0, #1e3a8a);
+  }
+  .card {
+    background: #fff;
+    padding: 40px 48px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  }
+  h1 { margin: 0 0 8px; color: #1a1d24; }
+  p  { margin: 0; color: #74798a; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Hello 👋</h1>
+    <p>Edit the code to see live changes.</p>
+  </div>
+</body>
+</html>`;
+
+  // ===== 브라우저 저장 (localStorage) =====
+  // 모든 데이터는 사용자 브라우저에만 저장됩니다. 외부 서버로 전송되지 않습니다.
+  const AUTO_KEY = 'htmlpreview:autosave';
+  const THEME_KEY = 'htmlpreview:theme';
+  const SLOTS_KEY = 'htmlpreview:slots';
+
+  // localStorage 사용 가능 여부 확인 (시크릿 모드 등 대비)
+  let storageOK = true;
+  try {
+    localStorage.setItem('__test__', '1');
+    localStorage.removeItem('__test__');
+  } catch { storageOK = false; }
+
+  const store = {
+    get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }
+  };
+
+  function getSlots() {
+    try { return JSON.parse(store.get(SLOTS_KEY)) || []; }
+    catch { return []; }
+  }
+  function setSlots(slots) {
+    store.set(SLOTS_KEY, JSON.stringify(slots));
+  }
+
+  // 시작 시 자동저장 내용 복원, 없으면 샘플
+  const saved = store.get(AUTO_KEY);
+  editor.value = (saved !== null) ? saved : sample;
+
+  const autosaveEl = document.getElementById('autosave');
+  let autosaveTimer;
+  function autoSave() {
+    if (!storageOK) return;
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(() => {
+      store.set(AUTO_KEY, editor.value);
+      autosaveEl.innerHTML = '<span class="pulse"></span>자동 저장됨';
+    }, 500);
+  }
+
+  // 라이브 렌더링 (디바운스)
+  let timer;
+  let paused = false; // 미리보기 일시정지 상태
+  function updateCount() {
+    charCount.textContent = editor.value.length.toLocaleString() + ' chars';
+  }
+  function renderPreview() {
+    preview.srcdoc = editor.value;
+  }
+  function render() {
+    updateCount();
+    syncHighlight();
+    autoSave();
+    if (paused) return; // 일시정지 중에는 미리보기 갱신 안 함
+    clearTimeout(timer);
+    timer = setTimeout(renderPreview, 200);
+  }
+  editor.addEventListener('input', render);
+  render();
+  renderPreview();
+
+  // Tab 키 지원
+  editor.addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const s = editor.selectionStart, en = editor.selectionEnd;
+      editor.value = editor.value.slice(0, s) + '  ' + editor.value.slice(en);
+      editor.selectionStart = editor.selectionEnd = s + 2;
+      render();
+    }
+  });
+
+  // 테마 전환 (저장된 테마 복원)
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  const sunIcon = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  const moonIcon = '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>';
+
+  function applyTheme(theme) {
+    document.body.dataset.theme = theme;
+    themeIcon.innerHTML = (theme === 'dark') ? moonIcon : sunIcon;
+  }
+  applyTheme(store.get(THEME_KEY) || 'light');
+
+  themeBtn.addEventListener('click', () => {
+    const next = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    store.set(THEME_KEY, next);
+  });
+
+  // 토스트
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  // HTML 저장
+  document.getElementById('htmlBtn').addEventListener('click', () => {
+    const blob = new Blob([editor.value], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'preview.html';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('HTML 파일을 다운로드했습니다');
+  });
+
+  // PNG 다운로드
+  document.getElementById('pngBtn').addEventListener('click', () => {
+    const doc = preview.contentDocument;
+    if (!doc || !doc.body) { showToast('미리보기를 불러올 수 없습니다'); return; }
+    showToast('PNG 생성 중...');
+    html2canvas(doc.body, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      width: doc.body.scrollWidth,
+      height: doc.body.scrollHeight,
+      windowWidth: doc.body.scrollWidth,
+      windowHeight: doc.body.scrollHeight
+    }).then(canvas => {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = 'preview.png';
+      a.click();
+      showToast('PNG 이미지를 다운로드했습니다');
+    }).catch(() => showToast('PNG 생성에 실패했습니다'));
+  });
+
+  // ===== 새 문서 / 초기화 =====
+  // confirm() 은 OS 가 그리는 창이라 폰트를 못 바꾸므로 커스텀 모달 사용
+  const confirmOverlay = document.getElementById('confirmOverlay');
+  function doNewDocument() {
+    editor.value = sample;
+    render();
+    renderPreview();
+    editor.focus();
+    showToast('새 문서를 만들었습니다');
+  }
+  document.getElementById('newBtn').addEventListener('click', () => {
+    if (editor.value.trim()) {
+      confirmOverlay.classList.add('show');
+    } else {
+      doNewDocument();
+    }
+  });
+  document.getElementById('confirmCancel').addEventListener('click', () => {
+    confirmOverlay.classList.remove('show');
+  });
+  document.getElementById('confirmOk').addEventListener('click', () => {
+    confirmOverlay.classList.remove('show');
+    doNewDocument();
+  });
+
+  // ===== 클립보드 복사 =====
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(editor.value);
+      showToast('코드를 클립보드에 복사했습니다');
+    } catch {
+      // 클립보드 API 사용 불가 시 폴백
+      editor.select();
+      document.execCommand('copy');
+      editor.setSelectionRange(0, 0);
+      showToast('코드를 클립보드에 복사했습니다');
+    }
+  });
+
+  // ===== 반응형 미리보기 =====
+  const vpButtons = [
+    document.getElementById('vpDesktop'),
+    document.getElementById('vpTablet'),
+    document.getElementById('vpMobile')
+  ];
+  vpButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      vpButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const w = parseInt(btn.dataset.w, 10);
+      if (w === 0) {
+        previewStage.classList.remove('framed');
+        previewStage.style.width = '100%';
+      } else {
+        previewStage.classList.add('framed');
+        previewStage.style.width = w + 'px';
+      }
+    });
+  });
+
+  // ===== 미리보기 새로고침 / 일시정지 =====
+  document.getElementById('refreshBtn').addEventListener('click', () => {
+    renderPreview();
+    showToast('미리보기를 새로고침했습니다');
+  });
+
+  const pauseBtn = document.getElementById('pauseBtn');
+  const pauseIcon = document.getElementById('pauseIcon');
+  const playPath = '<polygon points="5 3 19 12 5 21 5 3"/>';
+  const pausePath = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    if (paused) {
+      pauseIcon.innerHTML = playPath;
+      pauseBtn.classList.add('active');
+      pauseBtn.title = 'Resume live preview';
+      showToast('실시간 미리보기를 일시정지했습니다');
+    } else {
+      pauseIcon.innerHTML = pausePath;
+      pauseBtn.classList.remove('active');
+      pauseBtn.title = 'Pause live preview';
+      renderPreview();
+      showToast('실시간 미리보기를 재개했습니다');
+    }
+  });
+
+  // ===== 이름을 붙여 저장 / 불러오기 =====
+  const saveOverlay = document.getElementById('saveOverlay');
+  const loadOverlay = document.getElementById('loadOverlay');
+  const saveName = document.getElementById('saveName');
+  const slotList = document.getElementById('slotList');
+
+  function openModal(el) { el.classList.add('show'); }
+  function closeModal(el) { el.classList.remove('show'); }
+
+  // 저장 모달 열기
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    saveName.value = '';
+    openModal(saveOverlay);
+    saveName.focus();
+  });
+  document.getElementById('saveCancel').addEventListener('click', () => closeModal(saveOverlay));
+
+  function doSave() {
+    const name = saveName.value.trim();
+    if (!name) { saveName.focus(); return; }
+    const slots = getSlots();
+    const now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+    const existing = slots.find(s => s.name === name);
+    if (existing) {
+      existing.code = editor.value;
+      existing.date = now;
+    } else {
+      slots.unshift({ name, code: editor.value, date: now });
+    }
+    setSlots(slots);
+    closeModal(saveOverlay);
+    showToast('"' + name + '" 저장했습니다');
+  }
+  document.getElementById('saveConfirm').addEventListener('click', doSave);
+  saveName.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); });
+
+  // 불러오기 모달 - 자동저장 + 명명 슬롯 모두 표시
+  function makeSlotRow(label, meta, code, opts) {
+    opts = opts || {};
+    const row = document.createElement('div');
+    row.className = 'slot';
+    row.innerHTML =
+      '<div class="slot-info">' +
+        '<div class="slot-name"></div>' +
+        '<div class="slot-meta">' + meta + '</div>' +
+      '</div>' +
+      (opts.deletable
+        ? '<button class="slot-del" title="삭제">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+          '<polyline points="3 6 5 6 21 6"/>' +
+          '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
+          '</svg></button>'
+        : '');
+    row.querySelector('.slot-name').textContent = label;
+    row.querySelector('.slot-info').addEventListener('click', () => {
+      editor.value = code;
+      render();
+      renderPreview();
+      closeModal(loadOverlay);
+      showToast('"' + label + '" 불러왔습니다');
+    });
+    if (opts.onDelete) {
+      row.querySelector('.slot-del').addEventListener('click', e => {
+        e.stopPropagation();
+        opts.onDelete();
+      });
+    }
+    return row;
+  }
+
+  function renderSlots() {
+    const slots = getSlots();
+    const auto = store.get(AUTO_KEY);
+    slotList.innerHTML = '';
+
+    // 자동저장 항목 (항상 맨 위, 삭제 불가)
+    if (auto !== null) {
+      slotList.appendChild(
+        makeSlotRow('마지막 작업', '자동 저장됨 · 현재 작업 중', auto, { deletable: false })
+      );
+    }
+    // 명명 슬롯
+    slots.forEach((slot, i) => {
+      slotList.appendChild(
+        makeSlotRow(slot.name, slot.date, slot.code, {
+          deletable: true,
+          onDelete: () => {
+            const next = getSlots();
+            next.splice(i, 1);
+            setSlots(next);
+            renderSlots();
+            showToast('"' + slot.name + '" 삭제했습니다');
+          }
+        })
+      );
+    });
+
+    if (slotList.children.length === 0) {
+      slotList.innerHTML = '<div class="empty">저장된 작업이 없습니다</div>';
+    }
+  }
+
+  document.getElementById('loadBtn').addEventListener('click', () => {
+    renderSlots();
+    openModal(loadOverlay);
+  });
+  document.getElementById('loadClose').addEventListener('click', () => closeModal(loadOverlay));
+
+  // 오버레이 바깥 클릭 / ESC 로 닫기
+  [saveOverlay, loadOverlay, confirmOverlay].forEach(ov => {
+    ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov); });
+  });
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(saveOverlay); closeModal(loadOverlay); closeModal(confirmOverlay); }
+  });
+
+  // 패널 크기 조절
+  const divider = document.getElementById('divider');
+  const editorPane = document.getElementById('editorPane');
+  let dragging = false;
+
+  divider.addEventListener('mousedown', () => { dragging = true; document.body.style.userSelect = 'none'; });
+  window.addEventListener('mouseup', () => { dragging = false; document.body.style.userSelect = ''; });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const pct = (e.clientX / window.innerWidth) * 100;
+    if (pct > 15 && pct < 85) editorPane.style.flex = `0 0 ${pct}%`;
+  });
+
+  // ===== 한글 글자만 살짝 작게 =====
+  // 영문 폰트와 Pretendard 의 크기 차이를 줄이기 위해 한글 글자를 .kr span 으로 감쌈.
+  const HANGUL_RANGE = '\\u1100-\\u11FF\\u3130-\\u318F\\uAC00-\\uD7AF';
+  const HANGUL_TEST = new RegExp('[' + HANGUL_RANGE + ']');          // 검사용 (g 플래그 없음)
+  function wrapHangul(root) {
+    if (root.nodeType === 1 && (root.id === 'editor' || root.id === 'highlight' || root.id === 'gutter')) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const p = node.parentElement;
+        if (!p) return NodeFilter.FILTER_REJECT;
+        if (p.classList.contains('kr')) return NodeFilter.FILTER_REJECT;
+        if (['SCRIPT', 'STYLE', 'TEXTAREA'].includes(p.tagName)) return NodeFilter.FILTER_REJECT;
+        if (p.closest('#editor, #highlight, #gutter')) return NodeFilter.FILTER_REJECT;
+        return HANGUL_TEST.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    const targets = [];
+    let n;
+    while ((n = walker.nextNode())) targets.push(n);
+    targets.forEach(node => {
+      const re = new RegExp('[' + HANGUL_RANGE + ']+', 'g'); // 추출용 (매번 새로 생성)
+      const frag = document.createDocumentFragment();
+      let last = 0, m;
+      while ((m = re.exec(node.nodeValue))) {
+        if (m.index > last) frag.appendChild(document.createTextNode(node.nodeValue.slice(last, m.index)));
+        const span = document.createElement('span');
+        span.className = 'kr';
+        span.textContent = m[0];
+        frag.appendChild(span);
+        last = m.index + m[0].length;
+      }
+      if (last < node.nodeValue.length) frag.appendChild(document.createTextNode(node.nodeValue.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  // 최초 1회 + 이후 추가되는 요소(토스트·모달 슬롯 등) 자동 처리
+  wrapHangul(document.body);
+  new MutationObserver(muts => {
+    muts.forEach(mt => mt.addedNodes.forEach(node => {
+      if (node.nodeType === 1) wrapHangul(node);
+      else if (node.nodeType === 3 && node.parentElement && HANGUL_TEST.test(node.nodeValue || '')) {
+        wrapHangul(node.parentElement);
+      }
+    }));
+  }).observe(document.body, { childList: true, subtree: true });
+
+
+</script>
+</body>
+</html>
