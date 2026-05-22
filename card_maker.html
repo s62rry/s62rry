@@ -1763,6 +1763,62 @@
   // 둥근 모서리 + 배경 블러를 반영해 최종 캔버스를 만듦.
   // 블러가 켜지면 배경/오버레이/글자를 따로 캡처해 합성한다.
   const cardInner = document.querySelector('.card-inner');
+
+  // canvas ctx.filter 의 blur 가 실제로 동작하는지 1회 검사 (캐시)
+  let _blurFilterOK = null;
+  function blurFilterWorks() {
+    if (_blurFilterOK !== null) return _blurFilterOK;
+    try {
+      const t = document.createElement('canvas');
+      t.width = t.height = 9;
+      const c = t.getContext('2d');
+      // 가운데 1px 흰 점을 그리고 블러 → 퍼지면 주변 픽셀이 0이 아님
+      c.fillStyle = '#fff';
+      c.fillRect(4, 4, 1, 1);
+      const src = t;
+      const t2 = document.createElement('canvas');
+      t2.width = t2.height = 9;
+      const c2 = t2.getContext('2d');
+      c2.filter = 'blur(2px)';
+      c2.drawImage(src, 0, 0);
+      const px = c2.getImageData(1, 1, 1, 1).data; // 모서리 픽셀
+      _blurFilterOK = px[3] > 0; // 알파가 퍼졌으면 OK
+    } catch { _blurFilterOK = false; }
+    return _blurFilterOK;
+  }
+
+  // 이미지를 블러 처리해 ctx 의 (dx,dy,dw,dh) 영역에 그림
+  function drawBlurred(ctx, img, blurPx, dx, dy, dw, dh) {
+    if (blurPx <= 0) { ctx.drawImage(img, dx, dy, dw, dh); return; }
+    if (blurFilterWorks()) {
+      ctx.save();
+      ctx.filter = 'blur(' + blurPx + 'px)';
+      ctx.drawImage(img, dx, dy, dw, dh);
+      ctx.restore();
+      return;
+    }
+    // 폴백: 작게 줄였다가 키우면 자연스러운 블러가 됨 (모든 브라우저 동작)
+    const steps = Math.max(1, Math.round(blurPx / 2));
+    let cur = document.createElement('canvas');
+    cur.width = img.width; cur.height = img.height;
+    cur.getContext('2d').drawImage(img, 0, 0);
+    for (let i = 0; i < steps; i++) {
+      const sw = Math.max(2, Math.round(cur.width / 2));
+      const sh = Math.max(2, Math.round(cur.height / 2));
+      const small = document.createElement('canvas');
+      small.width = sw; small.height = sh;
+      const sc = small.getContext('2d');
+      sc.imageSmoothingEnabled = true;
+      sc.drawImage(cur, 0, 0, sw, sh);
+      cur = small;
+    }
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(cur, dx, dy, dw, dh);
+    ctx.restore();
+  }
+
   function renderCardCanvas() {
     const scale = 2;
     const radius = parseInt($('radiusRange').value, 10) * scale;
@@ -1784,27 +1840,56 @@
     }
 
     if (blur > 0) {
-      // 배경 / 오버레이+글자(=card에서 배경 잠시 숨김) 를 따로 캡처
-      const prevBgVis = cardBg.style.visibility;
-      return html2canvas(cardBg, opt).then(bgCanvas => {
-        cardBg.style.visibility = 'hidden';      // 배경 숨기고 나머지(오버레이+글자) 캡처
+      // 화면용 blur/transform 을 잠시 제거 (html2canvas 가 못 따라 그리므로)
+      const savedFilter = cardBg.style.filter;
+      const savedTransform = cardBg.style.transform;
+      const savedBgVis = cardBg.style.visibility;
+      const savedOvVis = cardOverlay.style.visibility;
+      const savedCardBg = card.style.background;
+
+      cardBg.style.filter = 'none';
+      cardBg.style.transform = 'none';
+
+      // (A) 배경만 캡처 — 오버레이/글자 숨김
+      cardOverlay.style.visibility = 'hidden';
+      cardInner.style.visibility = 'hidden';
+      return html2canvas(card, opt).then(bgCanvas => {
+        // (B) 오버레이+글자만 캡처 — 배경 숨김 + 카드 자체 배경색도 투명 처리
+        cardBg.style.visibility = 'hidden';
+        card.style.background = 'transparent';
+        cardOverlay.style.visibility = savedOvVis;
+        cardInner.style.visibility = '';
         return html2canvas(card, opt).then(fgCanvas => {
-          cardBg.style.visibility = prevBgVis;   // 원복
-          const w = fgCanvas.width, h = fgCanvas.height;
+          // 원복
+          card.style.background = savedCardBg;
+          cardBg.style.filter = savedFilter;
+          cardBg.style.transform = savedTransform;
+          cardBg.style.visibility = savedBgVis;
+          cardOverlay.style.visibility = savedOvVis;
+          cardInner.style.visibility = '';
+
+          const w = bgCanvas.width, h = bgCanvas.height;
           const out = document.createElement('canvas');
           out.width = w; out.height = h;
           const ctx = out.getContext('2d');
           clipRound(ctx, w, h);
-          // 1) 블러된 배경
-          ctx.save();
-          ctx.filter = 'blur(' + (blur * scale) + 'px)';
+
+          // 1) 블러된 배경 (가장자리 비침 방지로 약간 확대해 그림)
           const ov = blur * scale * 3;
-          ctx.drawImage(bgCanvas, -ov, -ov, w + ov * 2, h + ov * 2);
-          ctx.restore();
+          drawBlurred(ctx, bgCanvas, blur * scale, -ov, -ov, w + ov * 2, h + ov * 2);
           // 2) 오버레이 + 글자
           ctx.drawImage(fgCanvas, 0, 0);
           return out;
-        }).catch(err => { cardBg.style.visibility = prevBgVis; throw err; });
+        });
+      }).catch(err => {
+        // 오류 시에도 화면 원복
+        card.style.background = savedCardBg;
+        cardBg.style.filter = savedFilter;
+        cardBg.style.transform = savedTransform;
+        cardBg.style.visibility = savedBgVis;
+        cardOverlay.style.visibility = savedOvVis;
+        cardInner.style.visibility = '';
+        throw err;
       });
     }
 
