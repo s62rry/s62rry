@@ -599,7 +599,10 @@
 
     <!-- 글자 스타일 -->
     <div class="section">
-      <div class="section-title">글자 스타일</div>
+      <div class="section-title">
+        글자 스타일
+        <button class="toggle-btn" id="shadowToggle" title="글자에 그림자 효과">그림자</button>
+      </div>
       <div class="field-group">
         <label class="field-label">본문 크기</label>
         <div class="slider-row">
@@ -1010,6 +1013,7 @@
     indent: false,
     quoteMark: false,
     showCredit: true,
+    shadow: false,
     bgMode: 'color',
     bgImageData: ''
   };
@@ -1288,14 +1292,25 @@
     });
   }
 
-  // 제작자 메뉴: 제작자를 고르면 그 제작자의 첫 캐릭터를 자동 채움 (연동)
+  // 제작자 메뉴: 제작자 입력칸 글자로 검색(초성/접두) 필터링
   function buildMakerMenu() {
     makerMenu.innerHTML = '';
     if (data.makers.length === 0) {
       makerMenu.innerHTML = '<div class="combo-empty">저장된 제작자가 없습니다</div>';
       return;
     }
-    data.makers.forEach(m => {
+    const curMaker = makerInput.value.trim();
+    const exact = data.makers.includes(curMaker);
+    let list = data.makers;
+    if (curMaker && !exact) {
+      list = data.makers.filter(m => matchesQuery(m, curMaker));
+    }
+    if (list.length === 0) {
+      makerMenu.innerHTML =
+        '<div class="combo-empty">"' + curMaker + '" 로 시작하는 제작자가 없습니다</div>';
+      return;
+    }
+    list.forEach(m => {
       const linked = data.pairs.filter(p => p.maker === m).map(p => p.char);
       const row = document.createElement('div');
       row.className = 'combo-item';
@@ -1307,14 +1322,9 @@
       if (linked.length) {
         row.querySelector('.ci-sub').textContent = '캐릭터 ' + linked.length + '명';
       }
-      // 행 전체를 클릭 영역으로
+      // 제작자만 선택 — 캐릭터는 건드리지 않음 (자동입력 제거)
       row.addEventListener('click', () => {
         makerInput.value = m;
-        // 현재 캐릭터가 이 제작자 소속이 아니면 첫 캐릭터로 교체
-        const cur = charInput.value.trim();
-        if (!data.pairs.some(p => p.maker === m && p.char === cur)) {
-          charInput.value = linked.length ? linked[0] : '';
-        }
         closeMenus();
         renderCard();
       });
@@ -1350,17 +1360,32 @@
     if (!e.target.closest('.combo')) closeMenus();
   });
 
-  makerInput.addEventListener('input', renderCard);
+  // 제작자 입력 시: 카드 갱신 + 검색 메뉴 자동 열기/갱신
+  function onMakerInput() {
+    renderCard();
+    buildMakerMenu();
+    charMenu.classList.remove('show');
+    makerMenu.classList.add('show');
+  }
   // 캐릭터 입력 시: 카드 갱신 + 검색 메뉴 자동 열기/갱신
-  charInput.addEventListener('input', () => {
+  function onCharInput() {
     renderCard();
     buildCharMenu();
     makerMenu.classList.remove('show');
     charMenu.classList.add('show');
-  });
+  }
+  // input 과 compositionupdate 둘 다 처리 — 한글 조합 중(ㅍ 등)에도 검색되게.
+  // compositionupdate 시점엔 value 가 아직 갱신 전이라 다음 틱에 실행.
+  makerInput.addEventListener('input', onMakerInput);
+  makerInput.addEventListener('compositionupdate', () => setTimeout(onMakerInput, 0));
+  charInput.addEventListener('input', onCharInput);
+  charInput.addEventListener('compositionupdate', () => setTimeout(onCharInput, 0));
+
   makerInput.addEventListener('blur', commitPair);
   charInput.addEventListener('blur', commitPair);
-  makerInput.addEventListener('keydown', e => { if (e.key === 'Enter') { commitPair(); makerInput.blur(); } });
+  makerInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { commitPair(); makerInput.blur(); closeMenus(); }
+  });
   charInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') { commitPair(); charInput.blur(); closeMenus(); }
   });
@@ -1422,6 +1447,12 @@
                  : (state.align === 'right' ? 'right' : 'center');
     quoteText.style.transformOrigin = origin;
     quoteText.style.transform = 'scaleX(' + (scale / 100) + ')';
+
+    // 글자 그림자 on/off
+    const shadowCss = state.shadow ? '0 2px 8px rgba(0,0,0,0.45)' : 'none';
+    quoteText.style.textShadow = shadowCss;
+    charName.style.textShadow = shadowCss;
+    makerName.style.textShadow = shadowCss;
 
     charName.style.color = textCol;
     makerName.style.color = textCol;
@@ -1501,6 +1532,13 @@
     state.showCredit = !state.showCredit;
     $('creditToggle').classList.toggle('on', state.showCredit);
     renderCard();
+  });
+
+  // 글자 그림자 토글
+  $('shadowToggle').addEventListener('click', () => {
+    state.shadow = !state.shadow;
+    $('shadowToggle').classList.toggle('on', state.shadow);
+    applyStyle();
   });
 
   // 카드 비율 버튼
@@ -1662,6 +1700,7 @@
     state.indent = false;
     state.quoteMark = false;
     state.showCredit = true;
+    state.shadow = false;
     state.bgMode = 'color';
     state.bgImageData = '';
     $('fontScaleRange').value = getFontScale(state.fontFamily);
@@ -1679,6 +1718,7 @@
     $('indentToggle').classList.remove('on');
     $('quoteToggle').classList.remove('on');
     $('creditToggle').classList.add('on');
+    $('shadowToggle').classList.remove('on');
     renderFontGrid();
     renderGradGrid();
     applyStyle();
@@ -1720,9 +1760,69 @@
   });
 
   // ============ 이미지 저장 / 복사 ============
+  // 둥근 모서리 + 배경 블러를 반영해 최종 캔버스를 만듦.
+  // 블러가 켜지면 배경/오버레이/글자를 따로 캡처해 합성한다.
+  const cardInner = document.querySelector('.card-inner');
+  function renderCardCanvas() {
+    const scale = 2;
+    const radius = parseInt($('radiusRange').value, 10) * scale;
+    const blur = (state.bgMode === 'image' && state.bgImageData)
+      ? parseInt($('bgBlurRange').value, 10) : 0;
+    const opt = { scale: scale, useCORS: true, backgroundColor: null };
+
+    function clipRound(ctx, w, h) {
+      if (radius <= 0) return;
+      const r = Math.min(radius, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(r, 0);
+      ctx.arcTo(w, 0, w, h, r);
+      ctx.arcTo(w, h, 0, h, r);
+      ctx.arcTo(0, h, 0, 0, r);
+      ctx.arcTo(0, 0, w, 0, r);
+      ctx.closePath();
+      ctx.clip();
+    }
+
+    if (blur > 0) {
+      // 배경 / 오버레이+글자(=card에서 배경 잠시 숨김) 를 따로 캡처
+      const prevBgVis = cardBg.style.visibility;
+      return html2canvas(cardBg, opt).then(bgCanvas => {
+        cardBg.style.visibility = 'hidden';      // 배경 숨기고 나머지(오버레이+글자) 캡처
+        return html2canvas(card, opt).then(fgCanvas => {
+          cardBg.style.visibility = prevBgVis;   // 원복
+          const w = fgCanvas.width, h = fgCanvas.height;
+          const out = document.createElement('canvas');
+          out.width = w; out.height = h;
+          const ctx = out.getContext('2d');
+          clipRound(ctx, w, h);
+          // 1) 블러된 배경
+          ctx.save();
+          ctx.filter = 'blur(' + (blur * scale) + 'px)';
+          const ov = blur * scale * 3;
+          ctx.drawImage(bgCanvas, -ov, -ov, w + ov * 2, h + ov * 2);
+          ctx.restore();
+          // 2) 오버레이 + 글자
+          ctx.drawImage(fgCanvas, 0, 0);
+          return out;
+        }).catch(err => { cardBg.style.visibility = prevBgVis; throw err; });
+      });
+    }
+
+    // 블러 없음 — 통째로 캡처 후 둥근 모서리만 적용
+    return html2canvas(card, opt).then(src => {
+      const w = src.width, h = src.height;
+      const out = document.createElement('canvas');
+      out.width = w; out.height = h;
+      const ctx = out.getContext('2d');
+      clipRound(ctx, w, h);
+      ctx.drawImage(src, 0, 0);
+      return out;
+    });
+  }
+
   function saveImage() {
     toast('이미지 생성 중...');
-    html2canvas(card, { scale: 2, useCORS: true, backgroundColor: null }).then(canvas => {
+    renderCardCanvas().then(canvas => {
       const a = document.createElement('a');
       a.href = canvas.toDataURL('image/png');
       a.download = 'quote-card.png';
@@ -1736,7 +1836,7 @@
       return;
     }
     toast('이미지 생성 중...');
-    html2canvas(card, { scale: 2, useCORS: true, backgroundColor: null }).then(canvas => {
+    renderCardCanvas().then(canvas => {
       canvas.toBlob(blob => {
         if (!blob) { toast('이미지 생성에 실패했습니다'); return; }
         navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
