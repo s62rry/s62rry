@@ -1421,6 +1421,38 @@
   .sticker.shadow .stk-content {
     filter: drop-shadow(0 3px 5px rgba(90,80,90,0.3));
   }
+  /* 외곽선 — drop-shadow 를 여러 겹 쌓아 윤곽선 효과 */
+  .sticker.outline-white .stk-content {
+    filter:
+      drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff)
+      drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff)
+      drop-shadow(1.4px 1.4px 0 #fff) drop-shadow(-1.4px -1.4px 0 #fff)
+      drop-shadow(1.4px -1.4px 0 #fff) drop-shadow(-1.4px 1.4px 0 #fff);
+  }
+  .sticker.outline-black .stk-content {
+    filter:
+      drop-shadow(2px 0 0 #000) drop-shadow(-2px 0 0 #000)
+      drop-shadow(0 2px 0 #000) drop-shadow(0 -2px 0 #000)
+      drop-shadow(1.4px 1.4px 0 #000) drop-shadow(-1.4px -1.4px 0 #000)
+      drop-shadow(1.4px -1.4px 0 #000) drop-shadow(-1.4px 1.4px 0 #000);
+  }
+  /* 외곽선 + 그림자 동시 */
+  .sticker.outline-white.shadow .stk-content {
+    filter:
+      drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff)
+      drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff)
+      drop-shadow(1.4px 1.4px 0 #fff) drop-shadow(-1.4px -1.4px 0 #fff)
+      drop-shadow(1.4px -1.4px 0 #fff) drop-shadow(-1.4px 1.4px 0 #fff)
+      drop-shadow(0 4px 5px rgba(90,80,90,0.35));
+  }
+  .sticker.outline-black.shadow .stk-content {
+    filter:
+      drop-shadow(2px 0 0 #000) drop-shadow(-2px 0 0 #000)
+      drop-shadow(0 2px 0 #000) drop-shadow(0 -2px 0 #000)
+      drop-shadow(1.4px 1.4px 0 #000) drop-shadow(-1.4px -1.4px 0 #000)
+      drop-shadow(1.4px -1.4px 0 #000) drop-shadow(-1.4px 1.4px 0 #000)
+      drop-shadow(0 4px 5px rgba(90,80,90,0.35));
+  }
   .sticker:hover { --scale: 1.08; }
   .sticker:active { cursor: grabbing; }
   .sticker.dragging { --scale: 1.1; }
@@ -1456,6 +1488,19 @@
   .sticker .stk-del-btn { background: var(--pink-d); }
   .sticker .stk-shadow-btn { background: var(--sky); }
   .sticker .stk-shadow-btn.off { background: var(--ink-faint); }
+  .sticker .stk-outline-btn { background: var(--ink-faint); font-size: 9px; }
+  .sticker .stk-outline-btn.on-white { background: #fff; color: #555; border: 1px solid #ccc; }
+  .sticker .stk-outline-btn.on-black { background: #222; color: #fff; }
+  /* 순서 버튼 (왼쪽 아래) */
+  .sticker .stk-order {
+    position: absolute;
+    left: -10px; bottom: -10px;
+    display: none;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .sticker:hover .stk-order { display: flex; }
+  .sticker .stk-order-btn { background: var(--ink-soft); font-size: 11px; }
   /* 회전 핸들 (왼쪽 위) */
   .sticker .stk-rotate {
     position: absolute;
@@ -1641,7 +1686,7 @@
     <div class="traffic" id="traffic"><i class="r" id="btnClose"></i><i class="y" id="btnMin"></i><i class="g" id="btnMax"></i></div>
     <div class="tb-title">
       <span class="fi">
-        <svg viewBox="0 0 24 24" fill="#f6cf86" stroke="#e0ad4a" stroke-width="1.5" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" fill="#ffc4d6" stroke="#ff96b6" stroke-width="1.5" stroke-linejoin="round">
           <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
         </svg>
       </span>
@@ -2221,7 +2266,7 @@
     '................',
     '................'
   ];
-  const FOLDER_PAL = { d:'#e0ad4a', l:'#f6cf86' };
+  const FOLDER_PAL = { d:'#ff96b6', l:'#ffc4d6' };
   $('deskIconArt').innerHTML = pixelSvg(FOLDER_PX, FOLDER_PAL);
 
   // 바탕화면 꾸밈 아이콘들 (장식용)
@@ -2280,7 +2325,7 @@
     '................'
   ];
   $('decoTrash').innerHTML = pixelSvg(TRASH_PX, { t:'#9b94a6', m:'#bdb6c6', h:'#d6d0dc' });
-  $('decoNote').innerHTML  = pixelSvg(NOTE_PX,  { p:'#e0ad4a', w:'#fff7e6', l:'#f0cf86' });
+  $('decoNote').innerHTML  = pixelSvg(NOTE_PX,  { p:'#5cb3f5', w:'#ffffff', l:'#bde2fb' });
   $('decoPic').innerHTML   = pixelSvg(PIC_PX,   { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
 
   // ----- 도구 사용 횟수 (자주 쓰는 것 판별용) -----
@@ -2945,7 +2990,7 @@
   });
 
   // 앱 창 타이틀 아이콘 (작게)
-  $('noteTitleIc').innerHTML  = pixelSvg(NOTE_PX, { p:'#e0ad4a', w:'#fff7e6', l:'#f0cf86' });
+  $('noteTitleIc').innerHTML  = pixelSvg(NOTE_PX, { p:'#5cb3f5', w:'#ffffff', l:'#bde2fb' });
   $('photoTitleIc').innerHTML = pixelSvg(PIC_PX, { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
   $('trashTitleIc').innerHTML = pixelSvg(TRASH_PX, { t:'#9b94a6', m:'#bdb6c6', h:'#d6d0dc' });
 
@@ -3023,7 +3068,7 @@
     });
   })();
   // 시작 메뉴 앱 아이콘
-  $('smIcNote').innerHTML  = pixelSvg(NOTE_PX, { p:'#e0ad4a', w:'#fff7e6', l:'#f0cf86' });
+  $('smIcNote').innerHTML  = pixelSvg(NOTE_PX, { p:'#5cb3f5', w:'#ffffff', l:'#bde2fb' });
   $('smIcPhoto').innerHTML = pixelSvg(PIC_PX, { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
   // 시작 메뉴 앱 클릭
   document.querySelectorAll('#startMenu .sm-item[data-sm]').forEach(item => {
@@ -3641,7 +3686,15 @@
   } catch { stickers = []; }
 
   function saveStickers() {
-    try { localStorage.setItem(STICKER_KEY, JSON.stringify(stickers)); }
+    try {
+      // _el(DOM 참조)은 저장에서 제외 — 순환참조 방지
+      const data = stickers.map(s => ({
+        id: s.id, kind: s.kind, emoji: s.emoji, src: s.src,
+        x: s.x, y: s.y, size: s.size, shadow: s.shadow,
+        rot: s.rot, outline: s.outline
+      }));
+      localStorage.setItem(STICKER_KEY, JSON.stringify(data));
+    }
     catch { toast('스티커 이미지가 너무 커서 저장하지 못했어요'); }
   }
   // 스티커 하나를 화면에 그림
@@ -3650,9 +3703,12 @@
     if (!s.size) s.size = 64;
     if (s.shadow === undefined) s.shadow = true;
     if (s.rot === undefined) s.rot = 0;
+    if (s.outline === undefined) s.outline = 'none';  // none|white|black
 
     const el = document.createElement('div');
-    el.className = 'sticker' + (s.shadow ? ' shadow' : '');
+    el.className = 'sticker' + (s.shadow ? ' shadow' : '')
+      + (s.outline === 'white' ? ' outline-white'
+       : s.outline === 'black' ? ' outline-black' : '');
     el.style.left = s.x + 'px';
     el.style.top = s.y + 'px';
     el.style.width = s.size + 'px';
@@ -3674,9 +3730,35 @@
     }
     el.appendChild(content);
 
-    // 도구 버튼 (삭제 · 섀도우 토글)
+    // 외곽선 클래스를 현재 상태에 맞게 다시 칠하는 함수
+    function applyOutlineClass() {
+      el.classList.remove('outline-white', 'outline-black');
+      if (s.outline === 'white') el.classList.add('outline-white');
+      else if (s.outline === 'black') el.classList.add('outline-black');
+    }
+
+    // 도구 버튼 (외곽선 · 삭제 · 섀도우 토글)
     const tools = document.createElement('div');
     tools.className = 'stk-tools';
+    // 외곽선 버튼 — 없음 → 흰 → 검정 순환
+    const outlineBtn = document.createElement('button');
+    function refreshOutlineBtn() {
+      outlineBtn.className = 'stk-btn stk-outline-btn'
+        + (s.outline === 'white' ? ' on-white'
+         : s.outline === 'black' ? ' on-black' : '');
+      outlineBtn.textContent = '◇';
+      outlineBtn.title = s.outline === 'none' ? '외곽선: 없음'
+        : s.outline === 'white' ? '외곽선: 흰색' : '외곽선: 검정';
+    }
+    refreshOutlineBtn();
+    outlineBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      s.outline = s.outline === 'none' ? 'white'
+        : s.outline === 'white' ? 'black' : 'none';
+      applyOutlineClass();
+      refreshOutlineBtn();
+      saveStickers();
+    });
     const shadowBtn = document.createElement('button');
     shadowBtn.className = 'stk-btn stk-shadow-btn' + (s.shadow ? '' : ' off');
     shadowBtn.textContent = '☀';
@@ -3698,9 +3780,33 @@
       saveStickers();
       el.remove();
     });
+    tools.appendChild(outlineBtn);
     tools.appendChild(shadowBtn);
     tools.appendChild(delBtn);
     el.appendChild(tools);
+
+    // 순서 버튼 (왼쪽 아래) — 맨 앞으로 / 맨 뒤로
+    const order = document.createElement('div');
+    order.className = 'stk-order';
+    const frontBtn = document.createElement('button');
+    frontBtn.className = 'stk-btn stk-order-btn';
+    frontBtn.textContent = '⤒';
+    frontBtn.title = '맨 앞으로';
+    frontBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      stickerToFront(s);
+    });
+    const backBtn = document.createElement('button');
+    backBtn.className = 'stk-btn stk-order-btn';
+    backBtn.textContent = '⤓';
+    backBtn.title = '맨 뒤로';
+    backBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      stickerToBack(s);
+    });
+    order.appendChild(frontBtn);
+    order.appendChild(backBtn);
+    el.appendChild(order);
 
     // 크기 조절 핸들
     const resize = document.createElement('div');
@@ -3718,14 +3824,14 @@
     let drag = false, sx = 0, sy = 0, bl = 0, bt = 0;
     function down(e) {
       if (e.target.closest('.stk-btn') || e.target.closest('.stk-resize') ||
-          e.target.closest('.stk-rotate')) return;
+          e.target.closest('.stk-rotate') || e.target.closest('.stk-order')) return;
       drag = true;
       const p = e.touches ? e.touches[0] : e;
       sx = p.clientX; sy = p.clientY;
       bl = parseInt(el.style.left, 10) || 0;
       bt = parseInt(el.style.top, 10) || 0;
       el.classList.add('dragging');
-      el.style.zIndex = 8;
+      el.style.zIndex = 999;   // 드래그 중엔 항상 위
       document.body.style.userSelect = 'none';
     }
     function move(e) {
@@ -3743,11 +3849,11 @@
       if (!drag) return;
       drag = false;
       el.classList.remove('dragging');
-      el.style.zIndex = 4;
       document.body.style.userSelect = '';
       s.x = parseInt(el.style.left, 10) || 0;
       s.y = parseInt(el.style.top, 10) || 0;
-      saveStickers();
+      // 드래그한 스티커를 맨 앞으로 (순서·z-index 갱신)
+      stickerToFront(s);
     }
     el.addEventListener('mousedown', down);
     window.addEventListener('mousemove', move);
@@ -3834,9 +3940,34 @@
     window.addEventListener('touchend', rotUp);
 
     desktop.appendChild(el);
+    s._el = el;   // 순서 재배치용
+  }
+  // 배열 순서대로 z-index 를 다시 매김 (뒤 배열일수록 위)
+  function restackStickers() {
+    stickers.forEach((st, i) => {
+      if (st._el) st._el.style.zIndex = 4 + i;
+    });
+  }
+  // 스티커를 맨 앞 / 맨 뒤로
+  function stickerToFront(s) {
+    const i = stickers.indexOf(s);
+    if (i < 0 || i === stickers.length - 1) return;
+    stickers.splice(i, 1);
+    stickers.push(s);
+    restackStickers();
+    saveStickers();
+  }
+  function stickerToBack(s) {
+    const i = stickers.indexOf(s);
+    if (i <= 0) return;
+    stickers.splice(i, 1);
+    stickers.unshift(s);
+    restackStickers();
+    saveStickers();
   }
   // 저장된 스티커 모두 표시
   stickers.forEach(spawnSticker);
+  restackStickers();
 
   // 새 스티커를 화면 가운데쯤에 추가
   function addSticker(opts) {
