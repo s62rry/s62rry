@@ -2271,7 +2271,18 @@
       <span class="sm-ic sm-ic-gear">⚙</span><span>관리자 모드</span>
     </div>
   </div>
+  <div class="sm-section">데이터</div>
+  <div class="sm-list">
+    <div class="sm-item" data-sm="backup">
+      <span class="sm-ic sm-ic-gear">💾</span><span>설정 백업</span>
+    </div>
+    <div class="sm-item" data-sm="restore">
+      <span class="sm-ic sm-ic-gear">📂</span><span>백업 불러오기</span>
+    </div>
+  </div>
 </div>
+<!-- 백업 불러오기용 숨은 파일 입력 -->
+<input type="file" id="restoreFile" accept="application/json,.json" style="display:none">
 
 <!-- 시계 달력 -->
 <div class="calendar-pop" id="calendarPop">
@@ -3443,7 +3454,85 @@
       $('startMenu').classList.remove('show');
       if (t === 'note' || t === 'photo') openApp(t);
       else if (t === 'admin') openPw();
+      else if (t === 'backup') exportBackup();
+      else if (t === 'restore') $('restoreFile').click();
     });
+  });
+
+  // ===== 설정 백업 / 복원 =====
+  // chathub: 로 시작하는 모든 localStorage 항목을 파일 하나로.
+  function collectChathubData() {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf('chathub:') === 0) {
+        data[k] = localStorage.getItem(k);
+      }
+    }
+    return data;
+  }
+  // 백업 파일로 내려받기
+  function exportBackup() {
+    const payload = {
+      _app: 'chathub',
+      _version: 1,
+      _exportedAt: new Date().toISOString(),
+      data: collectChathubData()
+    };
+    let json;
+    try { json = JSON.stringify(payload); }
+    catch { toast('백업 생성에 실패했어요'); return; }
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d = new Date();
+    const p = n => String(n).padStart(2, '0');
+    a.href = url;
+    a.download = '도구함-백업-' + d.getFullYear()
+      + p(d.getMonth() + 1) + p(d.getDate()) + '.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('<span class="th">♥</span> 설정을 파일로 저장했어요');
+  }
+  // 백업 파일 불러오기 → 적용 후 새로고침
+  $('restoreFile').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';   // 같은 파일 다시 고를 수 있게
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let payload;
+      try { payload = JSON.parse(reader.result); }
+      catch { toast('백업 파일을 읽을 수 없어요'); return; }
+      if (!payload || payload._app !== 'chathub' || !payload.data) {
+        toast('도구함 백업 파일이 아니에요');
+        return;
+      }
+      const ok = confirm(
+        '백업을 불러오면 지금의 메모·사진·디데이·스티커·위젯·배경 설정이\n'
+        + '모두 백업 파일의 내용으로 바뀝니다.\n\n계속할까요?');
+      if (!ok) return;
+      try {
+        // 기존 chathub 키 제거 후 백업 내용으로 교체
+        const oldKeys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.indexOf('chathub:') === 0) oldKeys.push(k);
+        }
+        oldKeys.forEach(k => localStorage.removeItem(k));
+        Object.keys(payload.data).forEach(k => {
+          if (k.indexOf('chathub:') === 0) {
+            localStorage.setItem(k, payload.data[k]);
+          }
+        });
+        toast('<span class="th">♥</span> 불러왔어요 · 새로고침합니다');
+        setTimeout(() => location.reload(), 900);
+      } catch {
+        toast('복원에 실패했어요 (저장 공간 부족일 수 있어요)');
+      }
+    };
+    reader.onerror = () => toast('파일을 읽지 못했어요');
+    reader.readAsText(file);
   });
 
   // ===== 시계 달력 =====
