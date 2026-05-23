@@ -403,6 +403,83 @@
     line-height: 1.75;
     letter-spacing: -0.01em;
   }
+  /* 본문 서식 */
+  #quoteText em {
+    font-style: italic;
+  }
+  #quoteText strong {
+    font-weight: 700;
+  }
+  /* 형광펜 — ::before 막대를 글자 '뒤'(z-index:-1)에 깐다.
+     bottom 기준으로 높이를 잡으므로 글자 위 여백이 커도
+     노란색이 위로 절대 올라가지 않음. 글자색은 본문 그대로. */
+  #quoteText mark.qhl {
+    color: inherit;
+    background: transparent;
+    position: relative;
+    z-index: 0;
+  }
+  #quoteText mark.qhl::before {
+    content: "";
+    position: absolute;
+    left: -0.04em; right: -0.04em;
+    bottom: 0.04em;            /* 글자 밑선 살짝 위 */
+    height: 0.6em;             /* 칠하는 두께 — 살짝 두툼하게 */
+    background: var(--hl-color, #ffe17d);
+    z-index: -1;               /* 글자보다 뒤 */
+  }
+
+  /* 본문 서식 안내 */
+  .format-help {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 7px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .fh-tip i { font-style: italic; }
+  .fh-tip b { font-weight: 700; }
+  .fh-tip mark.fh-hl {
+    color: inherit;
+    background: transparent;
+    position: relative;
+    z-index: 0;
+  }
+  .fh-tip mark.fh-hl::before {
+    content: "";
+    position: absolute;
+    left: -0.04em; right: -0.04em;
+    bottom: 0.04em;
+    height: 0.6em;
+    background: #ffe17d;
+    z-index: -1;
+  }
+  .fh-hl-pick {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .hl-swatches {
+    display: grid;
+    grid-template-columns: repeat(6, 16px);
+    gap: 5px;
+  }
+  .hl-swatch {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--panel);
+    box-shadow: 0 0 0 1px var(--border);
+    cursor: pointer;
+    transition: transform 0.12s ease;
+  }
+  .hl-swatch:hover { transform: scale(1.18); }
+  .hl-swatch.on {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
   .card-sep {
     width: 30px; height: 1px;
     margin: 26px 0 18px;
@@ -558,6 +635,13 @@
         </span>
       </div>
       <textarea id="quoteInput" placeholder="이미지로 만들 문구를 입력하세요"></textarea>
+      <div class="format-help">
+        <span class="fh-tip"><i>*기울임*</i> · <b>**굵게**</b> · <mark class="fh-hl">==형광펜==</mark></span>
+        <span class="fh-hl-pick">
+          형광펜 색
+          <span class="hl-swatches" id="hlSwatches"><!-- JS --></span>
+        </span>
+      </div>
     </div>
 
     <!-- 제작자 / 캐릭터 -->
@@ -1030,8 +1114,20 @@
     showCredit: true,
     shadow: false,
     bgMode: 'color',
-    bgImageData: ''
+    bgImageData: '',
+    hlColor: '#ffe17d'
   };
+
+  // 형광펜 색 팔레트
+  // 형광펜 색 — 밝은 톤(검은 글씨용) + 어두운 톤(흰 글씨용)
+  const HL_COLORS = [
+    '#ffe17d', '#ffc4d6', '#bde5ff', '#c9f0c2', '#e3d0ff', '#ffd2a8',
+    '#9c7a2e', '#a45a72', '#3f6c99', '#4f7d47', '#6b5a99', '#a86b3c'
+  ];
+  // 저장된 형광펜 색 복원
+  if (data.hlColor && HL_COLORS.indexOf(data.hlColor) !== -1) {
+    state.hlColor = data.hlColor;
+  }
 
   // 카드 비율별 크기 (너비 고정, 높이 가변)
   const RATIOS = {
@@ -1405,12 +1501,34 @@
     if (e.key === 'Enter') { commitPair(); charInput.blur(); closeMenus(); }
   });
 
+  // ============ 본문 서식 변환 ============
+  // *글씨* → 이탤릭(누운 글씨), **글씨** → 볼드, ==글씨== → 형광펜
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+  }
+  function formatQuote(text) {
+    // 먼저 HTML escape (입력을 그대로 안전하게)
+    let s = escapeHtml(text);
+    // 줄바꿈은 CSS white-space:pre-wrap 이 처리하므로 \n 그대로 둠
+    // 형광펜: ==글씨==
+    s = s.replace(/==([^=]+)==/g, '<mark class="qhl">$1</mark>');
+    // 볼드: **글씨** (이탤릭보다 먼저)
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // 이탤릭: *글씨*
+    s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    return s;
+  }
+
   // ============ 카드 렌더링 ============
   function renderCard() {
     const q = $('quoteInput').value;
     const base = q.trim() ? q : '문구를 입력하면 여기에 표시됩니다.';
-    // 인용부호: 켜면 문구 앞뒤에 큰따옴표
-    quoteText.textContent = state.quoteMark ? ('\u201C' + base + '\u201D') : base;
+    // 인용부호: 켜면 문구 앞뒤에 큰따옴표 / 서식 적용
+    const inner = state.quoteMark ? ('\u201C' + base + '\u201D') : base;
+    quoteText.innerHTML = formatQuote(inner);
+    // 형광펜 색 적용
+    quoteText.style.setProperty('--hl-color', state.hlColor);
 
     const m = makerInput.value.trim();
     const c = charInput.value.trim();
@@ -1422,6 +1540,27 @@
     cardCredit.style.display = state.showCredit ? '' : 'none';
   }
   $('quoteInput').addEventListener('input', renderCard);
+
+  // ============ 형광펜 색 스와치 ============
+  function renderHlSwatches() {
+    const wrap = $('hlSwatches');
+    wrap.innerHTML = '';
+    HL_COLORS.forEach(col => {
+      const sw = document.createElement('span');
+      sw.className = 'hl-swatch' + (col === state.hlColor ? ' on' : '');
+      sw.style.background = col;
+      sw.title = '형광펜 색';
+      sw.addEventListener('click', () => {
+        state.hlColor = col;
+        data.hlColor = col;
+        renderHlSwatches();
+        renderCard();
+        saveData();
+      });
+      wrap.appendChild(sw);
+    });
+  }
+  renderHlSwatches();
 
   // ============ 글자 스타일 ============
   function applyStyle() {
