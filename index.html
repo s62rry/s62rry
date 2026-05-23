@@ -1,0 +1,3923 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>chat tools</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  /* 마비옛체 — PC에 설치돼 있으면 그걸, 없으면 눈누 웹폰트 */
+  @font-face {
+    font-family: 'Mabiyet';
+    src: local('Mabinogi_Classic'), local('마비옛체'), local('MabinogiClassic'),
+         url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2207-01@1.0/MabinogiClassicR.woff2') format('woff2');
+    font-weight: normal;
+    font-display: swap;
+  }
+  :root {
+    --sky: #5cb3f5;
+    --sky-l: #9fd4fb;
+    --sky-soft: #e7f3fe;
+    --pink: #ffb3ca;
+    --pink-d: #ff96b6;
+    --pink-soft: #ffe5ed;
+    --win: #ffffff;
+    --side: #f7f1f6;
+    --line: #f0e6ee;
+    --line2: #e6dce6;
+    --ink: #4a4651;
+    --ink-soft: #948e9d;
+    --ink-faint: #bdb8c5;
+    --shadow: 0 16px 44px rgba(140,130,140,0.22);
+    --font: 'Mabiyet', 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { scrollbar-width: thin; scrollbar-color: var(--sky-l) transparent; }
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--pink);
+    border-radius: 11px; border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font);
+    color: var(--ink);
+    height: 100%;
+    overflow: hidden;
+    background: #e3f0fd;
+  }
+
+  /* 사용자 지정 배경 */
+  #bgLayer {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+    background-position: center; background-repeat: no-repeat;
+    background-size: cover;
+    display: none;
+  }
+  #bgLayer.on { display: block; }
+  #bgDim {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none; background: #000; opacity: 0;
+  }
+
+  /* ===== 바탕화면 ===== */
+  .desktop {
+    position: fixed; left: 0; right: 0; top: 0; bottom: 44px;
+    z-index: 1;
+  }
+
+  /* 바탕화면 아이콘 */
+  .desk-icon {
+    position: absolute;
+    top: 26px; left: 26px;
+    width: 92px;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 6px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+  }
+  .desk-icon:hover { background: rgba(255,255,255,0.35); }
+  .desk-icon.sel {
+    background: rgba(109,180,240,0.25);
+    border-color: rgba(109,180,240,0.55);
+  }
+  .desk-icon .di-art {
+    width: 50px; height: 50px;
+    margin-bottom: 7px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .desk-icon .di-art svg {
+    width: 48px; height: 48px;
+    color: #f6cf86;
+    shape-rendering: crispEdges;
+    filter: drop-shadow(2px 2px 0 rgba(90,80,100,0.22));
+  }
+  .desk-icon .di-label {
+    font-size: 11.5px;
+    color: var(--ink);
+    line-height: 1.35;
+    background: rgba(255,255,255,0.7);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  /* 꾸밈 아이콘 — 살짝 흐리게 */
+  .desk-icon.deco-icon .di-art { opacity: 0.92; }
+
+  /* ===== 작업표시줄 ===== */
+  .taskbar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: 44px;
+    z-index: 40;
+    display: flex; align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid #d8d4dc;
+  }
+  .tb-start {
+    display: flex; align-items: center; gap: 7px;
+    height: 30px; padding: 0 13px 0 11px;
+    background: var(--pink-d);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 12.5px; font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.14s ease;
+  }
+  .tb-start:hover { background: #ff7e95; }
+  .tb-start .start-ic {
+    width: 14px; height: 14px;
+    display: inline-block;
+    background:
+      linear-gradient(#fff 0 0) 0 0/6px 6px no-repeat,
+      linear-gradient(#fff 0 0) 8px 0/6px 6px no-repeat,
+      linear-gradient(#fff 0 0) 0 8px/6px 6px no-repeat,
+      linear-gradient(#fff 0 0) 8px 8px/6px 6px no-repeat;
+  }
+  .taskbar-apps {
+    flex: 1; min-width: 0;
+    display: flex; gap: 6px;
+    overflow: hidden;
+  }
+  .task-item {
+    display: flex; align-items: center; gap: 7px;
+    height: 30px; padding: 0 12px;
+    background: rgba(109,180,240,0.16);
+    border: 1px solid rgba(109,180,240,0.3);
+    border-radius: 8px;
+    font-size: 12px; color: var(--ink);
+    cursor: pointer;
+    max-width: 200px;
+    transition: background 0.14s ease;
+  }
+  .task-item:hover { background: rgba(109,180,240,0.28); }
+  .task-item.minimized { opacity: 0.6; }
+  .task-item .ti-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--pink-d); flex-shrink: 0;
+  }
+  .task-item .ti-name {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .taskbar-tray {
+    display: flex; align-items: center; gap: 11px;
+    padding: 0 8px 0 12px;
+    flex-shrink: 0;
+    font-size: 12px; color: var(--ink-soft);
+    border-left: 1px solid #e0d8e3;
+  }
+  .taskbar-tray .tray-item {
+    color: var(--pink-d); cursor: pointer;
+    display: inline-block;
+  }
+  .taskbar-tray .tray-clock { font-variant-numeric: tabular-nums; }
+  @keyframes heartPop {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.5) rotate(-12deg); }
+    65%  { transform: scale(0.9) rotate(8deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  /* ===== 탐색기 창 ===== */
+  .explorer {
+    position: fixed;
+    z-index: 10;
+    width: min(880px, calc(100vw - 44px));
+    height: min(620px, calc(100vh - 110px));
+    /* 초기 위치는 JS가 가운데로 잡아줌 (left/top 픽셀값) */
+    left: 50%; top: 50%;
+    background: var(--win);
+    border: 1px solid #d8d4dc;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    animation: winIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes winIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  /* 닫힘 */
+  .explorer.closed { display: none; }
+  /* 접힘 — 타이틀바만 */
+  .explorer.collapsed { height: auto !important; }
+  .explorer.collapsed .toolbar,
+  .explorer.collapsed .body,
+  .explorer.collapsed .app-body,
+  .explorer.collapsed .statusbar { display: none; }
+  /* 최대화 */
+  .explorer.maximized {
+    left: 12px !important; top: 12px !important;
+    width: calc(100vw - 24px) !important;
+    height: calc(100vh - 68px) !important;
+    border-radius: 12px;
+  }
+  .explorer.maximized .titlebar { cursor: default; }
+
+  /* 오른쪽 아래 모서리 — 크기 조절 핸들 */
+  .resize-handle {
+    position: absolute;
+    right: 0; bottom: 0;
+    width: 20px; height: 20px;
+    display: flex; align-items: flex-end; justify-content: flex-end;
+    padding: 3px;
+    cursor: nwse-resize;
+    color: var(--ink-faint);
+    z-index: 5;
+  }
+  .resize-handle svg { width: 12px; height: 12px; }
+  .explorer.collapsed .resize-handle,
+  .explorer.maximized .resize-handle { display: none; }
+
+  /* ===== 앱 창 (메모장 · 사진첩) ===== */
+  .app-win {
+    width: min(440px, calc(100vw - 44px));
+    height: min(440px, calc(100vh - 110px));
+    z-index: 15;
+  }
+  .app-body {
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  /* 메모장 */
+  /* 메모장 탭 */
+  .note-tabs {
+    display: flex; align-items: center;
+    gap: 3px;
+    padding: 7px 8px 0;
+    background: var(--side);
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .note-tab {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 9px 7px 11px;
+    border-radius: 9px 9px 0 0;
+    background: transparent;
+    border: 0;
+    font-family: var(--font);
+    font-size: 11.5px; color: var(--ink-soft);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .note-tab.on {
+    background: #fffdf7;
+    color: var(--ink);
+  }
+  .note-tab.dragging { opacity: 0.4; }
+  .note-tab.drag-over {
+    box-shadow: inset 2px 0 0 var(--pink-d);
+  }
+  .note-tab .nt-label {
+    pointer-events: auto;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .note-tab .nt-rename {
+    font-family: var(--font);
+    font-size: 11.5px;
+    color: var(--ink);
+    background: #fff;
+    border: 1px solid var(--sky);
+    border-radius: 5px;
+    padding: 1px 5px;
+    width: 80px;
+    outline: none;
+  }
+  .note-tab .nt-x {
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+  .note-tab .nt-x:hover { background: var(--pink-soft); color: var(--pink-d); }
+  .note-tab-add {
+    width: 26px; height: 26px;
+    border: 0; border-radius: 7px;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 15px; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .note-tab-add:hover { background: var(--sky-soft); color: var(--sky); }
+
+  .note-area {
+    flex: 1;
+    width: 100%;
+    border: 0; outline: none; resize: none;
+    padding: 16px 18px;
+    font-family: var(--font);
+    font-size: 14px; line-height: 1.7;
+    color: var(--ink);
+    background: #fffdf7;
+  }
+  .note-area::placeholder { color: var(--ink-faint); }
+  /* 사진첩 */
+  .photo-body { padding: 0; min-height: 0; }
+  .photo-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .photo-count { font-size: 11.5px; color: var(--ink-soft); }
+  .photo-grid {
+    flex: 1 1 0; min-height: 0;
+    overflow-y: auto;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    align-content: start;
+  }
+  .photo-cell {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;   /* 패딩트릭으로 정사각형 — 행 높이가 정확해짐 */
+    border-radius: 9px;
+    overflow: hidden;
+    border: 1px solid var(--line2);
+    cursor: pointer;
+    background: var(--side);
+  }
+  .photo-cell img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .photo-cell .pc-del {
+    position: absolute; top: 4px; right: 4px;
+    width: 22px; height: 22px;
+    border: 0; border-radius: 50%;
+    background: rgba(40,30,40,0.6);
+    color: #fff; font-size: 13px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.14s ease;
+  }
+  .photo-cell:hover .pc-del { opacity: 1; }
+  .photo-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 44px 16px;
+    color: var(--ink-faint);
+    font-size: 12.5px; line-height: 1.7;
+  }
+  .photo-empty .pe-ic { font-size: 30px; margin-bottom: 8px; }
+  /* 사진 크게 보기 */
+  .pv-box {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 12px;
+  }
+  #photoView img {
+    max-width: 86vw; max-height: 74vh;
+    border-radius: 10px;
+    border: 3px solid #fff;
+    box-shadow: var(--shadow);
+  }
+  .pv-actions { display: flex; gap: 9px; }
+  .pv-actions .btn { padding: 9px 16px; }
+
+  /* 타이틀바 — 잡고 드래그 */
+  .titlebar {
+    height: 42px; flex-shrink: 0;
+    display: flex; align-items: center;
+    padding: 0 14px;
+    background: #ffeaf3;
+    border-bottom: 1px solid var(--line2);
+    cursor: grab;
+    user-select: none;
+  }
+  .titlebar:active { cursor: grabbing; }
+  .titlebar .traffic, .titlebar .tb-spacer { cursor: default; }
+  /* 신호등 버튼 — 호버 시 색만 살짝 진해짐 */
+  .traffic { display: flex; gap: 8px; }
+  .traffic i {
+    width: 12px; height: 12px;
+    border-radius: 50%; display: block;
+    cursor: pointer;
+    transition: background 0.13s ease;
+  }
+  .traffic .r { background: #ff96b6; }
+  .traffic .y { background: #f6cf86; }
+  .traffic .g { background: #a4d7a8; }
+  .traffic .r:hover { background: #ff7e95; }
+  .traffic .y:hover { background: #f0b94e; }
+  .traffic .g:hover { background: #82c889; }
+  .tb-title {
+    flex: 1; text-align: center;
+    font-size: 13px; color: var(--ink);
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .tb-title .fi {
+    width: 18px; height: 18px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .tb-title .fi svg { width: 17px; height: 17px; }
+  .tb-spacer { width: 52px; }
+
+  /* 툴바 (뒤로/앞으로 + 주소창) */
+  .toolbar {
+    height: 46px;
+    display: flex; align-items: center;
+    gap: 8px; padding: 0 12px;
+    border-bottom: 1px solid var(--line);
+    background: var(--win);
+  }
+  .nav-btn {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    color: var(--ink-faint);
+    background: transparent;
+    border: 0; cursor: default;
+    flex-shrink: 0;
+  }
+  .nav-btn.active { color: var(--ink-soft); cursor: pointer; }
+  .nav-btn.active:hover { background: var(--sky-soft); color: var(--sky); }
+  .nav-btn svg { width: 16px; height: 16px; }
+  .addressbar {
+    flex: 1; min-width: 0;
+    height: 30px;
+    display: flex; align-items: center; gap: 5px;
+    padding: 0 11px;
+    background: var(--side);
+    border: 1px solid var(--line2);
+    border-radius: 8px;
+    font-size: 12px; color: var(--ink-soft);
+  }
+  .addressbar .crumb { color: var(--ink); }
+  .addressbar .sep { color: var(--ink-faint); font-size: 11px; }
+  .addressbar .here { color: var(--pink-d); }
+  .searchbox {
+    width: 150px; height: 30px;
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 10px;
+    background: var(--side);
+    border: 1px solid var(--line2);
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .searchbox svg { width: 13px; height: 13px; color: var(--ink-faint); flex-shrink: 0; }
+  .searchbox input {
+    width: 100%; border: 0; background: transparent; outline: none;
+    font-family: var(--font); font-size: 12px; color: var(--ink);
+  }
+  .searchbox input::placeholder { color: var(--ink-faint); }
+
+  /* ===== 본체: 사이드바 + 콘텐츠 ===== */
+  .body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+
+  /* 사이드바 */
+  .sidebar {
+    width: 184px; flex-shrink: 0;
+    background: var(--side);
+    border-right: 1px solid var(--line);
+    padding: 14px 9px;
+    overflow-y: auto;
+  }
+  .side-group { margin-bottom: 16px; }
+  .side-group-label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+    padding: 0 9px;
+    margin-bottom: 5px;
+  }
+  .side-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 8px 9px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: background 0.13s ease, color 0.13s ease;
+  }
+  .side-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .side-item:hover { background: #fff; color: var(--ink); }
+  .side-item.active {
+    background: var(--pink-soft);
+    color: var(--ink); font-weight: 700;
+  }
+  .side-item.active svg { color: var(--pink-d); }
+  .side-count {
+    margin-left: auto;
+    font-size: 10px; color: var(--ink-faint);
+    font-weight: 400;
+  }
+
+  /* 콘텐츠 영역 */
+  .content {
+    flex: 1; min-width: 0;
+    padding: 16px 18px;
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+  }
+  .content-head {
+    display: flex; align-items: baseline; gap: 8px;
+    margin-bottom: 14px;
+  }
+  .content-head h2 {
+    font-size: 15px; color: var(--ink);
+  }
+  .content-head .sub {
+    font-size: 11px; color: var(--ink-faint);
+  }
+
+  /* 아이콘 그리드 */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    align-content: start;
+  }
+  .file {
+    display: flex; flex-direction: column; align-items: center;
+    text-decoration: none;
+    padding: 14px 6px 11px;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: background 0.13s ease, border-color 0.13s ease;
+    animation: fileIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes fileIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .icon-grid .file:nth-child(1) { animation-delay: 0.08s; }
+  .icon-grid .file:nth-child(2) { animation-delay: 0.13s; }
+  .icon-grid .file:nth-child(3) { animation-delay: 0.18s; }
+  .icon-grid .file:nth-child(4) { animation-delay: 0.23s; }
+  .icon-grid .file:nth-child(5) { animation-delay: 0.28s; }
+  .file:hover {
+    background: var(--sky-soft);
+    border-color: #d3e8fa;
+  }
+  .file:active { background: #d6e9fb; }
+
+  /* 파일 아이콘 — 픽셀 스타일, 박스 없음 */
+  .file-ic {
+    width: 52px; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 9px;
+    transition: transform 0.1s steps(2);
+  }
+  .file:hover .file-ic { transform: translateY(-3px); }
+  .file-ic svg {
+    width: 48px; height: 48px;
+    shape-rendering: crispEdges;
+    filter: drop-shadow(1.5px 2px 0 rgba(90,80,100,0.16));
+  }
+
+  .file-name {
+    font-size: 12px; color: var(--ink);
+    text-align: center; line-height: 1.4;
+    word-break: keep-all;
+  }
+  .file-ext {
+    font-size: 9.5px; color: var(--ink-faint);
+    margin-top: 3px;
+  }
+  .file.soon { cursor: default; }
+  .file.soon:hover { background: transparent; border-color: transparent; }
+  .file.soon:hover .file-ic { transform: none; }
+  .file.soon .file-ic, .file.soon .file-name { opacity: 0.5; }
+
+  .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--ink-faint);
+    font-size: 12.5px;
+  }
+  .empty .ee { font-size: 32px; margin-bottom: 8px; }
+
+  /* 상태바 */
+  .statusbar {
+    height: 30px;
+    display: flex; align-items: center;
+    padding: 0 14px; gap: 12px;
+    border-top: 1px solid var(--line);
+    background: var(--side);
+    font-size: 11px; color: var(--ink-soft);
+  }
+  .statusbar .sb-end {
+    margin-left: auto;
+    cursor: pointer; user-select: none;
+    transition: color 0.14s ease;
+  }
+  .statusbar .sb-end:hover { color: var(--pink-d); }
+
+  /* ===== 비밀번호 모달 ===== */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(80,80,110,0.32);
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 80; padding: 22px;
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    width: 320px; max-width: 100%;
+    background: var(--win);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: winIn 0.28s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .modal-bar {
+    height: 38px;
+    display: flex; align-items: center; padding: 0 13px;
+    background: #ffeaf3;
+    border-bottom: 1px solid var(--line2);
+  }
+  .modal-bar .traffic i { width: 11px; height: 11px; }
+  .modal-bar .mb-t {
+    flex: 1; text-align: center;
+    font-size: 12px; color: var(--ink);
+  }
+  .modal-bar .mb-sp { width: 41px; }
+  .pw-top { text-align: center; padding: 22px 22px 4px; }
+  .pw-lock {
+    width: 50px; height: 50px; margin: 0 auto 12px;
+    border-radius: 14px;
+    background: var(--pink-d);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 7px 17px rgba(150,140,200,0.34);
+  }
+  .pw-lock svg { width: 23px; height: 23px; stroke: #fff; }
+  .pw-title { font-size: 14px; color: var(--ink); }
+  .pw-desc { font-size: 11px; color: var(--ink-soft); margin-top: 4px; }
+  .pw-form { padding: 14px 22px 20px; }
+  .pw-input {
+    width: 100%;
+    font-family: var(--font);
+    font-size: 17px; text-align: center;
+    letter-spacing: 0.3em;
+    color: var(--ink);
+    background: var(--side);
+    border: 1.5px solid var(--line2);
+    border-radius: 11px;
+    padding: 11px;
+    outline: none;
+    transition: border-color 0.14s ease;
+  }
+  .pw-input:focus { border-color: var(--sky); }
+  .pw-hint {
+    font-size: 11px; color: var(--pink-d);
+    text-align: center; min-height: 14px; margin-top: 8px;
+  }
+  .pw-row { display: flex; gap: 9px; margin-top: 12px; }
+  .btn {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 10px;
+    border-radius: 11px;
+    border: 1px solid var(--line2);
+    background: var(--win);
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: transform 0.12s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary {
+    border: 0;
+    background: var(--pink-d);
+    color: #fff;
+    box-shadow: 0 5px 13px rgba(150,140,200,0.3);
+  }
+
+  /* ===== 관리자 화면 ===== */
+  /* 관리자 화면 — 데스크톱 위에 뜨는 창 (오버레이 아님) */
+  .admin {
+    display: none;
+  }
+  .admin.show { display: block; }
+  #adminWin {
+    z-index: 20;          /* 메인 창보다 위 */
+    width: min(560px, calc(100vw - 44px));
+    height: min(560px, calc(100vh - 110px));
+  }
+  #adminWin .content { overflow-y: auto; }
+
+  .admin-card {
+    background: var(--side);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    padding: 15px;
+    margin-bottom: 12px;
+  }
+  .ac-title {
+    font-size: 13px; color: var(--ink);
+    margin-bottom: 7px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ac-text { font-size: 11.5px; line-height: 1.7; color: var(--ink-soft); }
+
+  .bg-preview {
+    height: 112px;
+    border-radius: 10px;
+    border: 1px solid var(--line2);
+    background: #e3f0fd;
+    background-size: cover; background-position: center;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 11px;
+  }
+  .bg-preview span {
+    font-size: 11px; color: var(--ink);
+    background: rgba(255,255,255,0.85);
+    padding: 3px 10px; border-radius: 999px;
+  }
+  .bg-controls { display: flex; gap: 8px; margin-bottom: 13px; }
+  .bg-opt { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+  .bg-opt-label {
+    font-size: 11px; color: var(--ink);
+    width: 72px; flex-shrink: 0;
+  }
+  .seg {
+    display: flex; gap: 4px; flex: 1;
+    background: var(--win);
+    border: 1px solid var(--line2);
+    padding: 3px; border-radius: 9px;
+  }
+  .seg button {
+    flex: 1;
+    font-family: var(--font);
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    background: transparent; border: 0;
+    border-radius: 6px; padding: 6px 2px;
+    cursor: pointer;
+    transition: background 0.14s ease, color 0.14s ease;
+  }
+  .seg button.on {
+    background: var(--pink-soft);
+    color: var(--ink);
+  }
+  .range {
+    flex: 1;
+    -webkit-appearance: none; appearance: none;
+    height: 7px; border-radius: 999px;
+    background: var(--sky-l);
+    outline: none; cursor: pointer;
+  }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 7px rgba(120,140,190,0.4);
+    cursor: pointer;
+  }
+  .range::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; border: 0;
+    box-shadow: 0 2px 7px rgba(120,140,190,0.4);
+    cursor: pointer;
+  }
+  .bg-note {
+    font-size: 10px; line-height: 1.6;
+    color: var(--ink-soft);
+    background: var(--sky-soft);
+    padding: 8px 11px; border-radius: 9px;
+    margin-top: 3px;
+  }
+  .bg-note b { color: var(--pink-d); }
+  .admin-warn {
+    font-size: 10px; line-height: 1.6;
+    color: var(--ink-faint);
+    text-align: center; margin-top: 4px;
+  }
+
+  /* 토스트 */
+  .toast {
+    position: fixed; bottom: 26px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--win);
+    border: 1px solid var(--line2);
+    box-shadow: var(--shadow);
+    font-size: 12px; color: var(--ink);
+    padding: 10px 17px; border-radius: 999px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22,1,0.36,1);
+    z-index: 90;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast .th { color: var(--pink-d); }
+
+  /* 창 스냅 미리보기 */
+  #snapHint {
+    position: fixed;
+    z-index: 9;
+    background: rgba(109,180,240,0.22);
+    border: 2px solid var(--sky);
+    border-radius: 14px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  #snapHint.show { opacity: 1; }
+
+  /* ===== 바탕화면 위젯 ===== */
+  .widget {
+    position: absolute;
+    width: 200px;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid #d8d4dc;
+    border-radius: 14px;
+    padding: 13px 14px;
+    box-shadow: 0 8px 22px rgba(140,130,140,0.14);
+  }
+  .widget.dragging { opacity: 0.85; }
+  .widget-head {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; font-weight: 700;
+    color: var(--pink-d);
+    margin-bottom: 9px;
+    cursor: grab;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .widget-head:active { cursor: grabbing; }
+  .widget-refresh {
+    width: 22px; height: 22px;
+    border: 0; border-radius: 6px;
+    background: transparent;
+    color: var(--ink-faint);
+    font-size: 12px; cursor: pointer;
+    transition: background 0.13s ease, color 0.13s ease;
+  }
+  .widget-refresh:hover { background: var(--pink-soft); color: var(--pink-d); }
+  .widget-quote {
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--ink);
+    word-break: keep-all;
+  }
+
+  /* 달력 위젯 */
+  .cw-nav { display: flex; gap: 2px; }
+  .cw-title {
+    font-size: 12px; font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 7px;
+  }
+  .cw-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+  }
+  .cw-dow span {
+    text-align: center;
+    font-size: 9px; font-weight: 700;
+    color: var(--ink-faint);
+    padding: 2px 0;
+  }
+  .cw-dow span:first-child { color: var(--pink-d); }
+  .cw-dow span:last-child { color: var(--sky); }
+  .cw-day {
+    text-align: center;
+    font-size: 10px;
+    color: var(--ink);
+    padding: 3px 0;
+    border-radius: 6px;
+  }
+  .cw-day.empty { visibility: hidden; }
+  .cw-day.sun { color: var(--pink-d); }
+  .cw-day.sat { color: var(--sky); }
+  .cw-day.today {
+    background: var(--pink-d);
+    color: #fff; font-weight: 700;
+  }
+  .widget-dday {
+    font-size: 26px; font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .widget-dday-label {
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    margin-top: 3px;
+  }
+
+  /* 디데이 위젯 — 여러 개 목록 */
+  .dday-list { display: flex; flex-direction: column; gap: 8px; }
+  .dday-empty {
+    font-size: 11px; color: var(--ink-faint);
+    text-align: center; padding: 12px 0;
+  }
+  .dday-card {
+    position: relative;
+    display: flex; flex-direction: column;
+    padding: 11px 13px;
+    border-radius: 13px;
+    cursor: pointer;
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(120,110,120,0.2);
+    transition: transform 0.14s cubic-bezier(0.22,1.3,0.5,1);
+  }
+  .dday-card:hover { transform: translateY(-2px) scale(1.02); }
+  .dday-card::after {
+    content: '♥';
+    position: absolute;
+    right: 11px; bottom: 7px;
+    font-size: 30px;
+    color: rgba(255,255,255,0.22);
+    line-height: 1;
+  }
+  .dday-card .dc-name {
+    position: relative;
+    font-size: 11px; font-weight: 700;
+    opacity: 0.95;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 1px;
+  }
+  .dday-card .dc-big {
+    position: relative;
+    font-size: 25px; font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  .dday-card .dc-date {
+    position: relative;
+    font-size: 9.5px; opacity: 0.82;
+    margin-top: 1px;
+  }
+
+  /* 디데이 편집 팝업 */
+  .dday-modal {
+    width: 320px; max-width: 100%;
+    background: var(--win);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: smPop 0.2s cubic-bezier(0.22,1,0.36,1);
+  }
+  .dday-modal-body { padding: 16px 18px 18px; }
+  .dm-preview {
+    border-radius: 13px;
+    padding: 16px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 14px;
+    background: var(--pink-d);
+  }
+  .dm-prev-big { font-size: 30px; font-weight: 800; }
+  .dm-prev-label { font-size: 11px; opacity: 0.9; margin-top: 2px; }
+  .dm-label {
+    display: block;
+    font-size: 11px; font-weight: 700;
+    color: var(--ink-soft);
+    margin: 11px 2px 5px;
+  }
+  .dm-input {
+    font-size: 14px; letter-spacing: normal;
+    text-align: left;
+    padding: 9px 11px;
+  }
+  .dm-colors { display: flex; gap: 7px; flex-wrap: wrap; }
+  .dm-color {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--line2);
+    cursor: pointer;
+    transition: transform 0.12s ease;
+  }
+  .dm-color:hover { transform: scale(1.13); }
+  .dm-color.on { box-shadow: 0 0 0 2px var(--ink); }
+  .dm-row { display: flex; gap: 8px; margin-top: 15px; }
+
+  /* 휴지통 앱 */
+  .trash-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .trash-info {
+    font-size: 12px; color: var(--ink-soft);
+    flex: 1; min-width: 0;
+  }
+  .trash-toolbar .btn {
+    flex-shrink: 0;
+    font-size: 11.5px;
+    padding: 7px 13px;
+  }
+  .trash-list {
+    flex: 1; min-height: 0;
+    overflow-y: auto;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .trash-row {
+    border: 1px solid var(--line2);
+    border-radius: 10px;
+    padding: 10px 11px;
+    background: var(--side);
+  }
+  .trash-row-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; margin-bottom: 5px;
+  }
+  .trash-row-title { font-size: 12px; font-weight: 700; color: var(--ink); }
+  .trash-row-acts { display: flex; gap: 5px; flex-shrink: 0; }
+  .trash-mini {
+    font-size: 10.5px;
+    padding: 3px 8px;
+    border: 0; border-radius: 7px;
+    cursor: pointer;
+    font-family: var(--font);
+  }
+  .trash-mini.restore { background: var(--sky-soft); color: var(--sky-d); }
+  .trash-mini.purge { background: var(--pink-soft); color: var(--pink-d); }
+  .trash-row-preview {
+    font-size: 11px; color: var(--ink-soft);
+    line-height: 1.5;
+    max-height: 42px; overflow: hidden;
+    white-space: pre-wrap;
+  }
+  .trash-thumb {
+    width: 100%;
+    max-height: 100px;
+    object-fit: cover;
+    border-radius: 7px;
+    display: block;
+  }
+  .trash-empty {
+    text-align: center;
+    padding: 44px 16px;
+    color: var(--ink-faint);
+    font-size: 12.5px; line-height: 1.7;
+  }
+  .trash-empty .te-ic { font-size: 30px; margin-bottom: 8px; }
+
+  /* ===== 시작 메뉴 ===== */
+  .start-menu {
+    position: fixed;
+    left: 10px; bottom: 52px;
+    width: 250px;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid #d8d4dc;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+    z-index: 60;
+    display: none;
+    animation: smPop 0.18s cubic-bezier(0.22,1,0.36,1);
+  }
+  .start-menu.show { display: block; }
+  @keyframes smPop {
+    from { opacity: 0; transform: translateY(10px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .sm-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 6px 12px;
+  }
+  .sm-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--pink-d);
+    color: #fff; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sm-hello { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .sm-sub { font-size: 11px; color: var(--ink-soft); }
+  .sm-section {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--ink-faint);
+    padding: 8px 6px 5px;
+  }
+  .sm-list { display: flex; flex-direction: column; gap: 2px; }
+  .sm-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 8px;
+    border-radius: 9px;
+    font-size: 12.5px; color: var(--ink);
+    cursor: pointer;
+    transition: background 0.13s ease;
+  }
+  .sm-item:hover { background: var(--sky-soft); }
+  .sm-ic {
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sm-ic svg { width: 22px; height: 22px; shape-rendering: crispEdges; }
+  .sm-ic-gear {
+    background: var(--pink-soft); border-radius: 6px;
+    font-size: 12px;
+  }
+
+  /* ===== 시계 달력 ===== */
+  .calendar-pop {
+    position: fixed;
+    right: 10px; bottom: 52px;
+    width: 248px;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid #d8d4dc;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 14px;
+    z-index: 60;
+    display: none;
+    animation: smPop 0.18s cubic-bezier(0.22,1,0.36,1);
+  }
+  .calendar-pop.show { display: block; }
+  .cal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .cal-head #calTitle { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .cal-nav {
+    width: 26px; height: 26px;
+    border: 0; border-radius: 8px;
+    background: var(--side);
+    color: var(--ink-soft);
+    font-size: 15px; cursor: pointer;
+    transition: background 0.13s ease;
+  }
+  .cal-nav:hover { background: var(--sky-soft); color: var(--sky); }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .cal-dow span {
+    text-align: center;
+    font-size: 10px; font-weight: 700;
+    color: var(--ink-faint);
+    padding: 3px 0;
+  }
+  .cal-dow span:first-child { color: var(--pink-d); }
+  .cal-dow span:last-child { color: var(--sky); }
+  .cal-day {
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--ink);
+    padding: 5px 0;
+    border-radius: 7px;
+    cursor: default;
+  }
+  .cal-day.empty { visibility: hidden; }
+  .cal-day.sun { color: var(--pink-d); }
+  .cal-day.sat { color: var(--sky); }
+  .cal-day.today {
+    background: var(--pink-d);
+    color: #fff; font-weight: 700;
+  }
+  .cal-foot {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 11px; color: var(--ink-soft);
+  }
+
+  /* ===== 바탕화면 우클릭 메뉴 ===== */
+  .ctx-menu {
+    position: fixed;
+    width: 178px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid #d8d4dc;
+    border-radius: 11px;
+    box-shadow: var(--shadow);
+    padding: 6px;
+    z-index: 75;
+    display: none;
+  }
+  .ctx-menu.show { display: block; }
+  .ctx-item {
+    padding: 8px 10px;
+    border-radius: 7px;
+    font-size: 12px; color: var(--ink);
+    cursor: pointer;
+    transition: background 0.12s ease;
+  }
+  .ctx-item:hover { background: var(--sky-soft); }
+  .ctx-sep {
+    height: 1px;
+    background: var(--line);
+    margin: 4px 6px;
+  }
+
+  /* ===== 바탕화면 스티커 ===== */
+  .sticker {
+    position: absolute;
+    width: 64px; height: 64px;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    z-index: 4;
+    --rot: 0deg;
+    --scale: 1;
+    transform: rotate(var(--rot)) scale(var(--scale));
+    transition: transform 0.12s ease;
+  }
+  /* 섀도우 켜짐 (기본) */
+  .sticker.shadow .stk-content {
+    filter: drop-shadow(0 3px 5px rgba(90,80,90,0.3));
+  }
+  .sticker:hover { --scale: 1.08; }
+  .sticker:active { cursor: grabbing; }
+  .sticker.dragging { --scale: 1.1; }
+  /* 스티커 내용 (이모지 또는 이미지) */
+  .sticker .stk-content {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+    pointer-events: none;
+  }
+  .sticker .stk-content.emoji {
+    font-size: 52px;
+  }
+  .sticker .stk-content img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+  /* 스티커 도구 버튼 (삭제·섀도우) */
+  .sticker .stk-tools {
+    position: absolute;
+    top: -10px; right: -10px;
+    display: none;
+    gap: 3px;
+  }
+  .sticker:hover .stk-tools { display: flex; }
+  .sticker .stk-btn {
+    width: 20px; height: 20px;
+    border: 0; border-radius: 50%;
+    color: #fff; font-size: 11px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sticker .stk-del-btn { background: var(--pink-d); }
+  .sticker .stk-shadow-btn { background: var(--sky); }
+  .sticker .stk-shadow-btn.off { background: var(--ink-faint); }
+  /* 회전 핸들 (왼쪽 위) */
+  .sticker .stk-rotate {
+    position: absolute;
+    left: -8px; top: -8px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--win);
+    border: 1.5px solid var(--sky);
+    color: var(--sky);
+    font-size: 10px;
+    cursor: grab;
+    display: none;
+    align-items: center; justify-content: center;
+  }
+  .sticker:hover .stk-rotate { display: flex; }
+  /* 크기 조절 핸들 (오른쪽 아래) */
+  .sticker .stk-resize {
+    position: absolute;
+    right: -8px; bottom: -8px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--win);
+    border: 1.5px solid var(--pink-d);
+    cursor: nwse-resize;
+    display: none;
+  }
+  .sticker:hover .stk-resize { display: block; }
+
+  /* 스티커 고르기 팝업 */
+  .sticker-box {
+    width: 320px; max-width: 100%;
+    background: var(--win);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: smPop 0.2s cubic-bezier(0.22,1,0.36,1);
+  }
+  .sticker-pick-body { padding: 14px 16px 18px; }
+  .sticker-hint {
+    font-size: 11.5px; color: var(--ink-soft);
+    margin-bottom: 10px; text-align: center;
+  }
+  .sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 5px;
+  }
+  .sticker-upload-btn {
+    width: 100%;
+    margin-top: 12px;
+  }
+  .sticker-opt {
+    font-size: 26px;
+    text-align: center;
+    padding: 6px 0;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.12s ease, transform 0.12s ease;
+  }
+  .sticker-opt:hover {
+    background: var(--pink-soft);
+    transform: scale(1.15);
+  }
+
+  /* 배경 프리셋 스와치 */
+  .bg-presets {
+    display: flex; flex-wrap: wrap; gap: 7px;
+    margin-bottom: 13px;
+  }
+  .bg-swatch {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--line2);
+    cursor: pointer;
+    transition: transform 0.13s ease;
+  }
+  .bg-swatch:hover { transform: scale(1.12); }
+  .bg-swatch.on {
+    box-shadow: 0 0 0 2px var(--pink-d);
+  }
+
+  @media (max-width: 680px) {
+    .sidebar { display: none; }
+    .icon-grid { grid-template-columns: repeat(3, 1fr); }
+    .searchbox { width: 110px; }
+    body { padding: 14px 12px 50px; }
+    .widget { display: none; }
+  }
+  @media (max-width: 420px) {
+    .icon-grid { grid-template-columns: repeat(2, 1fr); }
+    .addressbar .crumb.hideable { display: none; }
+    .addressbar .sep.hideable { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bgLayer"></div>
+<div id="bgDim"></div>
+
+<!-- 바탕화면 -->
+<div class="desktop" id="desktop">
+  <!-- 도구함 아이콘 (더블클릭하면 창 열림) -->
+  <div class="desk-icon sel" id="deskIcon" title="더블클릭하면 열려요">
+    <div class="di-art" id="deskIconArt"></div>
+    <div class="di-label">도구함</div>
+  </div>
+  <!-- 꾸밈용 / 작동 아이콘들 -->
+  <div class="desk-icon deco-icon" data-app="note" style="top:140px; left:26px;">
+    <div class="di-art" id="decoNote"></div>
+    <div class="di-label">메모장</div>
+  </div>
+  <div class="desk-icon deco-icon" data-app="photo" style="top:254px; left:26px;">
+    <div class="di-art" id="decoPic"></div>
+    <div class="di-label">사진첩</div>
+  </div>
+  <div class="desk-icon deco-icon" data-app="trash" id="trashIcon"
+       style="bottom:18px; left:26px; top:auto;">
+    <div class="di-art" id="decoTrash"></div>
+    <div class="di-label">휴지통</div>
+  </div>
+
+  <!-- 위젯: 디데이 -->
+  <div class="widget" id="ddayWidget" style="top:30px; right:26px;">
+    <div class="widget-head">
+      <span>♥ 디데이</span>
+      <button class="widget-refresh" id="ddayAdd" title="디데이 추가">＋</button>
+    </div>
+    <div class="dday-list" id="ddayList"><!-- JS가 채움 --></div>
+  </div>
+</div>
+
+<!-- 탐색기 창 -->
+<div class="explorer" id="mainWin">
+
+  <!-- 타이틀바 -->
+  <div class="titlebar" id="mainBar">
+    <div class="traffic" id="traffic"><i class="r" id="btnClose"></i><i class="y" id="btnMin"></i><i class="g" id="btnMax"></i></div>
+    <div class="tb-title">
+      <span class="fi">
+        <svg viewBox="0 0 24 24" fill="#f6cf86" stroke="#e0ad4a" stroke-width="1.5" stroke-linejoin="round">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        </svg>
+      </span>
+      도구함
+    </div>
+    <div class="tb-spacer"></div>
+  </div>
+
+  <!-- 툴바 -->
+  <div class="toolbar">
+    <button class="nav-btn" title="뒤로">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="nav-btn" title="앞으로">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <div class="addressbar">
+      <span class="crumb hideable">내 PC</span>
+      <span class="sep hideable">›</span>
+      <span class="crumb">chat</span>
+      <span class="sep">›</span>
+      <span class="here" id="crumbHere">도구함</span>
+    </div>
+    <div class="searchbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="search" placeholder="검색">
+    </div>
+  </div>
+
+  <!-- 본체 -->
+  <div class="body">
+
+    <!-- 사이드바 -->
+    <aside class="sidebar">
+      <div class="side-group">
+        <div class="side-group-label">즐겨찾기</div>
+        <div class="side-item active" data-folder="all">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          도구함
+          <span class="side-count" id="cntAll"></span>
+        </div>
+        <div class="side-item" data-folder="fav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15 9 22 9.5 17 14 18.5 21 12 17 5.5 21 7 14 2 9.5 9 9 12 2"/></svg>
+          자주 쓰는 것
+        </div>
+      </div>
+      <div class="side-group">
+        <div class="side-group-label">분류</div>
+        <div class="side-item" data-folder="write">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+          작성 · 편집
+        </div>
+        <div class="side-item" data-folder="collect">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16l8-5 8 5V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/></svg>
+          수집 · 보관
+        </div>
+      </div>
+      <div class="side-group">
+        <div class="side-group-label">기타</div>
+        <div class="side-item" id="sideAdmin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          관리자
+        </div>
+      </div>
+    </aside>
+
+    <!-- 콘텐츠 -->
+    <main class="content">
+      <div class="content-head">
+        <h2 id="folderTitle">도구함</h2>
+        <span class="sub" id="folderSub"></span>
+      </div>
+      <div class="icon-grid" id="grid"></div>
+    </main>
+
+  </div>
+
+  <!-- 상태바 -->
+  <div class="statusbar">
+    <span id="statusText">5개 항목</span>
+    <span class="sb-end" id="adminTrigger">♥ s62rry</span>
+  </div>
+
+  <!-- 오른쪽 아래 모서리 — 크기 조절 -->
+  <div class="resize-handle" id="resizeHandle" title="끌어서 크기 조절">
+    <svg viewBox="0 0 12 12" fill="currentColor">
+      <rect x="9" y="1" width="2" height="2"/>
+      <rect x="9" y="5" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/>
+      <rect x="9" y="9" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/><rect x="1" y="9" width="2" height="2"/>
+    </svg>
+  </div>
+
+</div>
+
+<!-- 비밀번호 모달 -->
+<div class="overlay" id="pwOverlay">
+  <div class="modal">
+    <div class="modal-bar">
+      <div class="traffic"><i class="r"></i><i class="y"></i><i class="g"></i></div>
+      <div class="mb-t">잠금</div>
+      <div class="mb-sp"></div>
+    </div>
+    <div class="pw-top">
+      <div class="pw-lock">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div class="pw-title">관리자 잠금</div>
+      <div class="pw-desc">비밀번호를 입력하세요</div>
+    </div>
+    <div class="pw-form">
+      <input type="password" id="pwInput" class="pw-input" placeholder="••••" autocomplete="off" inputmode="numeric">
+      <div class="pw-hint" id="pwHint"></div>
+      <div class="pw-row">
+        <button class="btn" id="pwCancel">취소</button>
+        <button class="btn primary" id="pwOk">확인</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 관리자 화면 -->
+<div class="admin" id="adminScreen">
+  <div class="explorer" id="adminWin">
+    <div class="titlebar" id="adminBar">
+      <div class="traffic"><i class="r" id="adminClose"></i><i class="y" id="adminMin"></i><i class="g" id="adminMax"></i></div>
+      <div class="tb-title">
+        <span class="fi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#e87fab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </span>
+        관리자 모드
+      </div>
+      <div class="tb-spacer"></div>
+    </div>
+    <div class="content" style="padding:18px;">
+      <div class="admin-card">
+        <div class="ac-title">♥ 안녕하세요, 관리자님!</div>
+        <div class="ac-text">아래에서 바탕화면 배경을 원하는 그림으로 바꿀 수 있어요.</div>
+      </div>
+      <div class="content-head"><h2>🎨 배경 꾸미기</h2></div>
+      <div class="admin-card">
+        <div class="bg-preview" id="bgPreview"><span id="bgPreviewText">기본 배경</span></div>
+        <div class="bg-opt" style="align-items:flex-start;">
+          <span class="bg-opt-label">색 · 패턴</span>
+          <div class="bg-presets" id="bgPresets"><!-- JS가 채움 --></div>
+        </div>
+        <div class="bg-controls">
+          <button class="btn primary" id="bgPickBtn">🌄 그림 고르기</button>
+          <button class="btn" id="bgResetBtn">기본으로</button>
+          <input type="file" id="bgFile" accept="image/*" style="display:none">
+        </div>
+        <div class="bg-opt">
+          <span class="bg-opt-label">화면 채우기</span>
+          <div class="seg" id="bgFitSeg">
+            <button data-fit="cover" class="on">꽉 차게</button>
+            <button data-fit="contain">전체 보이게</button>
+            <button data-fit="repeat">바둑판</button>
+          </div>
+        </div>
+        <div class="bg-opt">
+          <span class="bg-opt-label">밝기 가림막</span>
+          <input type="range" id="bgDimRange" min="0" max="70" value="0" class="range">
+        </div>
+        <div class="bg-note">
+          고른 배경은 <b>이 브라우저에만</b> 저장돼요. 다른 사람·다른 기기에서는 기본 배경으로 보여요.
+        </div>
+      </div>
+      <div class="admin-warn">
+        ⚠ 비밀번호는 페이지 안에 들어 있어 진짜 보안용은 아니에요 · 숨김 페이지로만 써 주세요
+      </div>
+    </div>
+    <div class="statusbar">
+      <span>admin mode</span>
+      <span class="sb-end" id="adminLogout">↩ 나가기</span>
+    </div>
+    <div class="resize-handle" id="adminResize" title="끌어서 크기 조절">
+      <svg viewBox="0 0 12 12" fill="currentColor">
+        <rect x="9" y="1" width="2" height="2"/>
+        <rect x="9" y="5" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/>
+        <rect x="9" y="9" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/><rect x="1" y="9" width="2" height="2"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- 메모장 앱 -->
+<div class="explorer app-win" id="noteWin" style="display:none;">
+  <div class="titlebar" id="noteBar">
+    <div class="traffic"><i class="r" id="noteClose"></i><i class="y" id="noteMin"></i><i class="g" id="noteMax"></i></div>
+    <div class="tb-title"><span class="fi" id="noteTitleIc"></span>메모장</div>
+    <div class="tb-spacer"></div>
+  </div>
+  <div class="app-body">
+    <div class="note-tabs" id="noteTabs">
+      <!-- 탭들이 JS로 채워짐 -->
+      <button class="note-tab-add" id="noteTabAdd" title="새 메모">＋</button>
+    </div>
+    <textarea id="noteText" class="note-area" placeholder="자유롭게 메모를 적어보세요. 입력하면 자동으로 저장돼요 ♥"></textarea>
+  </div>
+  <div class="statusbar">
+    <span id="noteStatus">0자</span>
+    <span class="sb-end" id="noteClear">이 메모 비우기</span>
+  </div>
+  <div class="resize-handle" id="noteResize">
+    <svg viewBox="0 0 12 12" fill="currentColor"><rect x="9" y="1" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/><rect x="1" y="9" width="2" height="2"/></svg>
+  </div>
+</div>
+
+<!-- 사진첩 앱 -->
+<div class="explorer app-win" id="photoWin" style="display:none;">
+  <div class="titlebar" id="photoBar">
+    <div class="traffic"><i class="r" id="photoClose"></i><i class="y" id="photoMin"></i><i class="g" id="photoMax"></i></div>
+    <div class="tb-title"><span class="fi" id="photoTitleIc"></span>사진첩</div>
+    <div class="tb-spacer"></div>
+  </div>
+  <div class="app-body photo-body">
+    <div class="photo-toolbar">
+      <button class="btn primary" id="photoAdd">＋ 사진 추가</button>
+      <span class="photo-count" id="photoCount"></span>
+      <input type="file" id="photoFile" accept="image/*" multiple style="display:none">
+    </div>
+    <div class="photo-grid" id="photoGrid"></div>
+  </div>
+  <div class="statusbar">
+    <span>사진은 이 브라우저에만 저장돼요</span>
+  </div>
+  <div class="resize-handle" id="photoResize">
+    <svg viewBox="0 0 12 12" fill="currentColor"><rect x="9" y="1" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/><rect x="1" y="9" width="2" height="2"/></svg>
+  </div>
+</div>
+
+<!-- 휴지통 앱 -->
+<div class="explorer app-win" id="trashWin" style="display:none;">
+  <div class="titlebar" id="trashBar">
+    <div class="traffic"><i class="r" id="trashClose"></i><i class="y" id="trashMin"></i><i class="g" id="trashMax"></i></div>
+    <div class="tb-title"><span class="fi" id="trashTitleIc"></span>휴지통</div>
+    <div class="tb-spacer"></div>
+  </div>
+  <div class="app-body">
+    <div class="trash-toolbar">
+      <span class="trash-info" id="trashInfo">비어 있음</span>
+      <button class="btn" id="trashEmpty">전부 비우기</button>
+    </div>
+    <div class="trash-list" id="trashList"></div>
+  </div>
+  <div class="statusbar">
+    <span>삭제한 메모가 여기 모여요</span>
+  </div>
+  <div class="resize-handle" id="trashResize">
+    <svg viewBox="0 0 12 12" fill="currentColor"><rect x="9" y="1" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/><rect x="1" y="9" width="2" height="2"/></svg>
+  </div>
+</div>
+
+<!-- 사진 크게 보기 -->
+<div class="overlay" id="photoView">
+  <div class="pv-box" id="pvBox">
+    <img id="photoViewImg" alt="사진">
+    <div class="pv-actions">
+      <button class="btn primary" id="pvSetBg">✨ 배경으로 설정</button>
+      <button class="btn" id="pvClose">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 작업표시줄 -->
+<div class="taskbar">
+  <div class="tb-start" id="startBtn">
+    <span class="start-ic"></span>
+    <span>시작</span>
+  </div>
+  <div class="taskbar-apps" id="taskbarApps">
+    <!-- 열린 창 항목이 여기에 -->
+  </div>
+  <div class="taskbar-tray">
+    <span class="tray-item" id="trayHeart">♥</span>
+    <span class="tray-clock" id="trayClock">--:--</span>
+  </div>
+</div>
+
+<!-- 시작 메뉴 -->
+<div class="start-menu" id="startMenu">
+  <div class="sm-head">
+    <span class="sm-avatar">♥</span>
+    <div>
+      <div class="sm-hello">안녕하세요!</div>
+      <div class="sm-sub">행복한 하루 되세요</div>
+    </div>
+  </div>
+  <div class="sm-section">도구</div>
+  <div class="sm-list" id="smTools"><!-- JS가 채움 --></div>
+  <div class="sm-section">앱</div>
+  <div class="sm-list">
+    <div class="sm-item" data-sm="note">
+      <span class="sm-ic" id="smIcNote"></span><span>메모장</span>
+    </div>
+    <div class="sm-item" data-sm="photo">
+      <span class="sm-ic" id="smIcPhoto"></span><span>사진첩</span>
+    </div>
+    <div class="sm-item" data-sm="admin">
+      <span class="sm-ic sm-ic-gear">⚙</span><span>관리자 모드</span>
+    </div>
+  </div>
+</div>
+
+<!-- 시계 달력 -->
+<div class="calendar-pop" id="calendarPop">
+  <div class="cal-head">
+    <button class="cal-nav" id="calPrev">‹</button>
+    <span id="calTitle">2026년 5월</span>
+    <button class="cal-nav" id="calNext">›</button>
+  </div>
+  <div class="cal-grid cal-dow">
+    <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+  </div>
+  <div class="cal-grid" id="calDays"></div>
+  <div class="cal-foot" id="calToday"></div>
+</div>
+
+<!-- 바탕화면 우클릭 메뉴 -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" data-ctx="refresh">↻ 새로고침</div>
+  <div class="ctx-item" data-ctx="open">📂 도구함 열기</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" data-ctx="sticker">🌸 스티커 붙이기</div>
+  <div class="ctx-item" data-ctx="bg">🎨 배경 바꾸기</div>
+  <div class="ctx-item" data-ctx="note">📝 메모장 열기</div>
+  <div class="ctx-item" data-ctx="photo">📷 사진첩 열기</div>
+</div>
+
+<!-- 메모 탭 우클릭 메뉴 -->
+<div class="ctx-menu" id="tabMenu">
+  <div class="ctx-item" id="tabRename">✎ 제목 바꾸기</div>
+</div>
+
+<!-- 스티커 고르기 팝업 -->
+<div class="overlay" id="stickerPicker">
+  <div class="sticker-box">
+    <div class="modal-bar">
+      <div class="traffic"><i class="r" id="stickerCloseX"></i><i class="y"></i><i class="g"></i></div>
+      <div class="mb-t">🌸 스티커 고르기</div>
+      <div class="mb-sp"></div>
+    </div>
+    <div class="sticker-pick-body">
+      <div class="sticker-hint">이모지를 고르거나, 내 이미지를 올려요</div>
+      <div class="sticker-grid" id="stickerGrid"><!-- JS --></div>
+      <button class="btn primary sticker-upload-btn" id="stickerUploadBtn">🌄 내 이미지로 스티커 만들기</button>
+      <input type="file" id="stickerFile" accept="image/*" style="display:none">
+    </div>
+  </div>
+</div>
+
+<!-- 디데이 편집 팝업 -->
+<div class="overlay" id="ddayModal">
+  <div class="dday-modal">
+    <div class="modal-bar">
+      <div class="traffic"><i class="r" id="ddayCancelX"></i><i class="y"></i><i class="g"></i></div>
+      <div class="mb-t">💕 디데이</div>
+      <div class="mb-sp"></div>
+    </div>
+    <div class="dday-modal-body">
+      <div class="dm-preview" id="dmPreview">
+        <div class="dm-prev-big">D-?</div>
+        <div class="dm-prev-label">미리보기</div>
+      </div>
+      <label class="dm-label">무슨 날인가요?</label>
+      <input type="text" id="dmName" class="pw-input dm-input" placeholder="예: 생일, 기념일, 공개일" maxlength="20">
+      <label class="dm-label">날짜</label>
+      <input type="date" id="dmDate" class="pw-input dm-input">
+      <label class="dm-label">색깔</label>
+      <div class="dm-colors" id="dmColors"><!-- JS --></div>
+      <label class="dm-label">카운트 방식</label>
+      <div class="seg" id="dmMode">
+        <button data-mode="until" class="on">남은 날</button>
+        <button data-mode="since">함께한 날</button>
+      </div>
+      <div class="dm-row">
+        <button class="btn" id="ddayDelete">삭제</button>
+        <button class="btn" id="ddayCancel">취소</button>
+        <button class="btn primary" id="ddaySave">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  // ===== 도구 데이터 =====
+  // 새 도구가 생기면 이 배열에 한 항목 추가하면 끝.
+  // px: 16x16 다색 픽셀 아트 / pal: 문자→색 매핑
+  const TOOLS = [
+    {
+      name: 'HTML 라이브<br>프리뷰', ext: 'html_preview.html',
+      url: 'https://s62rry.github.io/chat/html_preview.html',
+      cat: 'write', color: 'ic-sky', fav: true,
+      // 브라우저 창 + 코드 꺾쇠
+      pal: { f:'#3d7ec0', b:'#bfe0fb', w:'#ffffff', c:'#5a9fe6' },
+      px: [
+        '................',
+        '.ffffffffffffff.',
+        '.ffffffffffffff.',
+        '.fwwwwwwwwwwwwf.',
+        '.fwwwwwwwwwwwwf.',
+        '.fwwccwwwwccwwf.',
+        '.fwccwwwwwwccwf.',
+        '.fccwwwwwwwwccf.',
+        '.fwccwwwwwwccwf.',
+        '.fwwccwwwwccwwf.',
+        '.fwwwwwwwwwwwwf.',
+        '.fwwwwwwwwwwwwf.',
+        '.fwwwwwwwwwwwwf.',
+        '.ffffffffffffff.',
+        '................',
+        '................'
+      ]
+    },
+    {
+      name: '발췌 이미지<br>메이커', ext: 'card_maker.html',
+      url: 'https://s62rry.github.io/chat/card_maker.html',
+      cat: 'write', color: 'ic-pink', fav: true,
+      // 사진 — 해/산 풍경
+      pal: { f:'#d4699a', b:'#fbdcea', s:'#f6cf86', m:'#ec96b8' },
+      px: [
+        '................',
+        '.ffffffffffffff.',
+        '.fbbbbbbbbbbbbf.',
+        '.fbbbbbsssbbbbf.',
+        '.fbbbbssssssbbf.',
+        '.fbbbbbsssbbbbf.',
+        '.fbbbbbbbbbbbbf.',
+        '.fbbbbbbbbbbbbf.',
+        '.fbbbbbbbmbbbbf.',
+        '.fbbbbbbmmmbbbf.',
+        '.fbbbbmmmmmmmbf.',
+        '.fbbmmmmmmmmmmf.',
+        '.fmmmmmmmmmmmmf.',
+        '.ffffffffffffff.',
+        '................',
+        '................'
+      ]
+    },
+    {
+      name: 'OOC 백업', ext: 'ooc_backup.html',
+      url: 'https://s62rry.github.io/chat/ooc_backup.html',
+      cat: 'collect', color: 'ic-mint', fav: false,
+      // 문서 — 접힌 모서리 + 글줄
+      pal: { f:'#3f9b7b', w:'#ffffff', l:'#9adec5', d:'#5cc3a0' },
+      px: [
+        '................',
+        '..fffffffffff...',
+        '..fwwwwwwwwdf...',
+        '..fwwwwwwwwddf..',
+        '..fwllllllwwwf..',
+        '..fwwwwwwwwwwf..',
+        '..fwllllllllwf..',
+        '..fwwwwwwwwwwf..',
+        '..fwllllllllwf..',
+        '..fwwwwwwwwwwf..',
+        '..fwllllllwwwf..',
+        '..fwwwwwwwwwwf..',
+        '..fwllllllllwf..',
+        '..fwwwwwwwwwwf..',
+        '..ffffffffffff..',
+        '................'
+      ]
+    },
+    {
+      name: '명대사<br>클립북', ext: 'clipbook.html',
+      url: 'https://s62rry.github.io/chat/clipbook.html',
+      cat: 'collect', color: 'ic-lav', fav: true,
+      // 책갈피 / 북마크
+      pal: { f:'#7a5dc0', b:'#ddd3f3', d:'#9a82dd', h:'#ffffff' },
+      px: [
+        '................',
+        '...ffffffffff...',
+        '...fbbbbbbbbf...',
+        '...fbhhhhhbbf...',
+        '...fbbbbbbbbf...',
+        '...fbhhhhhbbf...',
+        '...fbbbbbbbbf...',
+        '...fbbbbbbbbf...',
+        '...fbbbbbbbbf...',
+        '...fbbbbbbbbf...',
+        '...fbbbbbbbbf...',
+        '...fdbbbbbbdf...',
+        '...fdddbbdddf...',
+        '...fddddddddf...',
+        '...fddd..dddf...',
+        '................'
+      ]
+    }
+  ];
+
+  // 준비중 아이콘 — 채워진 + 모양
+  const SOON_PX = [
+    '................',
+    '................',
+    '......pppp......',
+    '......pppp......',
+    '......pppp......',
+    '..pppppppppppp..',
+    '..pppppppppppp..',
+    '..pppppppppppp..',
+    '..pppppppppppp..',
+    '......pppp......',
+    '......pppp......',
+    '......pppp......',
+    '................',
+    '................',
+    '................',
+    '................'
+  ];
+  const SOON_PAL = { p:'#c4bdc9' };
+
+  // 다색 픽셀맵 → SVG
+  // 각 칸 문자: '.'=빈칸, 그 외 문자는 palette 의 색 키
+  // palette 예: { a:'#5a9fe6', b:'#3d7ec0', ... }
+  function pixelSvg(map, palette) {
+    let rects = '';
+    for (let y = 0; y < map.length; y++) {
+      const row = map[y];
+      for (let x = 0; x < row.length; x++) {
+        const ch = row[x];
+        if (ch !== '.' && ch !== ' ') {
+          const col = palette[ch] || 'currentColor';
+          rects += '<rect x="' + x + '" y="' + y + '" width="1.02" height="1.02" fill="' + col + '"/>';
+        }
+      }
+    }
+    return '<svg viewBox="0 0 16 16">' + rects + '</svg>';
+  }
+
+  // 바탕화면 도구함 — 채워진 폴더 픽셀 아이콘
+  const FOLDER_PX = [
+    '................',
+    '................',
+    '..ddddd.........',
+    '..dlllld........',
+    '..ddddddddddddd.',
+    '..dlllllllllllld',
+    '..dlllllllllllld',
+    '..dlllllllllllld',
+    '..dlllllllllllld',
+    '..dlllllllllllld',
+    '..dlllllllllllld',
+    '..dlllllllllllld',
+    '..dlllllllllllld',
+    '..ddddddddddddd.',
+    '................',
+    '................'
+  ];
+  const FOLDER_PAL = { d:'#e0ad4a', l:'#f6cf86' };
+  $('deskIconArt').innerHTML = pixelSvg(FOLDER_PX, FOLDER_PAL);
+
+  // 바탕화면 꾸밈 아이콘들 (장식용)
+  const TRASH_PX = [
+    '................',
+    '................',
+    '.....tttttt.....',
+    '....t......t....',
+    '...tttttttttt...',
+    '....mmmmmmmm....',
+    '....mhmhmhmm....',
+    '....mhmhmhmm....',
+    '....mhmhmhmm....',
+    '....mhmhmhmm....',
+    '....mhmhmhmm....',
+    '....mmmmmmmm....',
+    '.....mmmmmm.....',
+    '................',
+    '................',
+    '................'
+  ];
+  const NOTE_PX = [
+    '................',
+    '..pppppppppp....',
+    '..pwwwwwwwwp....',
+    '..pwllllllwp....',
+    '..pwwwwwwwwp....',
+    '..pwllllllwp....',
+    '..pwwwwwwwwp....',
+    '..pwllllllwp....',
+    '..pwwwwwwwwp....',
+    '..pwllllwwwp....',
+    '..pwwwwwwwwp....',
+    '..pppppppppp....',
+    '................',
+    '................',
+    '................',
+    '................'
+  ];
+  const PIC_PX = [
+    '................',
+    '.ffffffffffffff.',
+    '.fbbbbbbbbbbbbf.',
+    '.fbbbbssbbbbbbf.',
+    '.fbbbssssbbbbbf.',
+    '.fbbbbssbbbbbbf.',
+    '.fbbbbbbbbbbbbf.',
+    '.fbbbbbbbbmbbbf.',
+    '.fbbbbbbmmmmbbf.',
+    '.fbbbbmmmmmmmbf.',
+    '.fbbmmmmmmmmmmf.',
+    '.fmmmmmmmmmmmmf.',
+    '.ffffffffffffff.',
+    '................',
+    '................',
+    '................'
+  ];
+  $('decoTrash').innerHTML = pixelSvg(TRASH_PX, { t:'#9b94a6', m:'#bdb6c6', h:'#d6d0dc' });
+  $('decoNote').innerHTML  = pixelSvg(NOTE_PX,  { p:'#e0ad4a', w:'#fff7e6', l:'#f0cf86' });
+  $('decoPic').innerHTML   = pixelSvg(PIC_PX,   { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
+
+  // ----- 도구 사용 횟수 (자주 쓰는 것 판별용) -----
+  const USAGE_KEY = 'chathub:toolUsage';
+  let toolUsage = {};
+  try {
+    const raw = localStorage.getItem(USAGE_KEY);
+    if (raw) toolUsage = JSON.parse(raw) || {};
+  } catch { toolUsage = {}; }
+  function bumpToolUsage(url) {
+    toolUsage[url] = (toolUsage[url] || 0) + 1;
+    try { localStorage.setItem(USAGE_KEY, JSON.stringify(toolUsage)); } catch {}
+  }
+  // 자주 쓰는 것 = 한 번이라도 쓴 도구 중 사용 횟수 상위
+  function isFavTool(t) {
+    return (toolUsage[t.url] || 0) > 0;
+  }
+
+  const FOLDERS = {
+    all:     { title: '도구함',        filter: () => true },
+    fav:     { title: '자주 쓰는 것', filter: isFavTool },
+    write:   { title: '작성 · 편집',  filter: t => t.cat === 'write' },
+    collect: { title: '수집 · 보관',  filter: t => t.cat === 'collect' }
+  };
+  let curFolder = 'all';
+
+  // 토스트
+  function toast(msg) {
+    const t = $('toast');
+    t.innerHTML = msg;
+    t.classList.add('show');
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('show'), 1900);
+  }
+
+  // 그리드 렌더
+  function renderGrid() {
+    const q = $('search').value.trim().toLowerCase();
+    const folder = FOLDERS[curFolder];
+    let list = TOOLS.filter(folder.filter);
+    if (q) {
+      list = list.filter(t => {
+        const hay = (t.name.replace(/<br>/g,' ') + ' ' + t.ext).toLowerCase();
+        return hay.includes(q);
+      });
+    }
+    // 자주 쓰는 것 폴더는 사용 횟수 많은 순으로 정렬
+    if (curFolder === 'fav') {
+      list = list.slice().sort((a, b) =>
+        (toolUsage[b.url] || 0) - (toolUsage[a.url] || 0));
+    }
+
+    $('folderTitle').textContent = folder.title;
+    $('crumbHere').textContent = folder.title;
+    $('folderSub').textContent = q
+      ? ('"' + $('search').value.trim() + '" 검색 결과')
+      : (list.length + '개 항목');
+    $('statusText').textContent = q
+      ? (list.length + '개 항목 찾음')
+      : (list.length + '개 항목');
+
+    const grid = $('grid');
+    grid.innerHTML = '';
+
+    if (list.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'empty';
+      let msg;
+      if (q) msg = '검색 결과가 없어요';
+      else if (curFolder === 'fav') msg = '아직 자주 쓰는 도구가 없어요<br>도구를 열면 여기에 모여요';
+      else msg = '이 폴더가 비어 있어요';
+      e.innerHTML = '<div class="ee">' + (curFolder === 'fav' ? '⭐' : '🔍') +
+        '</div>' + msg;
+      grid.appendChild(e);
+      return;
+    }
+
+    list.forEach(t => {
+      const a = document.createElement('a');
+      a.className = 'file ' + t.color;
+      a.href = t.url;
+      a.innerHTML =
+        '<div class="file-ic">' + pixelSvg(t.px, t.pal) + '</div>' +
+        '<div class="file-name">' + t.name + '</div>' +
+        '<div class="file-ext">' + t.ext + '</div>';
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const nm = t.name.replace(/<br>/g, ' ');
+        bumpToolUsage(t.url);   // 사용 횟수 +1
+        toast('<span class="th">♥</span> ' + nm + ' 새 창으로 열었어요');
+        window.open(t.url, '_blank', 'noopener');
+      });
+      grid.appendChild(a);
+    });
+
+    // 준비중 항목 (검색 중·자주쓰는것 폴더에선 숨김)
+    if (!q && curFolder !== 'fav') {
+      const soon = document.createElement('div');
+      soon.className = 'file soon ic-gray';
+      soon.innerHTML =
+        '<div class="file-ic">' + pixelSvg(SOON_PX, SOON_PAL) + '</div>' +
+        '<div class="file-name">준비 중</div><div class="file-ext">coming soon</div>';
+      soon.addEventListener('click', () => toast('곧 새 도구가 추가될 거예요!'));
+      grid.appendChild(soon);
+    }
+  }
+
+  // 사이드바 폴더 클릭
+  document.querySelectorAll('.side-item[data-folder]').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.side-item').forEach(s => s.classList.remove('active'));
+      item.classList.add('active');
+      curFolder = item.dataset.folder;
+      renderGrid();
+    });
+  });
+
+  // 사이드바 개수
+  $('cntAll').textContent = TOOLS.length;
+
+  // 검색
+  $('search').addEventListener('input', renderGrid);
+
+  // ===== 관리자 모드 =====
+  // ⚠ 이 비밀번호는 페이지 소스에 그대로 들어 있습니다. 진짜 보안용이 아니라
+  //   "숨김 페이지" 정도로만 쓰세요. 아래 값을 원하는 걸로 바꾸면 됩니다.
+  const ADMIN_PW = '1205';
+
+  const pwOverlay = $('pwOverlay');
+  const pwInput = $('pwInput');
+  const pwHint = $('pwHint');
+  const adminScreen = $('adminScreen');
+
+  function openPw() {
+    pwInput.value = '';
+    pwHint.textContent = '';
+    pwOverlay.classList.add('show');
+    setTimeout(() => pwInput.focus(), 50);
+  }
+  function closePw() { pwOverlay.classList.remove('show'); }
+  function tryLogin() {
+    if (pwInput.value === ADMIN_PW) {
+      closePw();
+      adminScreen.classList.add('show');
+      // 창 가운데로 + 맨 앞으로
+      if (window.adminW) {
+        adminW.win.style.zIndex = (++topZ);
+        adminW.center();
+        setTimeout(adminW.center, 40);
+      }
+      toast('<span class="th">♥</span> 관리자 모드');
+    } else {
+      pwHint.textContent = '✘ 비밀번호가 달라요';
+      pwInput.value = '';
+      pwInput.focus();
+    }
+  }
+  $('adminTrigger').addEventListener('click', openPw);
+  $('sideAdmin').addEventListener('click', openPw);
+  $('pwOk').addEventListener('click', tryLogin);
+  $('pwCancel').addEventListener('click', closePw);
+  pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+  pwOverlay.addEventListener('click', e => { if (e.target === pwOverlay) closePw(); });
+
+  function exitAdmin() { adminScreen.classList.remove('show'); }
+  $('adminLogout').addEventListener('click', exitAdmin);
+
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closePw(); exitAdmin(); }
+  });
+
+  // ===== 배경 꾸미기 =====
+  const BG_KEY = 'chathub:bg';
+  const bgLayer = $('bgLayer');
+  const bgDimLayer = $('bgDim');
+  const bgPreview = $('bgPreview');
+  const bgPreviewText = $('bgPreviewText');
+  const bgDimRange = $('bgDimRange');
+
+  // 배경 프리셋 — 단색 & 부드러운 패턴 (CSS background 값)
+  const BG_PRESETS = [
+    { id: 'default', label: '기본',   css: '#e3f0fd' },
+    { id: 'pink',    label: '핑크',   css: '#ffe1ee' },
+    { id: 'sky',     label: '하늘',   css: '#d5eafc' },
+    { id: 'mint',    label: '민트',   css: '#d3f3e6' },
+    { id: 'lav',     label: '라벤더', css: '#e6ddfa' },
+    { id: 'cream',   label: '크림',   css: '#fdf1d8' },
+    { id: 'dots',    label: '도트',
+      css: 'radial-gradient(#ffb3d3 1.7px, transparent 1.7px) 0 0/18px 18px, #ffe9f3' },
+    { id: 'grid',    label: '격자',
+      css: 'repeating-linear-gradient(0deg,#c9e3fa 0 1px,transparent 1px 22px), repeating-linear-gradient(90deg,#c9e3fa 0 1px,transparent 1px 22px), #e9f4fe' },
+    { id: 'checker', label: '체크',
+      css: 'repeating-conic-gradient(#ffdcec 0% 25%, #e4f1fd 0% 50%) 0 0/40px 40px' }
+  ];
+
+  // bgState: img(이미지) / preset(프리셋 id) / fit / dim
+  let bgState = { img: '', preset: 'default', fit: 'cover', dim: 0 };
+
+  function loadBg() {
+    try {
+      const raw = localStorage.getItem(BG_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s && typeof s === 'object') {
+          bgState.img = s.img || '';
+          bgState.preset = s.preset || 'default';
+          bgState.fit = s.fit || 'cover';
+          bgState.dim = s.dim || 0;
+        }
+      }
+    } catch {}
+  }
+  function saveBg() {
+    try {
+      localStorage.setItem(BG_KEY, JSON.stringify(bgState));
+    } catch {
+      toast('이미지가 너무 커서 저장하지 못했어요');
+    }
+  }
+  function presetCss(id) {
+    const p = BG_PRESETS.find(x => x.id === id);
+    return p ? p.css : '#e6f1fb';
+  }
+  function applyBg() {
+    // 바탕 색·패턴은 항상 body 에 (이미지 뒤에 깔림)
+    document.body.style.background = presetCss(bgState.preset);
+    if (bgState.img) {
+      bgLayer.classList.add('on');
+      bgLayer.style.backgroundImage = 'url(' + bgState.img + ')';
+      if (bgState.fit === 'repeat') {
+        bgLayer.style.backgroundSize = 'auto';
+        bgLayer.style.backgroundRepeat = 'repeat';
+      } else {
+        bgLayer.style.backgroundSize = bgState.fit;
+        bgLayer.style.backgroundRepeat = 'no-repeat';
+      }
+    } else {
+      bgLayer.classList.remove('on');
+      bgLayer.style.backgroundImage = '';
+    }
+    bgDimLayer.style.opacity = (bgState.dim / 100).toString();
+  }
+  function syncBgPanel() {
+    if (bgState.img) {
+      bgPreview.style.backgroundImage = 'url(' + bgState.img + ')';
+      if (bgState.fit === 'repeat') {
+        bgPreview.style.backgroundSize = 'auto';
+        bgPreview.style.backgroundRepeat = 'repeat';
+      } else {
+        bgPreview.style.backgroundSize = bgState.fit;
+        bgPreview.style.backgroundRepeat = 'no-repeat';
+      }
+      bgPreview.style.background = '';
+      bgPreview.style.backgroundImage = 'url(' + bgState.img + ')';
+      bgPreviewText.textContent = '내 사진';
+    } else {
+      bgPreview.style.backgroundImage = '';
+      bgPreview.style.background = presetCss(bgState.preset);
+      const p = BG_PRESETS.find(x => x.id === bgState.preset);
+      bgPreviewText.textContent = p ? p.label + ' 배경' : '기본 배경';
+    }
+    document.querySelectorAll('#bgFitSeg button').forEach(b => {
+      b.classList.toggle('on', b.dataset.fit === bgState.fit);
+    });
+    document.querySelectorAll('#bgPresets .bg-swatch').forEach(s => {
+      s.classList.toggle('on', s.dataset.preset === bgState.preset && !bgState.img);
+    });
+    bgDimRange.value = bgState.dim;
+  }
+
+  // 프리셋 스와치 만들기
+  (function buildPresets() {
+    const wrap = $('bgPresets');
+    BG_PRESETS.forEach(p => {
+      const s = document.createElement('div');
+      s.className = 'bg-swatch';
+      s.dataset.preset = p.id;
+      s.title = p.label;
+      s.style.background = p.css;
+      s.addEventListener('click', () => {
+        bgState.preset = p.id;
+        saveBg();
+        applyBg();
+        syncBgPanel();
+        toast('<span class="th">♥</span> ' + p.label + ' 배경');
+      });
+      wrap.appendChild(s);
+    });
+  })();
+
+  $('bgPickBtn').addEventListener('click', () => $('bgFile').click());
+  $('bgFile').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('이미지 파일만 가능해요'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      bgState.img = reader.result;
+      saveBg();
+      applyBg();
+      syncBgPanel();
+      toast('<span class="th">♥</span> 배경을 바꿨어요');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  });
+  $('bgResetBtn').addEventListener('click', () => {
+    bgState.img = '';
+    bgState.preset = 'default';
+    bgState.dim = 0;
+    saveBg();
+    applyBg();
+    syncBgPanel();
+    toast('기본 배경으로 되돌렸어요');
+  });
+  $('bgFitSeg').addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    bgState.fit = btn.dataset.fit;
+    saveBg();
+    applyBg();
+    syncBgPanel();
+  });
+  bgDimRange.addEventListener('input', () => {
+    bgState.dim = parseInt(bgDimRange.value, 10) || 0;
+    bgDimLayer.style.opacity = (bgState.dim / 100).toString();
+  });
+  bgDimRange.addEventListener('change', saveBg);
+
+  // ===== 창 제어 (드래그 · 리사이즈 · 닫기 · 접기 · 최대화) =====
+
+  // 스냅 미리보기 — 가장자리로 끌면 반투명 영역 표시
+  const snapHint = document.createElement('div');
+  snapHint.id = 'snapHint';
+  document.body.appendChild(snapHint);
+  function showSnapHint(zone) {
+    if (!zone) { hideSnapHint(); return; }
+    const tbH = 48;
+    let css = {};
+    if (zone === 'top') {
+      css = { left: '8px', top: '8px',
+              width: (window.innerWidth - 16) + 'px',
+              height: (window.innerHeight - tbH - 16) + 'px' };
+    } else if (zone === 'left') {
+      css = { left: '8px', top: '8px',
+              width: (window.innerWidth / 2 - 12) + 'px',
+              height: (window.innerHeight - tbH - 16) + 'px' };
+    } else if (zone === 'right') {
+      css = { left: (window.innerWidth / 2 + 4) + 'px', top: '8px',
+              width: (window.innerWidth / 2 - 12) + 'px',
+              height: (window.innerHeight - tbH - 16) + 'px' };
+    }
+    Object.assign(snapHint.style, css);
+    snapHint.classList.add('show');
+  }
+  function hideSnapHint() { snapHint.classList.remove('show'); }
+
+  // makeWindow: 한 창에 드래그/리사이즈/신호등 동작을 붙임. 메인·관리자 공용.
+  function makeWindow(opts) {
+    const win = opts.win;
+    const bar = opts.bar;
+
+    // 창 가운데로
+    function center() {
+      const w = win.offsetWidth, h = win.offsetHeight;
+      win.style.left = Math.max(8, (window.innerWidth - w) / 2) + 'px';
+      win.style.top = Math.max(8, (window.innerHeight - h) / 2) + 'px';
+    }
+    // 화면 안으로 보정
+    function clamp() {
+      if (win.classList.contains('maximized')) return;
+      let x = parseInt(win.style.left, 10) || 0;
+      let y = parseInt(win.style.top, 10) || 0;
+      const w = win.offsetWidth;
+      x = Math.max(-(w - 80), Math.min(window.innerWidth - 80, x));
+      y = Math.max(0, Math.min(window.innerHeight - 46, y));
+      win.style.left = x + 'px';
+      win.style.top = y + 'px';
+    }
+
+    // ----- 드래그 -----
+    let drag = false, sx = 0, sy = 0, bl = 0, bt = 0;
+    function dDown(e) {
+      if (e.target.closest('.traffic')) return;
+      if (win.classList.contains('maximized')) return;
+      drag = true;
+      const p = e.touches ? e.touches[0] : e;
+      sx = p.clientX; sy = p.clientY;
+      bl = parseInt(win.style.left, 10) || 0;
+      bt = parseInt(win.style.top, 10) || 0;
+      win.style.zIndex = (++topZ);
+      document.body.style.userSelect = 'none';
+    }
+    function dMove(e) {
+      if (!drag) return;
+      const p = e.touches ? e.touches[0] : e;
+      lastPX = p.clientX; lastPY = p.clientY;
+      let nx = bl + (p.clientX - sx);
+      let ny = bt + (p.clientY - sy);
+      const w = win.offsetWidth;
+      nx = Math.max(-(w - 80), Math.min(window.innerWidth - 80, nx));
+      ny = Math.max(0, Math.min(window.innerHeight - 46, ny));
+      win.style.left = nx + 'px';
+      win.style.top = ny + 'px';
+      // 가장자리 근처면 스냅 미리보기 표시
+      const zone = snapZone(p.clientX, p.clientY);
+      showSnapHint(zone);
+      if (e.cancelable) e.preventDefault();
+    }
+    let lastPX = 0, lastPY = 0;
+    // 포인터가 어느 가장자리 존에 있는지
+    function snapZone(px, py) {
+      const M = 24;  // 가장자리 감지 폭
+      if (py <= M) return 'top';        // 위 → 최대화
+      if (px <= M) return 'left';       // 왼쪽 → 왼쪽 반쪽
+      if (px >= window.innerWidth - M) return 'right';  // 오른쪽 → 오른쪽 반쪽
+      return '';
+    }
+    function dUp() {
+      if (!drag) { return; }
+      drag = false;
+      document.body.style.userSelect = '';
+      hideSnapHint();
+      // 스냅 적용
+      if (!opts.noSnap) {
+        const zone = snapZone(lastPX, lastPY);
+        const tbH = 48;  // 작업표시줄 높이
+        if (zone === 'top') {
+          win.classList.add('maximized');
+        } else if (zone === 'left') {
+          win.classList.remove('maximized');
+          win.style.left = '8px';
+          win.style.top = '8px';
+          win.style.width = (window.innerWidth / 2 - 12) + 'px';
+          win.style.height = (window.innerHeight - tbH - 16) + 'px';
+        } else if (zone === 'right') {
+          win.classList.remove('maximized');
+          win.style.left = (window.innerWidth / 2 + 4) + 'px';
+          win.style.top = '8px';
+          win.style.width = (window.innerWidth / 2 - 12) + 'px';
+          win.style.height = (window.innerHeight - tbH - 16) + 'px';
+        }
+        if (opts.onSnap) opts.onSnap();
+      }
+    }
+    bar.addEventListener('mousedown', dDown);
+    window.addEventListener('mousemove', dMove);
+    window.addEventListener('mouseup', dUp);
+    bar.addEventListener('touchstart', dDown, { passive: true });
+    window.addEventListener('touchmove', dMove, { passive: false });
+    window.addEventListener('touchend', dUp);
+
+    // ----- 리사이즈 (오른쪽 아래 모서리) -----
+    const handle = opts.handle;
+    if (handle) {
+      let rz = false, rsx = 0, rsy = 0, bw = 0, bh = 0;
+      function rDown(e) {
+        if (win.classList.contains('maximized')) return;
+        rz = true;
+        const p = e.touches ? e.touches[0] : e;
+        rsx = p.clientX; rsy = p.clientY;
+        bw = win.offsetWidth; bh = win.offsetHeight;
+        win.style.zIndex = (++topZ);
+        document.body.style.userSelect = 'none';
+        e.stopPropagation();
+      }
+      function rMove(e) {
+        if (!rz) return;
+        const p = e.touches ? e.touches[0] : e;
+        let nw = bw + (p.clientX - rsx);
+        let nh = bh + (p.clientY - rsy);
+        nw = Math.max(opts.minW || 360, Math.min(window.innerWidth - 24, nw));
+        nh = Math.max(opts.minH || 280, Math.min(window.innerHeight - 60, nh));
+        win.style.width = nw + 'px';
+        win.style.height = nh + 'px';
+        if (e.cancelable) e.preventDefault();
+      }
+      function rUp() { rz = false; document.body.style.userSelect = ''; }
+      handle.addEventListener('mousedown', rDown);
+      window.addEventListener('mousemove', rMove);
+      window.addEventListener('mouseup', rUp);
+      handle.addEventListener('touchstart', rDown, { passive: true });
+      window.addEventListener('touchmove', rMove, { passive: false });
+      window.addEventListener('touchend', rUp);
+    }
+
+    // 창 누르면 맨 앞으로
+    win.addEventListener('mousedown', () => { win.style.zIndex = (++topZ); });
+
+    return { win, center, clamp };
+  }
+
+  // 창 쌓임 순서 관리
+  let topZ = 30;
+
+  // ----- 메인 창 -----
+  const desktop = $('desktop');
+  const deskIcon = $('deskIcon');
+  const mainW = makeWindow({
+    win: $('mainWin'), bar: $('mainBar'), handle: $('resizeHandle'),
+    minW: 380, minH: 320,
+    onSnap: () => updateTaskbar()
+  });
+  mainW.center();
+  setTimeout(mainW.center, 60);
+
+  // 작업표시줄 갱신 — 열려 있는 모든 창을 항목으로
+  // WINDOWS 배열은 메모장·사진첩 창이 만들어진 뒤 채워짐
+  const WINDOWS = [];
+  function updateTaskbar() {
+    const apps = $('taskbarApps');
+    apps.innerHTML = '';
+    WINDOWS.forEach(entry => {
+      const win = entry.w.win;
+      // 닫힌 창은 항목 없음 (메인은 closed 클래스, 앱은 display:none)
+      const isClosed = win.classList.contains('closed') ||
+                       win.style.display === 'none';
+      if (isClosed) return;
+      const item = document.createElement('div');
+      item.className = 'task-item' +
+        (win.classList.contains('collapsed') ? ' minimized' : '');
+      item.innerHTML =
+        '<span class="ti-dot"></span><span class="ti-name">' + entry.label + '</span>';
+      item.addEventListener('click', () => {
+        // 접혀 있으면 펴고 맨 앞으로, 아니면 접기
+        if (win.classList.contains('collapsed')) {
+          win.classList.remove('collapsed');
+          win.style.zIndex = (++topZ);
+        } else {
+          win.classList.add('collapsed');
+        }
+        entry.w.clamp();
+        updateTaskbar();
+      });
+      apps.appendChild(item);
+    });
+  }
+
+  // 메인 창 신호등
+  $('btnClose').addEventListener('click', e => {
+    e.stopPropagation();
+    mainW.win.classList.add('closed');
+    mainW.win.classList.remove('collapsed', 'maximized');
+    updateTaskbar();
+    toast('창을 닫았어요 · 바탕화면 아이콘을 더블클릭하면 다시 열려요');
+  });
+  $('btnMin').addEventListener('click', e => {
+    e.stopPropagation();
+    mainW.win.classList.remove('maximized');
+    mainW.win.classList.toggle('collapsed');
+    mainW.clamp();
+    updateTaskbar();
+  });
+  $('btnMax').addEventListener('click', e => {
+    e.stopPropagation();
+    mainW.win.classList.remove('collapsed');
+    mainW.win.classList.toggle('maximized');
+    if (!mainW.win.classList.contains('maximized')) mainW.center();
+    updateTaskbar();
+  });
+
+  // 메인 창 다시 열기
+  function openMainWin() {
+    const win = mainW.win;
+    win.classList.remove('closed', 'collapsed', 'maximized');
+    win.style.animation = 'none';
+    void win.offsetWidth;
+    win.style.animation = '';
+    win.style.zIndex = (++topZ);
+    mainW.center();
+    setTimeout(mainW.center, 60);
+    updateTaskbar();
+  }
+  deskIcon.addEventListener('dblclick', openMainWin);
+  let lastTap = 0;
+  deskIcon.addEventListener('touchend', () => {
+    const now = Date.now();
+    if (now - lastTap < 350) openMainWin();
+    lastTap = now;
+  });
+  deskIcon.addEventListener('click', () => deskIcon.classList.add('sel'));
+  desktop.addEventListener('click', e => {
+    if (e.target === desktop) {
+      document.querySelectorAll('.desk-icon').forEach(d => d.classList.remove('sel'));
+    }
+  });
+
+  // 꾸밈/앱 아이콘 — 클릭 선택, 더블클릭 동작
+  document.querySelectorAll('.deco-icon').forEach(d => {
+    d.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.desk-icon').forEach(x => x.classList.remove('sel'));
+      d.classList.add('sel');
+    });
+    d.addEventListener('dblclick', () => {
+      const app = d.dataset.app;
+      if (app) openApp(app);
+      else toast('♥ ' + (d.dataset.deco || ''));
+    });
+    // 모바일 더블탭
+    let dt = 0;
+    d.addEventListener('touchend', () => {
+      const now = Date.now();
+      if (now - dt < 350) {
+        const app = d.dataset.app;
+        if (app) openApp(app);
+        else toast('♥ ' + (d.dataset.deco || ''));
+      }
+      dt = now;
+    });
+  });
+
+  // 시작 버튼 / 트레이
+  $('startBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    const willShow = !$('startMenu').classList.contains('show');
+    closeAllMenus();
+    if (willShow) $('startMenu').classList.add('show');
+  });
+  // 트레이 하트 — 누를 때마다 다른 메시지 + 살짝 튀는 효과
+  const HEART_MSGS = [
+    '오늘 하루도 수고 많았어요 ♥',
+    '잘하고 있어요, 정말로.',
+    '잠깐 쉬어가도 괜찮아요 ☕',
+    '물 한 잔 마시고 가요 💧',
+    '깊게 숨 한 번 쉬어볼까요?',
+    '당신은 생각보다 더 잘하고 있어요.',
+    '오늘도 여기까지 와줘서 고마워요.',
+    '조금 천천히 가도 괜찮아요.',
+    '눈과 어깨, 잠깐 풀어주세요.',
+    '좋은 일이 곧 찾아올 거예요 ✨',
+    '스스로를 너무 몰아붙이지 말아요.',
+    '내일은 또 새로운 하루예요.'
+  ];
+  let heartIdx = -1;
+  $('trayHeart').addEventListener('click', () => {
+    // 같은 메시지 연속으로 안 나오게
+    let i;
+    do { i = Math.floor(Math.random() * HEART_MSGS.length); }
+    while (i === heartIdx && HEART_MSGS.length > 1);
+    heartIdx = i;
+    toast('<span class="th">♥</span> ' + HEART_MSGS[i]);
+    // 하트가 콩 튀는 애니메이션
+    const h = $('trayHeart');
+    h.style.animation = 'none';
+    void h.offsetWidth;
+    h.style.animation = 'heartPop 0.4s ease';
+  });
+
+  // ===== 메모장 · 사진첩 · 휴지통 앱 =====
+  const noteWin = makeWindow({
+    win: $('noteWin'), bar: $('noteBar'), handle: $('noteResize'),
+    minW: 300, minH: 240
+  });
+  const photoWin = makeWindow({
+    win: $('photoWin'), bar: $('photoBar'), handle: $('photoResize'),
+    minW: 320, minH: 280
+  });
+  const trashWin = makeWindow({
+    win: $('trashWin'), bar: $('trashBar'), handle: $('trashResize'),
+    minW: 300, minH: 260
+  });
+
+  // 앱 창 타이틀 아이콘 (작게)
+  $('noteTitleIc').innerHTML  = pixelSvg(NOTE_PX, { p:'#e0ad4a', w:'#fff7e6', l:'#f0cf86' });
+  $('photoTitleIc').innerHTML = pixelSvg(PIC_PX, { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
+  $('trashTitleIc').innerHTML = pixelSvg(TRASH_PX, { t:'#9b94a6', m:'#bdb6c6', h:'#d6d0dc' });
+
+  // 앱 열기 — 데스크톱 아이콘 더블클릭에서 호출
+  function openApp(name) {
+    const w = (name === 'note') ? noteWin :
+              (name === 'photo') ? photoWin :
+              (name === 'trash') ? trashWin : null;
+    if (!w) return;
+    if (name === 'trash') renderTrash();
+    w.win.style.display = 'flex';
+    w.win.classList.remove('closed', 'collapsed', 'maximized');
+    w.win.style.animation = 'none';
+    void w.win.offsetWidth;
+    w.win.style.animation = '';
+    w.win.style.zIndex = (++topZ);
+    w.center();
+    setTimeout(w.center, 50);
+    updateTaskbar();
+  }
+  // 앱 창 신호등 공통 — 빨강 닫기, 노랑 접기, 초록 최대화
+  function wireAppButtons(prefix, w) {
+    $(prefix + 'Close').addEventListener('click', e => {
+      e.stopPropagation();
+      w.win.style.display = 'none';
+      w.win.classList.remove('collapsed', 'maximized');
+      updateTaskbar();
+    });
+    $(prefix + 'Min').addEventListener('click', e => {
+      e.stopPropagation();
+      w.win.classList.remove('maximized');
+      w.win.classList.toggle('collapsed');
+      w.clamp();
+      updateTaskbar();
+    });
+    $(prefix + 'Max').addEventListener('click', e => {
+      e.stopPropagation();
+      w.win.classList.remove('collapsed');
+      w.win.classList.toggle('maximized');
+      if (!w.win.classList.contains('maximized')) w.center();
+      updateTaskbar();
+    });
+  }
+  wireAppButtons('note', noteWin);
+  wireAppButtons('photo', photoWin);
+  wireAppButtons('trash', trashWin);
+
+  // 네 창을 작업표시줄에 등록
+  WINDOWS.push({ w: mainW,  label: '도구함' });
+  WINDOWS.push({ w: noteWin, label: '메모장' });
+  WINDOWS.push({ w: photoWin, label: '사진첩' });
+  WINDOWS.push({ w: trashWin, label: '휴지통' });
+  updateTaskbar();
+
+  // ===== 시작 메뉴 =====
+  (function buildStartMenu() {
+    const list = $('smTools');
+    TOOLS.forEach(t => {
+      const item = document.createElement('div');
+      item.className = 'sm-item';
+      const ic = document.createElement('span');
+      ic.className = 'sm-ic';
+      ic.innerHTML = pixelSvg(t.px, t.pal);
+      const nm = document.createElement('span');
+      nm.textContent = t.name.replace(/<br>/g, ' ');
+      item.appendChild(ic);
+      item.appendChild(nm);
+      item.addEventListener('click', () => {
+        $('startMenu').classList.remove('show');
+        bumpToolUsage(t.url);
+        toast('<span class="th">♥</span> ' + nm.textContent + ' 새 창으로 열었어요');
+        window.open(t.url, '_blank', 'noopener');
+      });
+      list.appendChild(item);
+    });
+  })();
+  // 시작 메뉴 앱 아이콘
+  $('smIcNote').innerHTML  = pixelSvg(NOTE_PX, { p:'#e0ad4a', w:'#fff7e6', l:'#f0cf86' });
+  $('smIcPhoto').innerHTML = pixelSvg(PIC_PX, { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
+  // 시작 메뉴 앱 클릭
+  document.querySelectorAll('#startMenu .sm-item[data-sm]').forEach(item => {
+    item.addEventListener('click', () => {
+      const t = item.dataset.sm;
+      $('startMenu').classList.remove('show');
+      if (t === 'note' || t === 'photo') openApp(t);
+      else if (t === 'admin') openPw();
+    });
+  });
+
+  // ===== 시계 달력 =====
+  let calYear, calMonth;  // 현재 보고 있는 연·월
+  function renderCalendar() {
+    const today = new Date();
+    const first = new Date(calYear, calMonth, 1);
+    const startDow = first.getDay();   // 0=일 ~ 6=토
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    $('calTitle').textContent = calYear + '년 ' + (calMonth + 1) + '월';
+    const grid = $('calDays');
+    grid.innerHTML = '';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cell = document.createElement('span');
+      const dow = (startDow + d - 1) % 7;
+      cell.className = 'cal-day' + (dow === 0 ? ' sun' : dow === 6 ? ' sat' : '');
+      // 1일은 시작 요일 칸에 직접 배치 (빈 칸 없이)
+      if (d === 1) cell.style.gridColumnStart = startDow + 1;
+      if (calYear === today.getFullYear() && calMonth === today.getMonth() &&
+          d === today.getDate()) {
+        cell.className += ' today';
+      }
+      cell.textContent = d;
+      grid.appendChild(cell);
+    }
+    const wd = ['일','월','화','수','목','금','토'][today.getDay()];
+    $('calToday').textContent =
+      '오늘 · ' + today.getFullYear() + '.' +
+      String(today.getMonth()+1).padStart(2,'0') + '.' +
+      String(today.getDate()).padStart(2,'0') + ' (' + wd + ')';
+  }
+  function openCalendar() {
+    const now = new Date();
+    calYear = now.getFullYear();
+    calMonth = now.getMonth();
+    renderCalendar();
+    $('calendarPop').classList.add('show');
+  }
+  $('trayClock').addEventListener('click', e => {
+    e.stopPropagation();
+    const willShow = !$('calendarPop').classList.contains('show');
+    closeAllMenus();
+    if (willShow) { $('calendarPop').classList.add('show'); openCalendar(); }
+  });
+  $('calPrev').addEventListener('click', e => {
+    e.stopPropagation();
+    calMonth--;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+  });
+  $('calNext').addEventListener('click', e => {
+    e.stopPropagation();
+    calMonth++;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  });
+
+  // ===== 바탕화면 우클릭 메뉴 =====
+  const ctxMenu = $('ctxMenu');
+  desktop.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    closeAllMenus();
+    let x = e.clientX, y = e.clientY;
+    // show 를 붙여서 보이게 한 뒤 크기 측정
+    ctxMenu.classList.add('show');
+    const w = ctxMenu.offsetWidth, h = ctxMenu.offsetHeight;
+    if (x + w > window.innerWidth) x = window.innerWidth - w - 6;
+    if (y + h > window.innerHeight - 48) y = window.innerHeight - 48 - h;
+    ctxMenu.style.left = x + 'px';
+    ctxMenu.style.top = y + 'px';
+  });
+  ctxMenu.addEventListener('click', e => {
+    const item = e.target.closest('.ctx-item');
+    if (!item) return;
+    const act = item.dataset.ctx;
+    closeAllMenus();
+    if (act === 'refresh') { renderGrid(); toast('새로고침했어요'); }
+    else if (act === 'open') openMainWin();
+    else if (act === 'sticker') openStickerPicker();
+    else if (act === 'bg') openPw();
+    else if (act === 'note') openApp('note');
+    else if (act === 'photo') openApp('photo');
+  });
+
+  // ===== 팝업/메뉴 닫기 =====
+  // 모든 떠 있는 메뉴·팝업을 한 번에 닫음
+  function closeAllMenus() {
+    $('startMenu').classList.remove('show');
+    $('calendarPop').classList.remove('show');
+    ctxMenu.classList.remove('show');
+    ctxMenu.style.display = '';
+    const tm = $('tabMenu');
+    tm.classList.remove('show');
+    tm.style.display = '';
+  }
+  // 바깥 클릭 시 닫기
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#startMenu') && !e.target.closest('#startBtn')) {
+      $('startMenu').classList.remove('show');
+    }
+    if (!e.target.closest('#calendarPop') && !e.target.closest('#trayClock')) {
+      $('calendarPop').classList.remove('show');
+    }
+    if (!e.target.closest('#ctxMenu')) {
+      ctxMenu.classList.remove('show');
+      ctxMenu.style.display = '';
+    }
+    if (!e.target.closest('#tabMenu')) {
+      const tm = $('tabMenu');
+      tm.classList.remove('show');
+      tm.style.display = '';
+    }
+  });
+  // 창을 드래그하거나 어디든 누르기 시작하면 메뉴 닫기 (mousedown 단계)
+  document.addEventListener('mousedown', e => {
+    if (e.target.closest('.ctx-menu') || e.target.closest('#startMenu') ||
+        e.target.closest('#calendarPop') || e.target.closest('#startBtn') ||
+        e.target.closest('#trayClock')) return;
+    closeAllMenus();
+  });
+  // 스크롤·창 크기 변경 시에도 닫기
+  window.addEventListener('resize', closeAllMenus);
+
+
+  // ===== 위젯: 디데이 (여러 개) =====
+  const DDAY_KEY = 'chathub:ddays';
+  // ddays: [{ id, name, date:'YYYY-MM-DD', color, mode:'until'|'since' }]
+  let ddays = [];
+  try {
+    const raw = localStorage.getItem(DDAY_KEY);
+    if (raw) ddays = JSON.parse(raw);
+    if (!Array.isArray(ddays)) ddays = [];
+  } catch { ddays = []; }
+  // 구버전 단일 디데이 이전
+  if (ddays.length === 0) {
+    try {
+      const old = localStorage.getItem('chathub:dday');
+      if (old) {
+        const o = JSON.parse(old);
+        if (o && o.date) {
+          ddays.push({ id: Date.now(), name: o.label || '디데이',
+                       date: o.date, color: '#ff96b6', mode: 'until' });
+        }
+      }
+    } catch {}
+  }
+
+  // 디데이 색상 팔레트
+  const DDAY_COLORS = ['#ff96b6', '#5cb3f5', '#43c79b', '#9a82dd',
+                       '#ffa64d', '#ff7e95', '#5a9fe6'];
+
+  function saveDdays() {
+    try { localStorage.setItem(DDAY_KEY, JSON.stringify(ddays)); } catch {}
+  }
+  // 디데이 계산 — 첫날을 1일로 (함께한 날), 당일 D-DAY
+  function ddayText(d) {
+    const target = new Date(d.date + 'T00:00:00');
+    if (isNaN(target.getTime())) return 'D-?';
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diff = Math.round((target - today) / 86400000);
+    if (d.mode === 'since') {
+      // 함께한 날: 시작일 당일이 1일
+      const days = -diff + 1;
+      if (days >= 1) return days + '일';
+      return 'D-' + (1 - days);  // 아직 시작 전
+    } else {
+      // 남은 날
+      if (diff > 0) return 'D-' + diff;
+      if (diff < 0) return 'D+' + Math.abs(diff);
+      return 'D-DAY';
+    }
+  }
+  function renderDdays() {
+    const list = $('ddayList');
+    list.innerHTML = '';
+    if (ddays.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'dday-empty';
+      e.textContent = '＋ 를 눌러 디데이를 추가해요';
+      list.appendChild(e);
+      return;
+    }
+    ddays.forEach(d => {
+      const card = document.createElement('div');
+      card.className = 'dday-card';
+      card.style.background = d.color || '#ff96b6';
+      const target = new Date(d.date + 'T00:00:00');
+      let dateStr = '----.--.--';
+      if (!isNaN(target.getTime())) {
+        const y = target.getFullYear();
+        const mm = String(target.getMonth() + 1).padStart(2, '0');
+        const dd = String(target.getDate()).padStart(2, '0');
+        dateStr = y + '.' + mm + '.' + dd;
+      }
+      card.innerHTML =
+        '<span class="dc-name">' + (d.name || '디데이') + '</span>' +
+        '<span class="dc-big">' + ddayText(d) + '</span>' +
+        '<span class="dc-date">' + dateStr + '</span>';
+      card.addEventListener('click', () => openDdayModal(d.id));
+      list.appendChild(card);
+    });
+  }
+  renderDdays();
+  setInterval(renderDdays, 60000);  // 자정 넘어가면 갱신
+
+  // ===== 위젯 드래그 (달력 · 디데이) =====
+  const WIDGET_POS_KEY = 'chathub:widgetPos';
+  let widgetPos = {};
+  try {
+    const raw = localStorage.getItem(WIDGET_POS_KEY);
+    if (raw) widgetPos = JSON.parse(raw) || {};
+  } catch { widgetPos = {}; }
+
+  function makeWidgetDraggable(widget, head) {
+    // 초기 위치 — 저장된 게 있으면 사용, 없으면 현재 right 기준을 left 로 변환
+    function applyPos() {
+      const saved = widgetPos[widget.id];
+      if (saved) {
+        widget.style.left = saved.x + 'px';
+        widget.style.top = saved.y + 'px';
+        widget.style.right = 'auto';
+      } else {
+        // right 값을 left 픽셀로 환산
+        const r = widget.getBoundingClientRect();
+        widget.style.left = r.left + 'px';
+        widget.style.top = r.top + 'px';
+        widget.style.right = 'auto';
+      }
+    }
+    applyPos();
+
+    let drag = false, sx = 0, sy = 0, bl = 0, bt = 0;
+    function down(e) {
+      // 헤더의 버튼(이전/다음/추가)을 누르면 드래그 안 함
+      if (e.target.closest('button')) return;
+      drag = true;
+      const p = e.touches ? e.touches[0] : e;
+      sx = p.clientX; sy = p.clientY;
+      bl = parseInt(widget.style.left, 10) || 0;
+      bt = parseInt(widget.style.top, 10) || 0;
+      widget.classList.add('dragging');
+      document.body.style.userSelect = 'none';
+    }
+    function move(e) {
+      if (!drag) return;
+      const p = e.touches ? e.touches[0] : e;
+      let nx = bl + (p.clientX - sx);
+      let ny = bt + (p.clientY - sy);
+      // 화면 안에 머물게
+      const w = widget.offsetWidth, h = widget.offsetHeight;
+      nx = Math.max(4, Math.min(window.innerWidth - w - 4, nx));
+      ny = Math.max(4, Math.min(window.innerHeight - 52 - h, ny));
+      widget.style.left = nx + 'px';
+      widget.style.top = ny + 'px';
+      if (e.cancelable) e.preventDefault();
+    }
+    function up() {
+      if (!drag) return;
+      drag = false;
+      widget.classList.remove('dragging');
+      document.body.style.userSelect = '';
+      // 위치 저장
+      widgetPos[widget.id] = {
+        x: parseInt(widget.style.left, 10) || 0,
+        y: parseInt(widget.style.top, 10) || 0
+      };
+      try { localStorage.setItem(WIDGET_POS_KEY, JSON.stringify(widgetPos)); }
+      catch {}
+    }
+    head.addEventListener('mousedown', down);
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+    head.addEventListener('touchstart', down, { passive: true });
+    window.addEventListener('touchmove', move, { passive: false });
+    window.addEventListener('touchend', up);
+  }
+  // 위치 계산은 레이아웃이 끝난 뒤
+  setTimeout(() => {
+    makeWidgetDraggable($('ddayWidget'), $('ddayWidget').querySelector('.widget-head'));
+  }, 80);
+
+  // ===== 바탕화면 스티커 =====
+  const STICKER_KEY = 'chathub:stickers';
+  const STICKER_SET = ['🌸','💗','⭐','🌙','☁️','🍓','🧸','🎀','🦋','🌷',
+                       '✨','🍀','🐰','🌈','💎','🎈','🍰','☕','📎','💌',
+                       '🪄','🫧','🌻','🐱'];
+  // stickers: [{ id, kind:'emoji'|'image', emoji?, src?, x, y, size, shadow }]
+  let stickers = [];
+  try {
+    const raw = localStorage.getItem(STICKER_KEY);
+    if (raw) stickers = JSON.parse(raw);
+    if (!Array.isArray(stickers)) stickers = [];
+  } catch { stickers = []; }
+
+  function saveStickers() {
+    try { localStorage.setItem(STICKER_KEY, JSON.stringify(stickers)); }
+    catch { toast('스티커 이미지가 너무 커서 저장하지 못했어요'); }
+  }
+  // 스티커 하나를 화면에 그림
+  function spawnSticker(s) {
+    // 기본값 보정
+    if (!s.size) s.size = 64;
+    if (s.shadow === undefined) s.shadow = true;
+    if (s.rot === undefined) s.rot = 0;
+
+    const el = document.createElement('div');
+    el.className = 'sticker' + (s.shadow ? ' shadow' : '');
+    el.style.left = s.x + 'px';
+    el.style.top = s.y + 'px';
+    el.style.width = s.size + 'px';
+    el.style.height = s.size + 'px';
+    el.style.setProperty('--rot', s.rot + 'deg');
+    el.dataset.id = s.id;
+
+    // 내용 — 이모지 또는 이미지
+    const content = document.createElement('div');
+    if (s.kind === 'image') {
+      content.className = 'stk-content';
+      const img = document.createElement('img');
+      img.src = s.src;
+      content.appendChild(img);
+    } else {
+      content.className = 'stk-content emoji';
+      content.textContent = s.emoji;
+      content.style.fontSize = Math.round(s.size * 0.8) + 'px';
+    }
+    el.appendChild(content);
+
+    // 도구 버튼 (삭제 · 섀도우 토글)
+    const tools = document.createElement('div');
+    tools.className = 'stk-tools';
+    const shadowBtn = document.createElement('button');
+    shadowBtn.className = 'stk-btn stk-shadow-btn' + (s.shadow ? '' : ' off');
+    shadowBtn.textContent = '☀';
+    shadowBtn.title = '그림자 켜기/끄기';
+    shadowBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      s.shadow = !s.shadow;
+      el.classList.toggle('shadow', s.shadow);
+      shadowBtn.classList.toggle('off', !s.shadow);
+      saveStickers();
+    });
+    const delBtn = document.createElement('button');
+    delBtn.className = 'stk-btn stk-del-btn';
+    delBtn.textContent = '×';
+    delBtn.title = '삭제';
+    delBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      stickers = stickers.filter(x => x.id !== s.id);
+      saveStickers();
+      el.remove();
+    });
+    tools.appendChild(shadowBtn);
+    tools.appendChild(delBtn);
+    el.appendChild(tools);
+
+    // 크기 조절 핸들
+    const resize = document.createElement('div');
+    resize.className = 'stk-resize';
+    el.appendChild(resize);
+
+    // 회전 핸들
+    const rotate = document.createElement('div');
+    rotate.className = 'stk-rotate';
+    rotate.textContent = '↻';
+    rotate.title = '드래그해서 회전';
+    el.appendChild(rotate);
+
+    // ----- 드래그 (이동) -----
+    let drag = false, sx = 0, sy = 0, bl = 0, bt = 0;
+    function down(e) {
+      if (e.target.closest('.stk-btn') || e.target.closest('.stk-resize') ||
+          e.target.closest('.stk-rotate')) return;
+      drag = true;
+      const p = e.touches ? e.touches[0] : e;
+      sx = p.clientX; sy = p.clientY;
+      bl = parseInt(el.style.left, 10) || 0;
+      bt = parseInt(el.style.top, 10) || 0;
+      el.classList.add('dragging');
+      el.style.zIndex = 8;
+      document.body.style.userSelect = 'none';
+    }
+    function move(e) {
+      if (!drag) return;
+      const p = e.touches ? e.touches[0] : e;
+      let nx = bl + (p.clientX - sx);
+      let ny = bt + (p.clientY - sy);
+      nx = Math.max(-10, Math.min(window.innerWidth - 30, nx));
+      ny = Math.max(-10, Math.min(window.innerHeight - 52, ny));
+      el.style.left = nx + 'px';
+      el.style.top = ny + 'px';
+      if (e.cancelable) e.preventDefault();
+    }
+    function up() {
+      if (!drag) return;
+      drag = false;
+      el.classList.remove('dragging');
+      el.style.zIndex = 4;
+      document.body.style.userSelect = '';
+      s.x = parseInt(el.style.left, 10) || 0;
+      s.y = parseInt(el.style.top, 10) || 0;
+      saveStickers();
+    }
+    el.addEventListener('mousedown', down);
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+    el.addEventListener('touchstart', down, { passive: true });
+    window.addEventListener('touchmove', move, { passive: false });
+    window.addEventListener('touchend', up);
+
+    // ----- 크기 조절 -----
+    let rz = false, rsx = 0, rbase = 0;
+    function rDown(e) {
+      rz = true;
+      const p = e.touches ? e.touches[0] : e;
+      rsx = p.clientX;
+      rbase = s.size;
+      document.body.style.userSelect = 'none';
+      e.stopPropagation();
+    }
+    function rMove(e) {
+      if (!rz) return;
+      const p = e.touches ? e.touches[0] : e;
+      let ns = rbase + (p.clientX - rsx);
+      ns = Math.max(32, Math.min(220, ns));
+      s.size = Math.round(ns);
+      el.style.width = s.size + 'px';
+      el.style.height = s.size + 'px';
+      if (s.kind === 'emoji') {
+        content.style.fontSize = Math.round(s.size * 0.8) + 'px';
+      }
+      if (e.cancelable) e.preventDefault();
+    }
+    function rUp() {
+      if (!rz) return;
+      rz = false;
+      document.body.style.userSelect = '';
+      saveStickers();
+    }
+    resize.addEventListener('mousedown', rDown);
+    window.addEventListener('mousemove', rMove);
+    window.addEventListener('mouseup', rUp);
+    resize.addEventListener('touchstart', rDown, { passive: true });
+    window.addEventListener('touchmove', rMove, { passive: false });
+    window.addEventListener('touchend', rUp);
+
+    // ----- 회전 -----
+    let rot = false, rotStart = 0, rotBase = 0;
+    function angleFromCenter(px, py) {
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      return Math.atan2(py - cy, px - cx) * 180 / Math.PI;
+    }
+    function rotDown(e) {
+      rot = true;
+      const p = e.touches ? e.touches[0] : e;
+      rotStart = angleFromCenter(p.clientX, p.clientY);
+      rotBase = s.rot || 0;
+      document.body.style.userSelect = 'none';
+      e.stopPropagation();
+    }
+    function rotMove(e) {
+      if (!rot) return;
+      const p = e.touches ? e.touches[0] : e;
+      const now = angleFromCenter(p.clientX, p.clientY);
+      let ang = rotBase + (now - rotStart);
+      // 15도 단위로 살짝 스냅 (가까울 때만)
+      const snapped = Math.round(ang / 15) * 15;
+      if (Math.abs(snapped - ang) < 4) ang = snapped;
+      s.rot = Math.round(ang);
+      el.style.setProperty('--rot', s.rot + 'deg');
+      if (e.cancelable) e.preventDefault();
+    }
+    function rotUp() {
+      if (!rot) return;
+      rot = false;
+      document.body.style.userSelect = '';
+      saveStickers();
+    }
+    rotate.addEventListener('mousedown', rotDown);
+    window.addEventListener('mousemove', rotMove);
+    window.addEventListener('mouseup', rotUp);
+    rotate.addEventListener('touchstart', rotDown, { passive: true });
+    window.addEventListener('touchmove', rotMove, { passive: false });
+    window.addEventListener('touchend', rotUp);
+
+    desktop.appendChild(el);
+  }
+  // 저장된 스티커 모두 표시
+  stickers.forEach(spawnSticker);
+
+  // 새 스티커를 화면 가운데쯤에 추가
+  function addSticker(opts) {
+    const s = Object.assign({
+      id: Date.now() + Math.random(),
+      x: Math.round(window.innerWidth / 2 - 32 + (Math.random() * 80 - 40)),
+      y: Math.round(window.innerHeight / 2 - 32 + (Math.random() * 80 - 40)),
+      size: 64,
+      shadow: true
+    }, opts);
+    stickers.push(s);
+    saveStickers();
+    spawnSticker(s);
+    $('stickerPicker').classList.remove('show');
+    toast('<span class="th">♥</span> 스티커를 붙였어요 · 모서리로 크기 조절');
+  }
+
+  // 스티커 고르기 팝업 — 이모지 그리드
+  (function buildStickerGrid() {
+    const grid = $('stickerGrid');
+    STICKER_SET.forEach(emoji => {
+      const opt = document.createElement('div');
+      opt.className = 'sticker-opt';
+      opt.textContent = emoji;
+      opt.addEventListener('click', () => {
+        addSticker({ kind: 'emoji', emoji: emoji });
+      });
+      grid.appendChild(opt);
+    });
+  })();
+  // 이미지 스티커 업로드
+  $('stickerUploadBtn').addEventListener('click', () => $('stickerFile').click());
+  $('stickerFile').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('이미지 파일만 가능해요'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      addSticker({ kind: 'image', src: reader.result, size: 90 });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  });
+  function openStickerPicker() { $('stickerPicker').classList.add('show'); }
+  $('stickerCloseX').addEventListener('click', () => {
+    $('stickerPicker').classList.remove('show');
+  });
+  $('stickerPicker').addEventListener('click', e => {
+    if (e.target === $('stickerPicker')) $('stickerPicker').classList.remove('show');
+  });
+
+  // ----- 디데이 편집 모달 -----
+  let dmEditId = null;       // 편집 중인 id (null이면 새로 추가)
+  let dmColor = DDAY_COLORS[0];
+  let dmMode = 'until';
+
+  // 색상 스와치 만들기
+  (function buildDdayColors() {
+    const wrap = $('dmColors');
+    DDAY_COLORS.forEach(c => {
+      const s = document.createElement('div');
+      s.className = 'dm-color';
+      s.style.background = c;
+      s.dataset.color = c;
+      s.addEventListener('click', () => {
+        dmColor = c;
+        syncDmColors();
+        updateDmPreview();
+      });
+      wrap.appendChild(s);
+    });
+  })();
+  function syncDmColors() {
+    document.querySelectorAll('#dmColors .dm-color').forEach(s => {
+      s.classList.toggle('on', s.dataset.color === dmColor);
+    });
+  }
+  function updateDmPreview() {
+    const prev = $('dmPreview');
+    prev.style.background = dmColor;
+    const name = $('dmName').value.trim() || '디데이';
+    const date = $('dmDate').value;
+    if (date) {
+      $('dmPreview').querySelector('.dm-prev-big').textContent =
+        ddayText({ date: date, mode: dmMode });
+    } else {
+      $('dmPreview').querySelector('.dm-prev-big').textContent = 'D-?';
+    }
+    $('dmPreview').querySelector('.dm-prev-label').textContent = name;
+  }
+  function openDdayModal(id) {
+    dmEditId = id || null;
+    const editing = id ? ddays.find(x => x.id === id) : null;
+    if (editing) {
+      $('dmName').value = editing.name || '';
+      $('dmDate').value = editing.date || '';
+      dmColor = editing.color || DDAY_COLORS[0];
+      dmMode = editing.mode || 'until';
+      $('ddayDelete').style.display = '';
+    } else {
+      $('dmName').value = '';
+      $('dmDate').value = '';
+      dmColor = DDAY_COLORS[0];
+      dmMode = 'until';
+      $('ddayDelete').style.display = 'none';
+    }
+    syncDmColors();
+    document.querySelectorAll('#dmMode button').forEach(b => {
+      b.classList.toggle('on', b.dataset.mode === dmMode);
+    });
+    updateDmPreview();
+    $('ddayModal').classList.add('show');
+  }
+  function closeDdayModal() { $('ddayModal').classList.remove('show'); }
+
+  $('ddayAdd').addEventListener('click', () => openDdayModal(null));
+  $('dmName').addEventListener('input', updateDmPreview);
+  $('dmDate').addEventListener('input', updateDmPreview);
+  $('dmMode').addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    dmMode = btn.dataset.mode;
+    document.querySelectorAll('#dmMode button').forEach(b => {
+      b.classList.toggle('on', b === btn);
+    });
+    updateDmPreview();
+  });
+  $('ddaySave').addEventListener('click', () => {
+    const name = $('dmName').value.trim();
+    const date = $('dmDate').value;
+    if (!date) { toast('날짜를 골라주세요'); return; }
+    if (dmEditId) {
+      const d = ddays.find(x => x.id === dmEditId);
+      if (d) { d.name = name || '디데이'; d.date = date;
+               d.color = dmColor; d.mode = dmMode; }
+    } else {
+      ddays.push({ id: Date.now(), name: name || '디데이',
+                   date: date, color: dmColor, mode: dmMode });
+    }
+    saveDdays();
+    renderDdays();
+    closeDdayModal();
+    toast('<span class="th">♥</span> 디데이를 저장했어요');
+  });
+  $('ddayDelete').addEventListener('click', () => {
+    if (!dmEditId) return;
+    ddays = ddays.filter(x => x.id !== dmEditId);
+    saveDdays();
+    renderDdays();
+    closeDdayModal();
+    toast('디데이를 삭제했어요');
+  });
+  $('ddayCancel').addEventListener('click', closeDdayModal);
+  $('ddayCancelX').addEventListener('click', closeDdayModal);
+  $('ddayModal').addEventListener('click', e => {
+    if (e.target === $('ddayModal')) closeDdayModal();
+  });
+
+  // ===== 휴지통 — 삭제한 메모 보관 =====
+  const TRASH_KEY = 'chathub:trash';
+  // trash: [{ id, title, body, when }]
+  let trash = [];
+  try {
+    const raw = localStorage.getItem(TRASH_KEY);
+    if (raw) trash = JSON.parse(raw);
+    if (!Array.isArray(trash)) trash = [];
+  } catch { trash = []; }
+
+  function saveTrash() {
+    try { localStorage.setItem(TRASH_KEY, JSON.stringify(trash)); } catch {}
+  }
+  // kind: 'note' | 'photo'
+  // note → body 에 글, photo → body 에 이미지 dataURL
+  function sendToTrash(title, body, kind) {
+    trash.unshift({
+      id: Date.now() + Math.random(),
+      kind: kind || 'note',
+      title: title || '메모',
+      body: body || '',
+      when: Date.now()
+    });
+    // 최대 30개까지만 보관
+    if (trash.length > 30) trash = trash.slice(0, 30);
+    saveTrash();
+    updateTrashIcon();
+    // 휴지통 창이 열려 있으면 바로 갱신 (실시간 연동)
+    if (trashWin.win.style.display !== 'none') renderTrash();
+  }
+  // 휴지통 아이콘 — 차 있으면 살짝 표시
+  function updateTrashIcon() {
+    const ic = $('trashIcon');
+    if (!ic) return;
+    ic.title = trash.length ? (trash.length + '개 항목') : '휴지통 (비어 있음)';
+  }
+  function renderTrash() {
+    const list = $('trashList');
+    list.innerHTML = '';
+    $('trashInfo').textContent =
+      trash.length ? (trash.length + '개 항목') : '비어 있음';
+    if (trash.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'trash-empty';
+      e.innerHTML = '<div class="te-ic">🗑</div>휴지통이 비어 있어요.<br>메모장·사진첩에서 지운 것이 여기 모여요.';
+      list.appendChild(e);
+      return;
+    }
+    trash.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'trash-row';
+      const top = document.createElement('div');
+      top.className = 'trash-row-top';
+      const title = document.createElement('span');
+      title.className = 'trash-row-title';
+      title.textContent = (t.kind === 'photo' ? '📷 ' : '📝 ') + t.title;
+      const acts = document.createElement('div');
+      acts.className = 'trash-row-acts';
+      const restore = document.createElement('button');
+      restore.className = 'trash-mini restore';
+      restore.textContent = '되살리기';
+      restore.addEventListener('click', () => {
+        if (t.kind === 'photo') {
+          // 사진첩으로 복원
+          photos.unshift(t.body);
+          savePhotos();
+          renderPhotos();
+          toast('<span class="th">♥</span> 사진첩으로 되살렸어요');
+        } else {
+          // 메모장 새 탭으로 복원
+          notes.push({ id: Date.now(), title: t.title, body: t.body });
+          saveNotes();
+          curNote = notes.length - 1;
+          renderNoteTabs();
+          loadCurNote();
+          toast('<span class="th">♥</span> 메모장으로 되살렸어요');
+        }
+        trash = trash.filter(x => x.id !== t.id);
+        saveTrash();
+        renderTrash();
+        updateTrashIcon();
+      });
+      const purge = document.createElement('button');
+      purge.className = 'trash-mini purge';
+      purge.textContent = '영구삭제';
+      purge.addEventListener('click', () => {
+        trash = trash.filter(x => x.id !== t.id);
+        saveTrash();
+        renderTrash();
+        updateTrashIcon();
+      });
+      acts.appendChild(restore);
+      acts.appendChild(purge);
+      top.appendChild(title);
+      top.appendChild(acts);
+      row.appendChild(top);
+      if (t.kind === 'photo') {
+        const thumb = document.createElement('img');
+        thumb.className = 'trash-thumb';
+        thumb.src = t.body;
+        row.appendChild(thumb);
+      } else {
+        const prev = document.createElement('div');
+        prev.className = 'trash-row-preview';
+        prev.textContent = t.body.slice(0, 120) || '(내용 없음)';
+        row.appendChild(prev);
+      }
+      list.appendChild(row);
+    });
+  }
+  $('trashEmpty').addEventListener('click', () => {
+    if (trash.length === 0) { toast('이미 비어 있어요'); return; }
+    trash = [];
+    saveTrash();
+    renderTrash();
+    updateTrashIcon();
+    toast('휴지통을 비웠어요');
+  });
+  updateTrashIcon();
+
+  // ----- 메모장 — 여러 탭, 자동 저장 -----
+  const NOTE_KEY = 'chathub:note';      // (구버전) 단일 메모
+  const NOTES_KEY = 'chathub:notes';    // 여러 탭 메모
+  const noteText = $('noteText');
+  // notes: [{ id, title, body }]
+  let notes = [];
+  let curNote = 0;
+
+  function loadNotes() {
+    try {
+      const raw = localStorage.getItem(NOTES_KEY);
+      if (raw) {
+        notes = JSON.parse(raw);
+        if (!Array.isArray(notes)) notes = [];
+      }
+    } catch { notes = []; }
+    // 구버전 단일 메모가 있으면 첫 탭으로 옮김
+    if (notes.length === 0) {
+      let old = '';
+      try { old = localStorage.getItem(NOTE_KEY) || ''; } catch {}
+      notes = [{ id: Date.now(), title: '메모 1', body: old }];
+    }
+  }
+  function saveNotes() {
+    try { localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); }
+    catch { toast('메모가 너무 길어서 저장하지 못했어요'); }
+  }
+  // 탭 우클릭 메뉴 — "제목 바꾸기"
+  let tabMenuAction = null;
+  function showTabMenu(x, y, idx, renameFn) {
+    closeAllMenus();
+    const menu = $('tabMenu');
+    tabMenuAction = renameFn;
+    menu.classList.add('show');
+    const w = menu.offsetWidth, h = menu.offsetHeight;
+    if (x + w > window.innerWidth) x = window.innerWidth - w - 6;
+    if (y + h > window.innerHeight - 48) y = window.innerHeight - 48 - h;
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+  }
+  $('tabRename').addEventListener('click', () => {
+    closeAllMenus();
+    if (tabMenuAction) tabMenuAction();
+    tabMenuAction = null;
+  });
+
+  function renderNoteTabs() {
+    const wrap = $('noteTabs');
+    wrap.querySelectorAll('.note-tab').forEach(t => t.remove());
+    const addBtn = $('noteTabAdd');
+    notes.forEach((n, i) => {
+      const tab = document.createElement('div');
+      tab.className = 'note-tab' + (i === curNote ? ' on' : '');
+      tab.draggable = true;
+      tab.dataset.idx = i;
+
+      const label = document.createElement('span');
+      label.className = 'nt-label';
+      label.textContent = n.title;
+      tab.appendChild(label);
+
+      // 탭이 2개 이상일 때만 닫기 버튼
+      if (notes.length > 1) {
+        const x = document.createElement('span');
+        x.className = 'nt-x';
+        x.textContent = '×';
+        x.addEventListener('click', e => {
+          e.stopPropagation();
+          const removed = notes[i];
+          if (removed && removed.body && removed.body.trim()) {
+            sendToTrash(removed.title, removed.body);
+          }
+          notes.splice(i, 1);
+          if (curNote >= notes.length) curNote = notes.length - 1;
+          saveNotes();
+          renderNoteTabs();
+          loadCurNote();
+        });
+        tab.appendChild(x);
+      }
+
+      // 클릭 — 탭 전환
+      tab.addEventListener('click', () => {
+        saveCurNote();
+        curNote = i;
+        renderNoteTabs();
+        loadCurNote();
+      });
+
+      // 제목 수정 시작 (더블클릭 / 우클릭 메뉴 공용)
+      function startRename() {
+        if (tab.querySelector('.nt-rename')) return;  // 이미 수정 중
+        tab.draggable = false;
+        const input = document.createElement('input');
+        input.className = 'nt-rename';
+        input.value = n.title;
+        input.maxLength = 20;
+        label.replaceWith(input);
+        input.focus();
+        input.select();
+        let done = false;
+        function commit() {
+          if (done) return;
+          done = true;
+          const v = input.value.trim() || ('메모 ' + (i + 1));
+          notes[i].title = v;
+          saveNotes();
+          renderNoteTabs();
+        }
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', ev => {
+          ev.stopPropagation();
+          if (ev.key === 'Enter') { ev.preventDefault(); commit(); }
+          if (ev.key === 'Escape') { done = true; renderNoteTabs(); }
+        });
+        input.addEventListener('click', ev => ev.stopPropagation());
+        input.addEventListener('mousedown', ev => ev.stopPropagation());
+        input.addEventListener('dblclick', ev => ev.stopPropagation());
+      }
+
+      // 더블클릭 — 제목 수정
+      label.addEventListener('dblclick', e => {
+        e.stopPropagation();
+        e.preventDefault();
+        startRename();
+      });
+      // 우클릭 — 제목 바꾸기 메뉴
+      tab.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        showTabMenu(e.clientX, e.clientY, i, startRename);
+      });
+
+      // 드래그로 순서 변경
+      tab.addEventListener('dragstart', e => {
+        // 제목 수정 중이면 드래그 취소
+        if (tab.querySelector('.nt-rename')) { e.preventDefault(); return; }
+        noteDragIdx = i;
+        tab.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      tab.addEventListener('dragend', () => {
+        tab.classList.remove('dragging');
+        document.querySelectorAll('.note-tab').forEach(t =>
+          t.classList.remove('drag-over'));
+      });
+      tab.addEventListener('dragover', e => {
+        e.preventDefault();
+        if (noteDragIdx === null || noteDragIdx === i) return;
+        tab.classList.add('drag-over');
+      });
+      tab.addEventListener('dragleave', () => {
+        tab.classList.remove('drag-over');
+      });
+      tab.addEventListener('drop', e => {
+        e.preventDefault();
+        tab.classList.remove('drag-over');
+        if (noteDragIdx === null || noteDragIdx === i) return;
+        // 현재 보고 있던 메모 객체를 기억
+        const curObj = notes[curNote];
+        const moved = notes.splice(noteDragIdx, 1)[0];
+        notes.splice(i, 0, moved);
+        // curNote 인덱스 다시 찾기
+        curNote = notes.indexOf(curObj);
+        if (curNote < 0) curNote = 0;
+        noteDragIdx = null;
+        saveNotes();
+        renderNoteTabs();
+      });
+
+      wrap.insertBefore(tab, addBtn);
+    });
+  }
+  let noteDragIdx = null;
+  function loadCurNote() {
+    const n = notes[curNote];
+    noteText.value = n ? n.body : '';
+    updateNoteStatus();
+  }
+  function saveCurNote() {
+    if (notes[curNote]) {
+      notes[curNote].body = noteText.value;
+      saveNotes();
+    }
+  }
+  function updateNoteStatus() {
+    $('noteStatus').textContent = noteText.value.length + '자';
+  }
+
+  loadNotes();
+  renderNoteTabs();
+  loadCurNote();
+
+  noteText.addEventListener('input', () => {
+    updateNoteStatus();
+    if (notes[curNote]) {
+      notes[curNote].body = noteText.value;
+      saveNotes();
+    }
+  });
+  // 새 메모 탭
+  $('noteTabAdd').addEventListener('click', () => {
+    saveCurNote();
+    notes.push({ id: Date.now(), title: '메모 ' + (notes.length + 1), body: '' });
+    curNote = notes.length - 1;
+    renderNoteTabs();
+    loadCurNote();
+    noteText.focus();
+  });
+  // 이 메모 비우기
+  $('noteClear').addEventListener('click', () => {
+    if (!noteText.value) return;
+    noteText.value = '';
+    if (notes[curNote]) { notes[curNote].body = ''; saveNotes(); }
+    updateNoteStatus();
+    toast('이 메모를 비웠어요');
+  });
+
+  // ----- 사진첩 — 이미지 올리고 보기 -----
+  const PHOTO_KEY = 'chathub:photos';
+  let photos = [];
+  try {
+    const raw = localStorage.getItem(PHOTO_KEY);
+    if (raw) photos = JSON.parse(raw);
+    if (!Array.isArray(photos)) photos = [];
+  } catch { photos = []; }
+
+  function savePhotos() {
+    try { localStorage.setItem(PHOTO_KEY, JSON.stringify(photos)); }
+    catch { toast('사진이 너무 많거나 커서 저장하지 못했어요'); }
+  }
+  function renderPhotos() {
+    const grid = $('photoGrid');
+    grid.innerHTML = '';
+    $('photoCount').textContent = photos.length ? photos.length + '장' : '';
+    if (photos.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'photo-empty';
+      e.innerHTML = '<div class="pe-ic">🌷</div>아직 사진이 없어요.<br>＋ 사진 추가를 눌러 올려보세요.';
+      grid.appendChild(e);
+      return;
+    }
+    photos.forEach((src, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'photo-cell';
+      const img = document.createElement('img');
+      img.src = src;
+      img.addEventListener('click', () => {
+        pvCurrentSrc = src;
+        $('photoViewImg').src = src;
+        $('photoView').classList.add('show');
+      });
+      const del = document.createElement('button');
+      del.className = 'pc-del';
+      del.textContent = '×';
+      del.title = '삭제';
+      del.addEventListener('click', e => {
+        e.stopPropagation();
+        const removed = photos[i];
+        if (removed) sendToTrash('사진', removed, 'photo');
+        photos.splice(i, 1);
+        savePhotos();
+        renderPhotos();
+        toast('사진을 휴지통으로 보냈어요');
+      });
+      cell.appendChild(img);
+      cell.appendChild(del);
+      grid.appendChild(cell);
+    });
+  }
+  renderPhotos();
+
+  $('photoAdd').addEventListener('click', () => $('photoFile').click());
+  $('photoFile').addEventListener('change', e => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    let done = 0;
+    files.forEach(file => {
+      if (!file.type.startsWith('image/')) { done++; return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        photos.push(reader.result);
+        done++;
+        if (done === files.length) {
+          savePhotos();
+          renderPhotos();
+          toast('<span class="th">♥</span> 사진을 추가했어요');
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  });
+  // 사진 크게 보기 — 닫기 / 배경 설정
+  let pvCurrentSrc = '';
+  function closePhotoView() { $('photoView').classList.remove('show'); }
+  $('photoView').addEventListener('click', e => {
+    // 어두운 바깥 영역만 클릭 시 닫기
+    if (e.target === $('photoView')) closePhotoView();
+  });
+  $('pvClose').addEventListener('click', closePhotoView);
+  $('pvSetBg').addEventListener('click', () => {
+    if (!pvCurrentSrc) return;
+    bgState.img = pvCurrentSrc;
+    saveBg();
+    applyBg();
+    syncBgPanel();
+    closePhotoView();
+    toast('<span class="th">♥</span> 이 사진을 배경으로 설정했어요');
+  });
+
+  // ----- 관리자 창 -----
+  const adminW = makeWindow({
+    win: $('adminWin'), bar: $('adminBar'), handle: $('adminResize'),
+    minW: 380, minH: 320
+  });
+  window.adminW = adminW;
+  // 관리자 창 신호등 — 빨강/노랑 모두 관리자 화면 닫기, 초록 최대화
+  $('adminClose').addEventListener('click', e => {
+    e.stopPropagation();
+    adminScreen.classList.remove('show');
+    adminW.win.classList.remove('collapsed', 'maximized');
+  });
+  $('adminMin').addEventListener('click', e => {
+    e.stopPropagation();
+    adminScreen.classList.remove('show');
+    adminW.win.classList.remove('collapsed', 'maximized');
+  });
+  $('adminMax').addEventListener('click', e => {
+    e.stopPropagation();
+    adminW.win.classList.toggle('maximized');
+    if (!adminW.win.classList.contains('maximized')) adminW.center();
+  });
+
+  window.addEventListener('resize', () => { mainW.clamp(); adminW.clamp(); });
+  updateTaskbar();
+
+  // ===== 작업표시줄 시계 =====
+  function trayTick() {
+    const d = new Date();
+    const p = n => String(n).padStart(2, '0');
+    $('trayClock').textContent = p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  trayTick();
+  setInterval(trayTick, 10000);
+
+  // ===== 초기화 =====
+  loadBg();
+  applyBg();
+  syncBgPanel();
+  renderGrid();
+</script>
+</body>
+</html>
