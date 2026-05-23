@@ -2204,13 +2204,16 @@
     });
   }
 
-  // 형광펜 mark 들의 위치를 quoteText 기준 좌표(줄별 사각형)로 측정
+  // 형광펜 mark 들의 위치를 card 기준 좌표(줄별 사각형)로 측정.
+  // card 기준으로 재는 이유: 형광펜 div 를 quoteText 안이 아니라
+  // card 직속에 넣어야 quoteText 의 scaleX(장평) 변형을 안 받기 때문.
+  // getClientRects 는 이미 scaleX 가 적용된 화면 실제 위치를 주므로
+  // card 직속 div 에 그대로 쓰면 화면과 정확히 일치한다.
   function measureHighlights() {
-    const baseRect = quoteText.getBoundingClientRect();
+    const baseRect = card.getBoundingClientRect();
     const marks = quoteText.querySelectorAll('mark.qhl');
     const rects = [];
     marks.forEach(mk => {
-      // getClientRects: 줄바꿈되면 줄마다 사각형이 따로 나옴
       const list = mk.getClientRects();
       for (let i = 0; i < list.length; i++) {
         const r = list[i];
@@ -2250,17 +2253,20 @@
       backgroundColor: null,
       onclone: function (clonedDoc) {
         const cqt = clonedDoc.getElementById('quoteText');
-        if (!cqt) return;
+        const ccard = clonedDoc.getElementById('card');
+        if (!cqt || !ccard) return;
         // 복제본의 형광펜 배경은 숨김 (글자만 남김)
         cqt.querySelectorAll('mark.qhl').forEach(mk => {
           mk.style.backgroundColor = 'transparent';
           mk.style.backgroundImage = 'none';
         });
         if (hlRects.length === 0) return;
-        // quoteText 안에 형광펜 띠 div 들을 절대배치로 삽입.
-        // 음수 z-index 라 quoteText 배경 위·글자(텍스트) 아래에 깔린다.
-        const cs = clonedDoc.defaultView.getComputedStyle(cqt);
-        if (cs.position === 'static') cqt.style.position = 'relative';
+        // 형광펜 띠 div 를 card 직속에 절대배치로 삽입.
+        // quoteText 안이 아니라 card 직속에 넣는 이유: quoteText 에
+        // 걸린 scaleX(장평) 변형을 div 가 또 받으면 위치가 어긋남.
+        // card 직속이면 변형 영향 없이 측정한 그대로 그려진다.
+        // z-index:0 → cardBg/cardOverlay(z-index auto) 위,
+        //             card-inner(z-index:1, 글자) 아래에 깔림.
         hlRects.forEach(r => {
           const band = clonedDoc.createElement('div');
           band.style.position = 'absolute';
@@ -2269,9 +2275,9 @@
           band.style.width = r.w + 'px';
           band.style.height = r.h + 'px';
           band.style.background = hlColor;
-          band.style.zIndex = '-1';   // 글자보다 뒤
+          band.style.zIndex = '0';
           band.style.pointerEvents = 'none';
-          cqt.insertBefore(band, cqt.firstChild);
+          ccard.appendChild(band);
         });
       }
     };
@@ -2425,15 +2431,24 @@
     if (!Array.isArray(history)) history = [];
   } catch { history = []; }
   function saveHistory() {
-    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); }
-    catch {
-      // 용량 초과 시 오래된 항목부터 비우며 재시도
-      while (history.length > 1) {
-        history.pop();
-        try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); return; }
-        catch {}
-      }
+    function trySave() {
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); return true; }
+      catch { return false; }
     }
+    if (trySave()) return;
+    // 1차: 오래된 항목(뒤쪽)부터 지우며 재시도 — 새 항목(앞)은 지킴
+    while (history.length > 1) {
+      history.pop();
+      if (trySave()) { renderHistory(); return; }
+    }
+    // 2차: 항목 하나로도 안 되면 — 그 항목의 배경 이미지를 떼고 저장
+    //      (배경 data URL 이 너무 큰 경우. 스타일·문구는 보존)
+    if (history.length === 1 && history[0].settings) {
+      history[0].settings.bgImageData = '';
+      history[0]._bgDropped = true;
+      if (trySave()) { renderHistory(); return; }
+    }
+    // 그래도 안 되면 히스토리 비활성 (조용히 포기)
   }
   // 현재 카드 상태를 히스토리에 추가 (작은 썸네일 포함)
   // 현재 모든 편집 설정을 객체로 모음 (히스토리 저장용)
@@ -2462,6 +2477,30 @@
     };
   }
 
+  // 배경 이미지(data URL)를 히스토리 저장용으로 작게 압축.
+  // 원본은 수 MB 라 localStorage 한도(약 5MB)를 넘기 쉬우므로
+  // 가로 최대 1100px, JPEG 품질 0.72 로 줄인다.
+  function compressForHistory(dataURL) {
+    return new Promise(resolve => {
+      if (!dataURL) { resolve(''); return; }
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const maxW = 1100;
+          let w = img.naturalWidth || img.width;
+          let h = img.naturalHeight || img.height;
+          if (w > maxW) { h = Math.round(h * (maxW / w)); w = maxW; }
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(cv.toDataURL('image/jpeg', 0.72));
+        } catch { resolve(dataURL); }   // 압축 실패 시 원본
+      };
+      img.onerror = () => resolve(dataURL);
+      img.src = dataURL;
+    });
+  }
+
   function addHistory() {
     const pages = getPages();
     const fullText = $('quoteInput').value.trim();
@@ -2472,7 +2511,8 @@
       + String(now.getHours()).padStart(2, '0') + ':'
       + String(now.getMinutes()).padStart(2, '0');
     const settings = captureSettings();
-    // 기록 항목을 먼저 만들어 넣고 (썸네일은 나중에 채움)
+
+    // 기록 항목을 만들어 넣음 (썸네일·압축배경 채운 뒤 호출)
     function commit(thumb) {
       const entry = {
         id: Date.now(),
@@ -2493,24 +2533,33 @@
       saveHistory();
       renderHistory();
     }
-    // 썸네일 생성 시도 — 실패해도 기록은 남김
-    let canvasPromise;
-    try {
-      canvasPromise = renderCardCanvas();
-    } catch (err) {
-      commit('');
-      return;
-    }
-    canvasPromise.then(canvas => {
-      const tw = 120;
-      const th = Math.round(canvas.height * (tw / canvas.width));
-      const tc = document.createElement('canvas');
-      tc.width = tw; tc.height = th;
-      tc.getContext('2d').drawImage(canvas, 0, 0, tw, th);
-      let thumb = '';
-      try { thumb = tc.toDataURL('image/jpeg', 0.6); } catch {}
-      commit(thumb);
-    }).catch(() => commit(''));
+
+    // 배경 이미지가 있으면 압축본으로 교체 (저장 용량 절약)
+    const bgPromise = (settings.bgMode === 'image' && settings.bgImageData)
+      ? compressForHistory(settings.bgImageData)
+      : Promise.resolve(settings.bgImageData);
+
+    bgPromise.then(compressedBg => {
+      settings.bgImageData = compressedBg || '';
+      // 썸네일 생성 시도 — 실패해도 기록은 남김
+      let canvasPromise;
+      try {
+        canvasPromise = renderCardCanvas();
+      } catch (err) {
+        commit('');
+        return;
+      }
+      canvasPromise.then(canvas => {
+        const tw = 120;
+        const th = Math.round(canvas.height * (tw / canvas.width));
+        const tc = document.createElement('canvas');
+        tc.width = tw; tc.height = th;
+        tc.getContext('2d').drawImage(canvas, 0, 0, tw, th);
+        let thumb = '';
+        try { thumb = tc.toDataURL('image/jpeg', 0.6); } catch {}
+        commit(thumb);
+      }).catch(() => commit(''));
+    });
   }
 
   // 히스토리에 저장된 설정을 현재 편집기에 복원
