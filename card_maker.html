@@ -419,18 +419,15 @@
   #quoteText strong {
     font-weight: 700;
   }
-  /* 형광펜 — 통짜 background-color 로 칠한다.
-     line-height:1 로 mark 박스를 글자 크기에 딱 맞춰 위쪽 여백을 없앰.
-     box-decoration-break:clone 으로 줄바꿈돼도 각 줄이 칠해짐.
-     단순 background 라 html2canvas 캡처도 화면과 100% 동일하게 나옴. */
+  /* 형광펜 — 통짜 background-color, 순수 인라인.
+     html2canvas 는 box-decoration-break 와 다른 line-height 를
+     줄 단위로 잘못 칠하므로 둘 다 쓰지 않는다. 인라인 기본 동작상
+     줄바꿈돼도 각 줄 조각이 알아서 칠해진다. */
   #quoteText mark.qhl {
     color: inherit;
     background-color: var(--hl-color);
     background-image: none;
-    line-height: 1;
     padding: 0 0.04em;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
   }
 
   /* 본문 서식 안내 */
@@ -531,7 +528,6 @@
   .fh-tip mark.fh-hl {
     color: inherit;
     background-color: var(--hl-color);
-    line-height: 1;
     padding: 0 0.04em;
   }
   .fh-hl-pick {
@@ -861,7 +857,7 @@
         </div>
       </div>
       <div class="field-group">
-        <label class="field-label">줄 높이 (행간)</label>
+        <label class="field-label">행간 (줄 높이)</label>
         <div class="slider-row">
           <input type="range" id="lineHeightRange" min="1" max="2.6" step="0.05" value="1.75">
           <span class="slider-val" id="lineHeightVal">1.75</span>
@@ -2195,8 +2191,10 @@
           cv.width = img.naturalWidth || img.width;
           cv.height = img.naturalHeight || img.height;
           const ctx = cv.getContext('2d');
-          // blurLevel(슬라이더 0~20)을 이미지 해상도에 비례해 픽셀로 환산
-          const px = blurLevel * (cv.width / 540) * 2;
+          // blurLevel(슬라이더 0~20) → 이미지 해상도에 비례해 픽셀 환산.
+          // 화면 블러는 540px 카드 기준 N px 이므로, 원본 해상도에선
+          // (해상도/540) 배만 곱하면 화면과 같은 시각적 블러가 됨.
+          const px = blurLevel * (cv.width / 540);
           drawBlurred(ctx, img, px, 0, 0, cv.width, cv.height);
           resolve(cv.toDataURL('image/png'));
         } catch (e) { reject(e); }
@@ -2383,6 +2381,32 @@
     }
   }
   // 현재 카드 상태를 히스토리에 추가 (작은 썸네일 포함)
+  // 현재 모든 편집 설정을 객체로 모음 (히스토리 저장용)
+  function captureSettings() {
+    const ids = ['sizeRange','textColor','accentColor','lineHeightRange',
+      'letterRange','scaleRange','gapRange','padRange','creditSizeRange',
+      'radiusRange','fontScaleRange','bgColor','gradColor1','gradColor2',
+      'dimRange','bgSizeRange','bgPosXRange','bgPosYRange','bgBlurRange'];
+    const sliders = {};
+    ids.forEach(id => { if ($(id)) sliders[id] = $(id).value; });
+    return {
+      sliders: sliders,
+      fontFamily: state.fontFamily,
+      align: state.align,
+      weight: state.weight,
+      ratio: state.ratio,
+      wordBreak: state.wordBreak,
+      indent: state.indent,
+      quoteMark: state.quoteMark,
+      showCredit: state.showCredit,
+      shadow: state.shadow,
+      bgMode: state.bgMode,
+      bgImageData: state.bgImageData,
+      gradTypeIdx: (typeof gradTypeIdx !== 'undefined' ? gradTypeIdx : 0),
+      hlColor: state.hlColor
+    };
+  }
+
   function addHistory() {
     const pages = getPages();
     const fullText = $('quoteInput').value.trim();
@@ -2392,6 +2416,7 @@
     const stamp = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 '
       + String(now.getHours()).padStart(2, '0') + ':'
       + String(now.getMinutes()).padStart(2, '0');
+    const settings = captureSettings();
     // 기록 항목을 먼저 만들어 넣고 (썸네일은 나중에 채움)
     function commit(thumb) {
       const entry = {
@@ -2401,7 +2426,8 @@
         char: charInput.value.trim(),
         pageCount: pages.length,
         thumb: thumb || '',
-        stamp: stamp
+        stamp: stamp,
+        settings: settings
       };
       if (history.length && history[0].text === fullText) {
         history[0] = entry;
@@ -2417,7 +2443,6 @@
     try {
       canvasPromise = renderCardCanvas();
     } catch (err) {
-      // html2canvas 미로드 등 — 썸네일 없이 기록
       commit('');
       return;
     }
@@ -2431,6 +2456,52 @@
       try { thumb = tc.toDataURL('image/jpeg', 0.6); } catch {}
       commit(thumb);
     }).catch(() => commit(''));
+  }
+
+  // 히스토리에 저장된 설정을 현재 편집기에 복원
+  function restoreSettings(s) {
+    if (!s) return;
+    if (s.sliders) {
+      Object.keys(s.sliders).forEach(id => {
+        if ($(id)) $(id).value = s.sliders[id];
+      });
+    }
+    if (s.fontFamily) state.fontFamily = s.fontFamily;
+    if (s.align) state.align = s.align;
+    if (s.weight) state.weight = s.weight;
+    if (s.ratio) state.ratio = s.ratio;
+    if (s.wordBreak) state.wordBreak = s.wordBreak;
+    state.indent = !!s.indent;
+    state.quoteMark = !!s.quoteMark;
+    state.showCredit = s.showCredit !== false;
+    state.shadow = !!s.shadow;
+    if (s.bgMode) state.bgMode = s.bgMode;
+    state.bgImageData = s.bgImageData || '';
+    if (typeof s.gradTypeIdx === 'number' && typeof gradTypeIdx !== 'undefined') {
+      gradTypeIdx = s.gradTypeIdx;
+    }
+    if (s.hlColor) state.hlColor = s.hlColor;
+    // 버튼 active 상태 동기화
+    const setActive = (sel, fn) =>
+      document.querySelectorAll(sel).forEach(b => b.classList.toggle('active', fn(b)));
+    setActive('#alignSeg button', b => b.dataset.align === state.align);
+    setActive('#weightSeg button', b => b.dataset.weight === String(state.weight));
+    setActive('#breakSeg button', b => b.dataset.break === state.wordBreak);
+    setActive('#ratioSeg button', b => b.dataset.ratio === state.ratio);
+    setActive('#bgModeSeg button', b => b.dataset.mode === state.bgMode);
+    $('bgColorPanel').style.display = state.bgMode === 'color' ? '' : 'none';
+    $('bgGradPanel').style.display = state.bgMode === 'gradient' ? '' : 'none';
+    $('bgImagePanel').style.display = state.bgMode === 'image' ? '' : 'none';
+    $('indentToggle').classList.toggle('on', state.indent);
+    $('quoteToggle').classList.toggle('on', state.quoteMark);
+    $('creditToggle').classList.toggle('on', state.showCredit);
+    $('shadowToggle').classList.toggle('on', state.shadow);
+    renderFontGrid();
+    renderGradGrid();
+    renderHlSwatches();
+    applyStyle();
+    applyBackground();
+    renderCard();
   }
   function renderHistory() {
     const wrap = $('historyList');
@@ -2476,12 +2547,14 @@
         renderHistory();
       });
 
-      // 항목 클릭 — 그 문구·제작자·캐릭터 복원
+      // 항목 클릭 — 문구·제작자·캐릭터 + 글자/배경 설정 전체 복원
       item.addEventListener('click', () => {
         $('quoteInput').value = h.text;
         if (h.maker) makerInput.value = h.maker;
         if (h.char) charInput.value = h.char;
         curPage = 0;
+        // 저장된 설정이 있으면 함께 복원
+        if (h.settings) restoreSettings(h.settings);
         renderCard();
         toast('이 기록을 불러왔어요');
       });
