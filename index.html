@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>♥ S62RRY </title>
+<title>♥ S62RRY</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <style>
   /* 마비옛체 — PC에 설치돼 있으면 그걸, 없으면 눈누 웹폰트 */
@@ -927,6 +927,80 @@
 
   /* 디데이 위젯 — 여러 개 목록 */
   .dday-list { display: flex; flex-direction: column; gap: 8px; }
+
+  /* 음악 플레이어 위젯 */
+  /* 음악 위젯 — 유튜브 들어가니 살짝 넓게 */
+  #musicWidget { width: 230px; }
+  /* 유튜브 프레임 */
+  .yt-frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 9px;
+    overflow: hidden;
+    background: #000;
+    margin-bottom: 8px;
+  }
+  .yt-frame iframe,
+  .yt-frame #ytPlayer {
+    width: 100%; height: 100%;
+    border: 0;
+  }
+  .music-now {
+    font-size: 11.5px;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .music-bar {
+    height: 5px;
+    background: var(--pink-soft);
+    border-radius: 3px;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .music-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--pink-d);
+    border-radius: 3px;
+  }
+  .music-time {
+    display: flex; justify-content: space-between;
+    font-size: 9px;
+    color: var(--ink-faint);
+    margin-top: 3px;
+  }
+  .music-controls {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px;
+    margin-top: 7px;
+  }
+  .music-btn {
+    border: 0;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 3px;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.13s ease, transform 0.1s ease;
+  }
+  .music-btn svg { width: 19px; height: 19px; }
+  .music-btn:hover { color: var(--pink-d); }
+  .music-btn:active { transform: scale(0.9); }
+  .music-play {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--pink-d);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  .music-play svg { width: 14px; height: 14px; }
+  .music-play:hover { color: #fff; opacity: 0.88; }
   .dday-empty {
     font-size: 11px; color: var(--ink-faint);
     text-align: center; padding: 12px 0;
@@ -979,6 +1053,47 @@
     overflow: hidden;
     animation: smPop 0.2s cubic-bezier(0.22,1,0.36,1);
   }
+
+  /* 유튜브 입력 모달 */
+  .yt-modal {
+    width: 330px; max-width: 100%;
+    background: var(--win);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: smPop 0.2s cubic-bezier(0.22,1,0.36,1);
+  }
+  .yt-modal-body { padding: 20px 20px 18px; text-align: center; }
+  .yt-modal-ic {
+    width: 52px; height: 52px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    background: var(--pink-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  .yt-modal-title {
+    font-size: 14px; font-weight: 700;
+    color: var(--ink);
+  }
+  .yt-modal-desc {
+    font-size: 11.5px; color: var(--ink-soft);
+    margin: 3px 0 14px;
+  }
+  .yt-input {
+    width: 100%;
+    font-size: 12.5px;
+    letter-spacing: normal;
+    text-align: left;
+    padding: 10px 12px;
+  }
+  .yt-modal-hint {
+    font-size: 11px;
+    color: var(--pink-d);
+    min-height: 14px;
+    margin-top: 6px;
+  }
+
   .dday-modal-body { padding: 16px 18px 18px; }
   .dm-preview {
     border-radius: 13px;
@@ -1417,6 +1532,42 @@
     </div>
     <div class="dday-list" id="ddayList"><!-- JS가 채움 --></div>
   </div>
+
+  <!-- 위젯: 유튜브 뮤직 플레이어 -->
+  <div class="widget" id="musicWidget" style="top:30px; right:240px;">
+    <div class="widget-head">
+      <span>♪ 뮤직</span>
+      <button class="widget-refresh" id="musicEdit" title="유튜브 영상 바꾸기">✎</button>
+    </div>
+    <div class="yt-frame">
+      <div id="ytPlayer"></div>
+    </div>
+    <div class="music-now" id="musicNow">불러오는 중...</div>
+    <div class="music-bar" id="musicBar">
+      <div class="music-bar-fill" id="musicBarFill"></div>
+    </div>
+    <div class="music-time">
+      <span id="musicCur">0:00</span>
+      <span id="musicDur">0:00</span>
+    </div>
+    <div class="music-controls">
+      <button class="music-btn" id="musicBack" title="10초 뒤로">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11 12 19 6.5v11z"/>
+          <path d="M4 12 12 6.5v11z"/>
+          <rect x="3" y="6.5" width="2.4" height="11" rx="1.2"/>
+        </svg>
+      </button>
+      <button class="music-btn music-play" id="musicPlay" title="재생/일시정지"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5 19 12 8 18.5z"/></svg></button>
+      <button class="music-btn" id="musicFwd" title="10초 앞으로">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M13 12 5 6.5v11z"/>
+          <path d="M20 12 12 6.5v11z"/>
+          <rect x="18.6" y="6.5" width="2.4" height="11" rx="1.2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- 탐색기 창 -->
@@ -1817,6 +1968,28 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- 유튜브 영상 입력 모달 -->
+<div class="overlay" id="ytModal">
+  <div class="yt-modal">
+    <div class="modal-bar">
+      <div class="traffic"><i class="r" id="ytCancelX"></i><i class="y"></i><i class="g"></i></div>
+      <div class="mb-t">♪ 유튜브 음악</div>
+      <div class="mb-sp"></div>
+    </div>
+    <div class="yt-modal-body">
+      <div class="yt-modal-ic">🎵</div>
+      <div class="yt-modal-title">유튜브 음악 바꾸기</div>
+      <div class="yt-modal-desc">유튜브 영상 주소를 붙여넣어 주세요</div>
+      <input type="text" id="ytInput" class="pw-input yt-input" placeholder="https://www.youtube.com/watch?v=...">
+      <div class="yt-modal-hint" id="ytHint"></div>
+      <div class="dm-row">
+        <button class="btn" id="ytCancel">취소</button>
+        <button class="btn primary" id="ytOk">바꾸기</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
   const $ = id => document.getElementById(id);
@@ -3077,7 +3250,170 @@
   // 위치 계산은 레이아웃이 끝난 뒤
   setTimeout(() => {
     makeWidgetDraggable($('ddayWidget'), $('ddayWidget').querySelector('.widget-head'));
+    makeWidgetDraggable($('musicWidget'), $('musicWidget').querySelector('.widget-head'));
   }, 80);
+
+  // ===== 유튜브 뮤직 위젯 =====
+  (function ytMusic() {
+    const YT_KEY = 'chathub:ytVideo';
+    const DEFAULT_VID = '9teD-_Yx1Cg';
+    let videoId = DEFAULT_VID;
+    try {
+      const saved = localStorage.getItem(YT_KEY);
+      if (saved) videoId = saved;
+    } catch {}
+
+    let player = null;
+    let ready = false;
+    let progressTimer = null;
+
+    function fmt(sec) {
+      if (isNaN(sec) || sec < 0) sec = 0;
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return m + ':' + String(s).padStart(2, '0');
+    }
+    // 유튜브 URL/ID 에서 영상 ID 추출
+    function parseVideoId(input) {
+      input = (input || '').trim();
+      if (!input) return null;
+      // 순수 ID (11자)
+      if (/^[\w-]{11}$/.test(input)) return input;
+      let m = input.match(/[?&]v=([\w-]{11})/);     // watch?v=
+      if (m) return m[1];
+      m = input.match(/youtu\.be\/([\w-]{11})/);    // youtu.be/
+      if (m) return m[1];
+      m = input.match(/embed\/([\w-]{11})/);        // embed/
+      if (m) return m[1];
+      m = input.match(/shorts\/([\w-]{11})/);       // shorts/
+      if (m) return m[1];
+      return null;
+    }
+
+    // 재생·일시정지 SVG 아이콘
+    const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5 19 12 8 18.5z"/></svg>';
+    const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5.5" width="4" height="13" rx="1.4"/><rect x="13.5" y="5.5" width="4" height="13" rx="1.4"/></svg>';
+    function updatePlayBtn() {
+      if (!ready || !player) return;
+      const st = player.getPlayerState();
+      // 1 = 재생중
+      $('musicPlay').innerHTML = (st === 1) ? ICON_PAUSE : ICON_PLAY;
+    }
+    function startProgress() {
+      stopProgress();
+      progressTimer = setInterval(() => {
+        if (!ready || !player) return;
+        const d = player.getDuration() || 0;
+        const c = player.getCurrentTime() || 0;
+        $('musicBarFill').style.width = (d ? (c / d * 100) : 0) + '%';
+        $('musicCur').textContent = fmt(c);
+        $('musicDur').textContent = fmt(d);
+      }, 500);
+    }
+    function stopProgress() {
+      if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
+    }
+
+    // 유튜브 IFrame API 로드
+    function loadYTApi(cb) {
+      if (window.YT && window.YT.Player) { cb(); return; }
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(tag);
+      // API 준비 콜백 (전역)
+      window.onYouTubeIframeAPIReady = cb;
+    }
+
+    function createPlayer() {
+      player = new YT.Player('ytPlayer', {
+        videoId: videoId,
+        playerVars: { rel: 0, modestbranding: 1, playsinline: 1 },
+        events: {
+          onReady: () => {
+            ready = true;
+            $('musicNow').textContent = '♪ ' + (player.getVideoData().title || '유튜브 음악');
+            updatePlayBtn();
+          },
+          onStateChange: e => {
+            updatePlayBtn();
+            if (e.data === 1) startProgress();   // 재생 → 진행바 갱신
+            else if (e.data === 0) stopProgress(); // 종료
+            // 제목 갱신
+            if (e.data === 1 && player.getVideoData) {
+              const t = player.getVideoData().title;
+              if (t) $('musicNow').textContent = '♪ ' + t;
+            }
+          }
+        }
+      });
+    }
+    loadYTApi(createPlayer);
+
+    // 재생 / 일시정지
+    $('musicPlay').addEventListener('click', () => {
+      if (!ready || !player) return;
+      const st = player.getPlayerState();
+      if (st === 1) player.pauseVideo();
+      else player.playVideo();
+    });
+    // 10초 뒤로 / 앞으로
+    $('musicBack').addEventListener('click', () => {
+      if (!ready || !player) return;
+      player.seekTo(Math.max(0, player.getCurrentTime() - 10), true);
+    });
+    $('musicFwd').addEventListener('click', () => {
+      if (!ready || !player) return;
+      player.seekTo(player.getCurrentTime() + 10, true);
+    });
+    // 진행바 클릭 — 구간 이동
+    $('musicBar').addEventListener('click', e => {
+      if (!ready || !player) return;
+      const d = player.getDuration() || 0;
+      if (!d) return;
+      const rect = $('musicBar').getBoundingClientRect();
+      const ratio = (e.clientX - rect.left) / rect.width;
+      player.seekTo(Math.max(0, Math.min(1, ratio)) * d, true);
+    });
+    // 영상 바꾸기 — 예쁜 모달
+    function applyVideo(input) {
+      const vid = parseVideoId(input);
+      if (!vid) return false;
+      videoId = vid;
+      try { localStorage.setItem(YT_KEY, vid); } catch {}
+      if (ready && player) {
+        player.loadVideoById(vid);
+        $('musicNow').textContent = '♪ 불러오는 중...';
+      }
+      return true;
+    }
+    function openYtModal() {
+      $('ytInput').value = 'https://www.youtube.com/watch?v=' + videoId;
+      $('ytHint').textContent = '';
+      $('ytModal').classList.add('show');
+      setTimeout(() => { $('ytInput').focus(); $('ytInput').select(); }, 50);
+    }
+    function closeYtModal() { $('ytModal').classList.remove('show'); }
+    function confirmYt() {
+      const ok = applyVideo($('ytInput').value);
+      if (!ok) {
+        $('ytHint').textContent = '✘ 유튜브 주소를 인식하지 못했어요';
+        return;
+      }
+      closeYtModal();
+      toast('<span class="th">♥</span> 영상을 바꿨어요');
+    }
+    $('musicEdit').addEventListener('click', openYtModal);
+    $('ytOk').addEventListener('click', confirmYt);
+    $('ytCancel').addEventListener('click', closeYtModal);
+    $('ytCancelX').addEventListener('click', closeYtModal);
+    $('ytInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') confirmYt();
+      if (e.key === 'Escape') closeYtModal();
+    });
+    $('ytModal').addEventListener('click', e => {
+      if (e.target === $('ytModal')) closeYtModal();
+    });
+  })();
 
   // ===== 바탕화면 스티커 =====
   const STICKER_KEY = 'chathub:stickers';
