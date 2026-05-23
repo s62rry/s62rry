@@ -183,6 +183,15 @@
     display: inline-block;
   }
   .taskbar-tray .tray-clock { font-variant-numeric: tabular-nums; }
+  .taskbar-tray .tray-weather {
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 13px;
+  }
+  .taskbar-tray .tray-weather .tw-temp {
+    font-size: 11px; color: var(--ink-soft);
+  }
+  .taskbar-tray .tray-weather:empty { display: none; }
   @keyframes heartPop {
     0%   { transform: scale(1); }
     35%  { transform: scale(1.5) rotate(-12deg); }
@@ -872,6 +881,12 @@
     transition: background 0.13s ease, color 0.13s ease;
   }
   .widget-refresh:hover { background: var(--pink-soft); color: var(--pink-d); }
+  .widget-head-btns { display: flex; gap: 2px; }
+  /* 위젯 접기 */
+  .widget-fold svg, .widget-fold { transition: transform 0.18s ease; }
+  .widget.folded .widget-body { display: none; }
+  .widget.folded .widget-head { margin-bottom: 0; }
+  .widget.folded .widget-fold { transform: rotate(-90deg); }
   .widget-quote {
     font-size: 12.5px;
     line-height: 1.65;
@@ -927,6 +942,149 @@
 
   /* 디데이 위젯 — 여러 개 목록 */
   .dday-list { display: flex; flex-direction: column; gap: 8px; }
+
+  /* 할 일 위젯 */
+  #todoWidget { width: 200px; }
+  .todo-input-row { margin-bottom: 8px; }
+  .todo-input {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--pink-soft);
+    padding: 7px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--ink);
+    outline: none;
+  }
+  .todo-input::placeholder { color: var(--ink-faint); }
+  .todo-input:focus { border-color: var(--pink-d); }
+  .todo-list {
+    display: flex; flex-direction: column; gap: 5px;
+    max-height: 220px; overflow-y: auto;
+  }
+  .todo-item {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 7px;
+    border-radius: 8px;
+    background: var(--pink-soft);
+    font-size: 12px;
+  }
+  .todo-check {
+    flex-shrink: 0;
+    width: 16px; height: 16px;
+    border-radius: 5px;
+    border: 1.6px solid var(--pink-d);
+    background: var(--win);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #fff;
+  }
+  .todo-item.done .todo-check {
+    background: var(--pink-d);
+  }
+  .todo-text {
+    flex: 1; min-width: 0;
+    word-break: break-word;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .todo-item.done .todo-text {
+    text-decoration: line-through;
+    color: var(--ink-faint);
+  }
+  .todo-del {
+    flex-shrink: 0;
+    width: 17px; height: 17px;
+    border: 0; border-radius: 50%;
+    background: transparent;
+    color: var(--ink-faint);
+    font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .todo-del:hover { background: var(--pink-d); color: #fff; }
+  .todo-empty {
+    font-size: 11px; color: var(--ink-faint);
+    text-align: center; padding: 10px 0;
+  }
+
+  /* 타이머 / 뽀모도로 위젯 */
+  #timerWidget { width: 200px; }
+  .timer-tabs {
+    display: flex; gap: 4px;
+    margin-bottom: 10px;
+  }
+  .timer-tab {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--pink-soft);
+    color: var(--ink-soft);
+    font-size: 11px; font-weight: 600;
+    padding: 5px 0; cursor: pointer;
+    font-family: inherit;
+  }
+  .timer-tab.active {
+    background: var(--pink-d);
+    border-color: var(--pink-d);
+    color: #fff;
+  }
+  .timer-display {
+    font-size: 38px; font-weight: 700;
+    text-align: center;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .timer-phase {
+    text-align: center;
+    font-size: 11px; font-weight: 600;
+    color: var(--pink-d);
+    margin-top: 2px;
+    min-height: 15px;
+  }
+  .timer-presets {
+    display: flex; gap: 4px; flex-wrap: wrap;
+    justify-content: center;
+    margin: 9px 0;
+  }
+  .timer-preset {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--win);
+    color: var(--ink-soft);
+    font-size: 11px; cursor: pointer;
+    padding: 4px 8px;
+    font-family: inherit;
+  }
+  .timer-preset:hover { border-color: var(--pink-d); color: var(--pink-d); }
+  .timer-preset.active {
+    background: var(--pink-soft);
+    border-color: var(--pink-d);
+    color: var(--pink-d);
+  }
+  .timer-controls { display: flex; gap: 5px; }
+  .timer-btn {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--pink-soft);
+    color: var(--ink);
+    font-size: 12px; font-weight: 600;
+    padding: 7px 0; cursor: pointer;
+    font-family: inherit;
+  }
+  .timer-btn:hover { border-color: var(--pink-d); }
+  .timer-btn.timer-main {
+    background: var(--pink-d);
+    border-color: var(--pink-d);
+    color: #fff;
+  }
+  .timer-btn.timer-main.running {
+    background: var(--ink-soft);
+    border-color: var(--ink-soft);
+  }
 
   /* 음악 플레이어 위젯 */
   /* 음악 위젯 — 유튜브 들어가니 살짝 넓게 */
@@ -1403,12 +1561,37 @@
     background: var(--line);
     margin: 4px 6px;
   }
+  /* 하위 메뉴 화살표가 있는 항목 */
+  .ctx-has-sub {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+  }
+  .ctx-arrow { color: var(--ink-faint); font-size: 10px; }
+  /* 체크 항목 (위젯 켜기/끄기) */
+  .ctx-check {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ctx-check .ctx-cbox {
+    flex-shrink: 0;
+    width: 16px; height: 16px;
+    border-radius: 5px;
+    border: 1.6px solid var(--pink-d);
+    background: var(--win);
+    color: #fff; font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ctx-check.on .ctx-cbox {
+    background: var(--pink-d);
+  }
+  .ctx-check:not(.on) .ctx-cbox { color: transparent; }
+  /* 위젯 서브메뉴는 본 메뉴보다 위 */
+  #widgetMenu { z-index: 76; }
 
   /* ===== 바탕화면 스티커 ===== */
   .sticker {
     position: absolute;
     width: 64px; height: 64px;
-    cursor: grab;
+    cursor: default;
     user-select: none;
     -webkit-user-select: none;
     z-index: 4;
@@ -1417,6 +1600,9 @@
     transform: rotate(var(--rot)) scale(var(--scale));
     transition: transform 0.12s ease;
   }
+  /* 더블클릭으로 도구가 열린 스티커만 잡아서 이동 가능 */
+  .sticker.tools-open { cursor: grab; }
+  .sticker.tools-open:active { cursor: grabbing; }
   /* 섀도우 켜짐 (기본) */
   .sticker.shadow .stk-content {
     filter: drop-shadow(0 3px 5px rgba(90,80,90,0.3));
@@ -1454,7 +1640,6 @@
       drop-shadow(0 4px 5px rgba(90,80,90,0.35));
   }
   .sticker:hover { --scale: 1.08; }
-  .sticker:active { cursor: grabbing; }
   .sticker.dragging { --scale: 1.1; }
   /* 스티커 내용 (이모지 또는 이미지) */
   .sticker .stk-content {
@@ -1477,7 +1662,7 @@
     display: none;
     gap: 3px;
   }
-  .sticker:hover .stk-tools { display: flex; }
+  .sticker.tools-open .stk-tools { display: flex; }
   .sticker .stk-btn {
     width: 20px; height: 20px;
     border: 0; border-radius: 50%;
@@ -1499,7 +1684,7 @@
     flex-direction: column;
     gap: 3px;
   }
-  .sticker:hover .stk-order { display: flex; }
+  .sticker.tools-open .stk-order { display: flex; }
   .sticker .stk-order-btn { background: var(--ink-soft); font-size: 11px; }
   /* 회전 핸들 (왼쪽 위) */
   .sticker .stk-rotate {
@@ -1515,7 +1700,7 @@
     display: none;
     align-items: center; justify-content: center;
   }
-  .sticker:hover .stk-rotate { display: flex; }
+  .sticker.tools-open .stk-rotate { display: flex; }
   /* 크기 조절 핸들 (오른쪽 아래) */
   .sticker .stk-resize {
     position: absolute;
@@ -1527,7 +1712,7 @@
     cursor: nwse-resize;
     display: none;
   }
-  .sticker:hover .stk-resize { display: block; }
+  .sticker.tools-open .stk-resize { display: block; }
 
   /* 스티커 고르기 팝업 */
   .sticker-box {
@@ -1552,6 +1737,27 @@
     width: 100%;
     margin-top: 12px;
   }
+  /* 스티커 사용법 안내 박스 */
+  .sticker-guide {
+    margin-top: 14px;
+    padding: 11px 13px;
+    background: var(--pink-soft);
+    border-radius: 11px;
+  }
+  .sg-title {
+    font-size: 11.5px; font-weight: 700;
+    color: var(--pink-d);
+    margin-bottom: 7px;
+  }
+  .sg-list {
+    margin: 0; padding-left: 16px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .sg-list li {
+    font-size: 11px; line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .sg-list li b { color: var(--ink); font-weight: 700; }
   .sticker-opt {
     font-size: 26px;
     text-align: center;
@@ -1628,53 +1834,102 @@
   <div class="widget" id="ddayWidget" style="top:30px; right:26px;">
     <div class="widget-head">
       <span>♥ 디데이</span>
-      <button class="widget-refresh" id="ddayAdd" title="디데이 추가">＋</button>
+      <span class="widget-head-btns">
+        <button class="widget-refresh" id="ddayAdd" title="디데이 추가">＋</button>
+        <button class="widget-refresh widget-fold" data-widget="ddayWidget" title="접기/펼치기">▾</button>
+      </span>
     </div>
-    <div class="dday-list" id="ddayList"><!-- JS가 채움 --></div>
+    <div class="widget-body">
+      <div class="dday-list" id="ddayList"><!-- JS가 채움 --></div>
+    </div>
+  </div>
+
+  <!-- 위젯: 할 일 -->
+  <div class="widget" id="todoWidget" style="top:300px; right:26px;">
+    <div class="widget-head">
+      <span>✓ 할 일</span>
+      <span class="widget-head-btns">
+        <button class="widget-refresh widget-fold" data-widget="todoWidget" title="접기/펼치기">▾</button>
+      </span>
+    </div>
+    <div class="widget-body">
+      <div class="todo-input-row">
+        <input type="text" id="todoInput" class="todo-input" placeholder="할 일 입력 후 Enter" maxlength="60">
+      </div>
+      <div class="todo-list" id="todoList"><!-- JS --></div>
+    </div>
+  </div>
+
+  <!-- 위젯: 타이머 / 뽀모도로 -->
+  <div class="widget" id="timerWidget" style="top:470px; right:240px;">
+    <div class="widget-head">
+      <span>⏱ 타이머</span>
+      <span class="widget-head-btns">
+        <button class="widget-refresh widget-fold" data-widget="timerWidget" title="접기/펼치기">▾</button>
+      </span>
+    </div>
+    <div class="widget-body">
+      <div class="timer-tabs">
+        <button class="timer-tab active" data-mode="timer">타이머</button>
+        <button class="timer-tab" data-mode="pomo">뽀모도로</button>
+      </div>
+      <div class="timer-display" id="timerDisplay">25:00</div>
+      <div class="timer-phase" id="timerPhase">집중</div>
+      <div class="timer-presets" id="timerPresets"><!-- JS --></div>
+      <div class="timer-controls">
+        <button class="timer-btn timer-main" id="timerStart">시작</button>
+        <button class="timer-btn" id="timerReset">초기화</button>
+      </div>
+    </div>
   </div>
 
   <!-- 위젯: 유튜브 뮤직 플레이어 -->
   <div class="widget" id="musicWidget" style="top:30px; right:240px;">
     <div class="widget-head">
       <span>♪ 뮤직</span>
-      <button class="widget-refresh" id="musicAdd" title="재생목록에 추가">＋</button>
+      <span class="widget-head-btns">
+        <button class="widget-refresh" id="musicAdd" title="재생목록에 추가">＋</button>
+        <button class="widget-refresh widget-fold" data-widget="musicWidget" title="접기/펼치기">▾</button>
+      </span>
     </div>
-    <div class="yt-frame">
-      <div id="ytPlayer"></div>
+    <div class="widget-body">
+      <div class="yt-frame">
+        <div id="ytPlayer"></div>
+      </div>
+      <div class="music-now" id="musicNow">불러오는 중...</div>
+      <div class="music-bar" id="musicBar">
+        <div class="music-bar-fill" id="musicBarFill"></div>
+      </div>
+      <div class="music-time">
+        <span id="musicCur">0:00</span>
+        <span id="musicDur">0:00</span>
+      </div>
+      <div class="music-controls">
+        <button class="music-btn" id="musicPrev" title="이전 곡">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <rect x="4" y="6" width="2.6" height="12" rx="1.3"/>
+            <path d="M20 6.5 11 12l9 5.5z"/>
+          </svg>
+        </button>
+        <button class="music-btn music-play" id="musicPlay" title="재생/일시정지"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5 19 12 8 18.5z"/></svg></button>
+        <button class="music-btn" id="musicNext" title="다음 곡">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 6.5 13 12 4 17.5z"/>
+            <rect x="17.4" y="6" width="2.6" height="12" rx="1.3"/>
+          </svg>
+        </button>
+        <button class="music-btn music-loop" id="musicLoop" title="반복: 끄기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 2.5 20.5 6 17 9.5"/>
+            <path d="M3.5 11V9a3 3 0 0 1 3-3h14"/>
+            <path d="M7 21.5 3.5 18 7 14.5"/>
+            <path d="M20.5 13v2a3 3 0 0 1-3 3h-14"/>
+          </svg>
+          <span class="loop-one" id="loopOne">1</span>
+        </button>
+      </div>
+      <div class="music-playlist" id="musicPlaylist"><!-- JS --></div>
     </div>
-    <div class="music-now" id="musicNow">불러오는 중...</div>
-    <div class="music-bar" id="musicBar">
-      <div class="music-bar-fill" id="musicBarFill"></div>
-    </div>
-    <div class="music-time">
-      <span id="musicCur">0:00</span>
-      <span id="musicDur">0:00</span>
-    </div>
-    <div class="music-controls">
-      <button class="music-btn" id="musicPrev" title="이전 곡">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <rect x="4" y="6" width="2.6" height="12" rx="1.3"/>
-          <path d="M20 6.5 11 12l9 5.5z"/>
-        </svg>
-      </button>
-      <button class="music-btn music-play" id="musicPlay" title="재생/일시정지"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5 19 12 8 18.5z"/></svg></button>
-      <button class="music-btn" id="musicNext" title="다음 곡">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M4 6.5 13 12 4 17.5z"/>
-          <rect x="17.4" y="6" width="2.6" height="12" rx="1.3"/>
-        </svg>
-      </button>
-      <button class="music-btn music-loop" id="musicLoop" title="반복: 끄기">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 2.5 20.5 6 17 9.5"/>
-          <path d="M3.5 11V9a3 3 0 0 1 3-3h14"/>
-          <path d="M7 21.5 3.5 18 7 14.5"/>
-          <path d="M20.5 13v2a3 3 0 0 1-3 3h-14"/>
-        </svg>
-        <span class="loop-one" id="loopOne">1</span>
-      </button>
-    </div>
-    <div class="music-playlist" id="musicPlaylist"><!-- JS --></div>
   </div>
 </div>
 
@@ -1833,6 +2088,13 @@
       <div class="content-head"><h2>🎨 배경 꾸미기</h2></div>
       <div class="admin-card">
         <div class="bg-preview" id="bgPreview"><span id="bgPreviewText">기본 배경</span></div>
+        <div class="bg-opt">
+          <span class="bg-opt-label">시간대 자동</span>
+          <div class="seg" id="bgAutoSeg">
+            <button data-auto="off" class="on">끄기</button>
+            <button data-auto="on">아침·낮·저녁·밤</button>
+          </div>
+        </div>
         <div class="bg-opt" style="align-items:flex-start;">
           <span class="bg-opt-label">색 · 패턴</span>
           <div class="bg-presets" id="bgPresets"><!-- JS가 채움 --></div>
@@ -1966,6 +2228,7 @@
   </div>
   <div class="taskbar-tray">
     <span class="tray-item" id="trayHeart">♥</span>
+    <span class="tray-weather" id="trayWeather" title="날씨"></span>
     <span class="tray-clock" id="trayClock">--:--</span>
   </div>
 </div>
@@ -2015,9 +2278,28 @@
   <div class="ctx-item" data-ctx="open">📂 도구함 열기</div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" data-ctx="sticker">🌸 스티커 붙이기</div>
+  <div class="ctx-item ctx-has-sub" id="ctxWidgetItem">
+    <span>🧩 위젯</span><span class="ctx-arrow">▸</span>
+  </div>
   <div class="ctx-item" data-ctx="bg">🎨 배경 바꾸기</div>
   <div class="ctx-item" data-ctx="note">📝 메모장 열기</div>
   <div class="ctx-item" data-ctx="photo">📷 사진첩 열기</div>
+</div>
+
+<!-- 위젯 켜기/끄기 서브메뉴 -->
+<div class="ctx-menu" id="widgetMenu">
+  <div class="ctx-item ctx-check" data-widget="ddayWidget">
+    <span class="ctx-cbox">✓</span><span>♥ 디데이</span>
+  </div>
+  <div class="ctx-item ctx-check" data-widget="todoWidget">
+    <span class="ctx-cbox">✓</span><span>✓ 할 일</span>
+  </div>
+  <div class="ctx-item ctx-check" data-widget="musicWidget">
+    <span class="ctx-cbox">✓</span><span>♪ 뮤직</span>
+  </div>
+  <div class="ctx-item ctx-check" data-widget="timerWidget">
+    <span class="ctx-cbox">✓</span><span>⏱ 타이머</span>
+  </div>
 </div>
 
 <!-- 메모 탭 우클릭 메뉴 -->
@@ -2038,6 +2320,15 @@
       <div class="sticker-grid" id="stickerGrid"><!-- JS --></div>
       <button class="btn primary sticker-upload-btn" id="stickerUploadBtn">🌄 내 이미지로 스티커 만들기</button>
       <input type="file" id="stickerFile" accept="image/*" style="display:none">
+      <div class="sticker-guide">
+        <div class="sg-title">✨ 스티커 사용법</div>
+        <ul class="sg-list">
+          <li><b>더블클릭</b>하면 도구 버튼이 열려요. (다시 더블클릭하면 닫힘)</li>
+          <li>도구가 열린 상태에서 스티커를 <b>끌어 옮길</b> 수 있어요.</li>
+          <li>모서리 핸들로 <b>크기 조절</b>(오른쪽 아래) · <b>회전</b>(왼쪽 위)을 해요.</li>
+          <li>도구 버튼: ◇ <b>외곽선</b>(없음·흰·검정) · ☀ <b>그림자</b> · ⤒⤓ <b>순서</b> · × <b>삭제</b></li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>
@@ -2159,9 +2450,9 @@
     {
       name: 'OOC 백업', ext: 'ooc_backup.html',
       url: 'https://s62rry.github.io/chat/ooc_backup.html',
-      cat: 'collect', color: 'ic-mint', fav: false,
-      // 문서 — 접힌 모서리 + 글줄
-      pal: { f:'#3f9b7b', w:'#ffffff', l:'#9adec5', d:'#5cc3a0' },
+      cat: 'collect', color: 'ic-sky', fav: false,
+      // 문서 — 접힌 모서리 + 글줄 (파란 계열)
+      pal: { f:'#3f7fb9', w:'#ffffff', l:'#bde2fb', d:'#5cb3f5' },
       px: [
         '................',
         '..fffffffffff...',
@@ -2178,31 +2469,6 @@
         '..fwllllllllwf..',
         '..fwwwwwwwwwwf..',
         '..ffffffffffff..',
-        '................'
-      ]
-    },
-    {
-      name: '명대사<br>클립북', ext: 'clipbook.html',
-      url: 'https://s62rry.github.io/chat/clipbook.html',
-      cat: 'collect', color: 'ic-lav', fav: true,
-      // 책갈피 / 북마크
-      pal: { f:'#7a5dc0', b:'#ddd3f3', d:'#9a82dd', h:'#ffffff' },
-      px: [
-        '................',
-        '...ffffffffff...',
-        '...fbbbbbbbbf...',
-        '...fbhhhhhbbf...',
-        '...fbbbbbbbbf...',
-        '...fbhhhhhbbf...',
-        '...fbbbbbbbbf...',
-        '...fbbbbbbbbf...',
-        '...fbbbbbbbbf...',
-        '...fbbbbbbbbf...',
-        '...fbbbbbbbbf...',
-        '...fdbbbbbbdf...',
-        '...fdddbbdddf...',
-        '...fddddddddf...',
-        '...fddd..dddf...',
         '................'
       ]
     }
@@ -2521,8 +2787,28 @@
       css: 'repeating-conic-gradient(#ffdcec 0% 25%, #e4f1fd 0% 50%) 0 0/40px 40px' }
   ];
 
-  // bgState: img(이미지) / preset(프리셋 id) / fit / dim
-  let bgState = { img: '', preset: 'default', fit: 'cover', dim: 0 };
+  // bgState: img(이미지) / preset(프리셋 id) / fit / dim / auto(시간대 자동)
+  let bgState = { img: '', preset: 'default', fit: 'cover', dim: 0, auto: false };
+
+  // 시간대별 자동 배경 — 아침·낮·저녁·밤
+  const TIME_THEMES = [
+    { id: 'morning', label: '아침', from: 6,  to: 11,
+      css: 'linear-gradient(180deg, #ffeede 0%, #ffe0ea 100%)' },
+    { id: 'day',     label: '낮',   from: 11, to: 17,
+      css: 'linear-gradient(180deg, #d8ecfd 0%, #e9f4fe 100%)' },
+    { id: 'evening', label: '저녁', from: 17, to: 20,
+      css: 'linear-gradient(180deg, #ffd9c4 0%, #e7c9e6 100%)' },
+    { id: 'night',   label: '밤',   from: 20, to: 6,
+      css: 'linear-gradient(180deg, #c5c3e8 0%, #d9d2 e8 100%)'.replace(' e8','e8') }
+  ];
+  // 현재 시각에 맞는 시간대 테마를 반환
+  function currentTimeTheme() {
+    const h = new Date().getHours();
+    return TIME_THEMES.find(t => {
+      if (t.from < t.to) return h >= t.from && h < t.to;
+      return h >= t.from || h < t.to;   // 밤처럼 자정을 넘는 구간
+    }) || TIME_THEMES[1];
+  }
 
   function loadBg() {
     try {
@@ -2534,6 +2820,7 @@
           bgState.preset = s.preset || 'default';
           bgState.fit = s.fit || 'cover';
           bgState.dim = s.dim || 0;
+          bgState.auto = !!s.auto;
         }
       }
     } catch {}
@@ -2551,7 +2838,12 @@
   }
   function applyBg() {
     // 바탕 색·패턴은 항상 body 에 (이미지 뒤에 깔림)
-    document.body.style.background = presetCss(bgState.preset);
+    // 자동 모드면 현재 시간대 색, 아니면 고른 프리셋
+    if (bgState.auto && !bgState.img) {
+      document.body.style.background = currentTimeTheme().css;
+    } else {
+      document.body.style.background = presetCss(bgState.preset);
+    }
     if (bgState.img) {
       bgLayer.classList.add('on');
       bgLayer.style.backgroundImage = 'url(' + bgState.img + ')';
@@ -2581,6 +2873,11 @@
       bgPreview.style.background = '';
       bgPreview.style.backgroundImage = 'url(' + bgState.img + ')';
       bgPreviewText.textContent = '내 사진';
+    } else if (bgState.auto) {
+      const tt = currentTimeTheme();
+      bgPreview.style.backgroundImage = '';
+      bgPreview.style.background = tt.css;
+      bgPreviewText.textContent = '시간대 자동 · ' + tt.label;
     } else {
       bgPreview.style.backgroundImage = '';
       bgPreview.style.background = presetCss(bgState.preset);
@@ -2590,8 +2887,12 @@
     document.querySelectorAll('#bgFitSeg button').forEach(b => {
       b.classList.toggle('on', b.dataset.fit === bgState.fit);
     });
+    document.querySelectorAll('#bgAutoSeg button').forEach(b => {
+      b.classList.toggle('on', (b.dataset.auto === 'on') === bgState.auto);
+    });
     document.querySelectorAll('#bgPresets .bg-swatch').forEach(s => {
-      s.classList.toggle('on', s.dataset.preset === bgState.preset && !bgState.img);
+      s.classList.toggle('on',
+        s.dataset.preset === bgState.preset && !bgState.img && !bgState.auto);
     });
     bgDimRange.value = bgState.dim;
   }
@@ -2607,6 +2908,7 @@
       s.style.background = p.css;
       s.addEventListener('click', () => {
         bgState.preset = p.id;
+        bgState.auto = false;   // 수동 프리셋 고르면 자동 해제
         saveBg();
         applyBg();
         syncBgPanel();
@@ -2636,11 +2938,35 @@
     bgState.img = '';
     bgState.preset = 'default';
     bgState.dim = 0;
+    bgState.auto = false;
     saveBg();
     applyBg();
     syncBgPanel();
     toast('기본 배경으로 되돌렸어요');
   });
+  // 시간대 자동 토글
+  $('bgAutoSeg').addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    bgState.auto = (btn.dataset.auto === 'on');
+    saveBg();
+    applyBg();
+    syncBgPanel();
+    toast(bgState.auto
+      ? '<span class="th">♥</span> 시간대 자동 배경 · ' + currentTimeTheme().label
+      : '시간대 자동을 껐어요');
+  });
+  // 자동 모드일 때 시간이 흐르면 배경도 따라 바뀜 (1분마다 확인)
+  let _lastTheme = currentTimeTheme().id;
+  setInterval(() => {
+    if (!bgState.auto || bgState.img) return;
+    const now = currentTimeTheme().id;
+    if (now !== _lastTheme) {
+      _lastTheme = now;
+      applyBg();
+      syncBgPanel();
+    }
+  }, 60000);
   $('bgFitSeg').addEventListener('click', e => {
     const btn = e.target.closest('button');
     if (!btn) return;
@@ -3152,6 +3478,12 @@
   ctxMenu.addEventListener('click', e => {
     const item = e.target.closest('.ctx-item');
     if (!item) return;
+    // 위젯 항목 — 서브메뉴를 열고 본 메뉴는 닫지 않음
+    if (item.id === 'ctxWidgetItem') {
+      e.stopPropagation();
+      openWidgetMenu(item);
+      return;
+    }
     const act = item.dataset.ctx;
     closeAllMenus();
     if (act === 'refresh') { renderGrid(); toast('새로고침했어요'); }
@@ -3162,6 +3494,61 @@
     else if (act === 'photo') openApp('photo');
   });
 
+  // ===== 위젯 켜기/끄기 =====
+  const WIDGET_SHOW_KEY = 'chathub:widgetShow';
+  const WIDGET_LIST = ['ddayWidget', 'todoWidget', 'musicWidget', 'timerWidget'];
+  let widgetShow = {};
+  try {
+    const raw = localStorage.getItem(WIDGET_SHOW_KEY);
+    if (raw) widgetShow = JSON.parse(raw) || {};
+  } catch { widgetShow = {}; }
+  // 기본값 — 저장된 적 없으면 전부 켜짐
+  WIDGET_LIST.forEach(id => {
+    if (widgetShow[id] === undefined) widgetShow[id] = true;
+  });
+  function applyWidgetShow() {
+    WIDGET_LIST.forEach(id => {
+      const w = $(id);
+      if (w) w.style.display = widgetShow[id] ? '' : 'none';
+    });
+  }
+  function saveWidgetShow() {
+    try { localStorage.setItem(WIDGET_SHOW_KEY, JSON.stringify(widgetShow)); }
+    catch {}
+  }
+  // 서브메뉴 체크 상태 동기화
+  function syncWidgetMenu() {
+    document.querySelectorAll('#widgetMenu .ctx-check').forEach(it => {
+      it.classList.toggle('on', !!widgetShow[it.dataset.widget]);
+    });
+  }
+  // 위젯 서브메뉴 열기 (위젯 항목 오른쪽에 붙임)
+  function openWidgetMenu(anchor) {
+    const wm = $('widgetMenu');
+    syncWidgetMenu();
+    wm.classList.add('show');
+    const r = anchor.getBoundingClientRect();
+    let x = r.right + 2, y = r.top - 6;
+    const w = wm.offsetWidth, h = wm.offsetHeight;
+    // 오른쪽 공간 부족하면 왼쪽에
+    if (x + w > window.innerWidth) x = r.left - w - 2;
+    if (y + h > window.innerHeight - 48) y = window.innerHeight - 48 - h;
+    if (y < 6) y = 6;
+    wm.style.left = x + 'px';
+    wm.style.top = y + 'px';
+  }
+  $('widgetMenu').addEventListener('click', e => {
+    const it = e.target.closest('.ctx-check');
+    if (!it) return;
+    e.stopPropagation();
+    const id = it.dataset.widget;
+    widgetShow[id] = !widgetShow[id];
+    applyWidgetShow();
+    saveWidgetShow();
+    syncWidgetMenu();
+  });
+  applyWidgetShow();
+
   // ===== 팝업/메뉴 닫기 =====
   // 모든 떠 있는 메뉴·팝업을 한 번에 닫음
   function closeAllMenus() {
@@ -3169,6 +3556,7 @@
     $('calendarPop').classList.remove('show');
     ctxMenu.classList.remove('show');
     ctxMenu.style.display = '';
+    $('widgetMenu').classList.remove('show');
     const tm = $('tabMenu');
     tm.classList.remove('show');
     tm.style.display = '';
@@ -3181,9 +3569,10 @@
     if (!e.target.closest('#calendarPop') && !e.target.closest('#trayClock')) {
       $('calendarPop').classList.remove('show');
     }
-    if (!e.target.closest('#ctxMenu')) {
+    if (!e.target.closest('#ctxMenu') && !e.target.closest('#widgetMenu')) {
       ctxMenu.classList.remove('show');
       ctxMenu.style.display = '';
+      $('widgetMenu').classList.remove('show');
     }
     if (!e.target.closest('#tabMenu')) {
       const tm = $('tabMenu');
@@ -3359,7 +3748,205 @@
   setTimeout(() => {
     makeWidgetDraggable($('ddayWidget'), $('ddayWidget').querySelector('.widget-head'));
     makeWidgetDraggable($('musicWidget'), $('musicWidget').querySelector('.widget-head'));
+    makeWidgetDraggable($('todoWidget'), $('todoWidget').querySelector('.widget-head'));
+    makeWidgetDraggable($('timerWidget'), $('timerWidget').querySelector('.widget-head'));
   }, 80);
+
+  // ===== 위젯 접기/펼치기 =====
+  const WIDGET_FOLD_KEY = 'chathub:widgetFold';
+  let widgetFold = {};
+  try {
+    const raw = localStorage.getItem(WIDGET_FOLD_KEY);
+    if (raw) widgetFold = JSON.parse(raw) || {};
+  } catch { widgetFold = {}; }
+  // 저장된 접힘 상태 복원
+  Object.keys(widgetFold).forEach(id => {
+    const w = $(id);
+    if (w && widgetFold[id]) w.classList.add('folded');
+  });
+  document.querySelectorAll('.widget-fold').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const w = $(btn.dataset.widget);
+      if (!w) return;
+      const folded = w.classList.toggle('folded');
+      widgetFold[btn.dataset.widget] = folded;
+      try { localStorage.setItem(WIDGET_FOLD_KEY, JSON.stringify(widgetFold)); }
+      catch {}
+    });
+  });
+
+  // ===== 할 일 위젯 =====
+  (function todoWidget() {
+    const TODO_KEY = 'chathub:todos';
+    let todos = [];
+    try {
+      const raw = localStorage.getItem(TODO_KEY);
+      if (raw) todos = JSON.parse(raw);
+      if (!Array.isArray(todos)) todos = [];
+    } catch { todos = []; }
+    function save() {
+      try { localStorage.setItem(TODO_KEY, JSON.stringify(todos)); } catch {}
+    }
+    const listEl = $('todoList'), inputEl = $('todoInput');
+    function render() {
+      listEl.innerHTML = '';
+      if (todos.length === 0) {
+        const e = document.createElement('div');
+        e.className = 'todo-empty';
+        e.textContent = '할 일이 없어요';
+        listEl.appendChild(e);
+        return;
+      }
+      todos.forEach(t => {
+        const row = document.createElement('div');
+        row.className = 'todo-item' + (t.done ? ' done' : '');
+        const check = document.createElement('div');
+        check.className = 'todo-check';
+        check.textContent = t.done ? '✓' : '';
+        check.addEventListener('click', () => {
+          t.done = !t.done;
+          save(); render();
+        });
+        const text = document.createElement('div');
+        text.className = 'todo-text';
+        text.textContent = t.text;
+        text.addEventListener('click', () => {
+          t.done = !t.done;
+          save(); render();
+        });
+        const del = document.createElement('button');
+        del.className = 'todo-del';
+        del.textContent = '×';
+        del.title = '삭제';
+        del.addEventListener('click', () => {
+          todos = todos.filter(x => x.id !== t.id);
+          save(); render();
+        });
+        row.appendChild(check);
+        row.appendChild(text);
+        row.appendChild(del);
+        listEl.appendChild(row);
+      });
+    }
+    inputEl.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const v = inputEl.value.trim();
+      if (!v) return;
+      todos.push({ id: Date.now() + Math.random(), text: v, done: false });
+      inputEl.value = '';
+      save(); render();
+    });
+    render();
+  })();
+
+  // ===== 타이머 / 뽀모도로 위젯 =====
+  (function timerWidget() {
+    const dispEl = $('timerDisplay'), phaseEl = $('timerPhase');
+    const startBtn = $('timerStart'), resetBtn = $('timerReset');
+    const presetWrap = $('timerPresets');
+    const TIMER_PRESETS = [5, 10, 15, 25, 30, 45, 60];   // 분
+    const POMO = { focus: 25, break: 5 };                // 뽀모도로 집중/휴식 (분)
+
+    let mode = 'timer';        // 'timer' | 'pomo'
+    let phase = 'focus';       // 뽀모도로용: 'focus' | 'break'
+    let presetMin = 25;        // 타이머 모드에서 고른 분
+    let remain = presetMin * 60;   // 남은 초
+    let running = false;
+    let ticker = null;
+
+    function fmt(sec) {
+      const m = Math.floor(sec / 60), s = sec % 60;
+      return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
+    function paint() {
+      dispEl.textContent = fmt(Math.max(0, remain));
+      if (mode === 'pomo') {
+        phaseEl.textContent = phase === 'focus' ? '집중' : '휴식';
+      } else {
+        phaseEl.textContent = '';
+      }
+      startBtn.textContent = running ? '일시정지' : '시작';
+      startBtn.classList.toggle('running', running);
+    }
+    // 타이머 모드 프리셋 버튼
+    function buildPresets() {
+      presetWrap.innerHTML = '';
+      if (mode !== 'timer') return;   // 뽀모도로는 프리셋 숨김
+      TIMER_PRESETS.forEach(min => {
+        const b = document.createElement('button');
+        b.className = 'timer-preset' + (min === presetMin ? ' active' : '');
+        b.textContent = min + '분';
+        b.addEventListener('click', () => {
+          presetMin = min;
+          stop();
+          remain = presetMin * 60;
+          buildPresets();
+          paint();
+        });
+        presetWrap.appendChild(b);
+      });
+    }
+    function stop() {
+      running = false;
+      if (ticker) { clearInterval(ticker); ticker = null; }
+    }
+    function reset() {
+      stop();
+      if (mode === 'pomo') {
+        phase = 'focus';
+        remain = POMO.focus * 60;
+      } else {
+        remain = presetMin * 60;
+      }
+      paint();
+    }
+    function tick() {
+      remain--;
+      if (remain <= 0) {
+        // 종료
+        stop();
+        toast('<span class="th">♥</span> ' +
+          (mode === 'pomo'
+            ? (phase === 'focus' ? '집중 끝! 휴식하세요' : '휴식 끝! 다시 집중')
+            : '타이머 끝!'));
+        if (mode === 'pomo') {
+          // 집중 ↔ 휴식 자동 전환
+          phase = phase === 'focus' ? 'break' : 'focus';
+          remain = (phase === 'focus' ? POMO.focus : POMO.break) * 60;
+        } else {
+          remain = presetMin * 60;
+        }
+        paint();
+        return;
+      }
+      paint();
+    }
+    startBtn.addEventListener('click', () => {
+      if (running) { stop(); paint(); return; }
+      if (remain <= 0) reset();
+      running = true;
+      ticker = setInterval(tick, 1000);
+      paint();
+    });
+    resetBtn.addEventListener('click', reset);
+    // 모드 탭
+    document.querySelectorAll('.timer-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.timer-tab')
+          .forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        mode = tab.dataset.mode;
+        stop();
+        if (mode === 'pomo') { phase = 'focus'; remain = POMO.focus * 60; }
+        else { remain = presetMin * 60; }
+        buildPresets();
+        paint();
+      });
+    });
+    buildPresets();
+    paint();
+  })();
 
   // ===== 유튜브 뮤직 위젯 (재생목록 + 반복) =====
   (function ytMusic() {
@@ -3808,6 +4395,16 @@
     order.appendChild(backBtn);
     el.appendChild(order);
 
+    // 더블클릭 — 도구 버튼들을 켜고 끔 (hover 안 되는 환경 대응)
+    el.addEventListener('dblclick', e => {
+      if (e.target.closest('.stk-btn') || e.target.closest('.stk-resize') ||
+          e.target.closest('.stk-rotate')) return;
+      document.querySelectorAll('.sticker.tools-open').forEach(x => {
+        if (x !== el) x.classList.remove('tools-open');
+      });
+      el.classList.toggle('tools-open');
+    });
+
     // 크기 조절 핸들
     const resize = document.createElement('div');
     resize.className = 'stk-resize';
@@ -3825,6 +4422,8 @@
     function down(e) {
       if (e.target.closest('.stk-btn') || e.target.closest('.stk-resize') ||
           e.target.closest('.stk-rotate') || e.target.closest('.stk-order')) return;
+      // 더블클릭으로 도구가 열린 상태에서만 이동 가능
+      if (!el.classList.contains('tools-open')) return;
       drag = true;
       const p = e.touches ? e.touches[0] : e;
       sx = p.clientX; sy = p.clientY;
@@ -3968,6 +4567,13 @@
   // 저장된 스티커 모두 표시
   stickers.forEach(spawnSticker);
   restackStickers();
+  // 스티커 바깥을 누르면 열린 도구 메뉴 닫기
+  document.addEventListener('mousedown', e => {
+    if (!e.target.closest('.sticker')) {
+      document.querySelectorAll('.sticker.tools-open')
+        .forEach(x => x.classList.remove('tools-open'));
+    }
+  });
 
   // 새 스티커를 화면 가운데쯤에 추가
   function addSticker(opts) {
@@ -4591,6 +5197,74 @@
   }
   trayTick();
   setInterval(trayTick, 10000);
+
+  // ===== 날씨 (시계 옆 이모지) =====
+  (function weather() {
+    const el = $('trayWeather');
+    // Open-Meteo weathercode → 이모지
+    function codeToEmoji(code) {
+      if (code === 0) return '☀️';
+      if (code <= 2) return '🌤️';
+      if (code === 3) return '☁️';
+      if (code <= 48) return '🌫️';
+      if (code <= 57) return '🌦️';
+      if (code <= 67) return '🌧️';
+      if (code <= 77) return '🌨️';
+      if (code <= 82) return '🌧️';
+      if (code <= 86) return '🌨️';
+      if (code <= 99) return '⛈️';
+      return '🌡️';
+    }
+    function show(emoji, temp, label) {
+      el.innerHTML = '';
+      el.textContent = emoji;
+      if (temp != null) {
+        const t = document.createElement('span');
+        t.className = 'tw-temp';
+        t.textContent = Math.round(temp) + '°';
+        el.appendChild(t);
+      }
+      el.title = label || '날씨';
+    }
+    function fetchWeather(lat, lon) {
+      const url = 'https://api.open-meteo.com/v1/forecast'
+        + '?latitude=' + lat + '&longitude=' + lon
+        + '&current=temperature_2m,weather_code';
+      fetch(url)
+        .then(r => r.json())
+        .then(d => {
+          if (!d.current) throw new Error('no data');
+          const code = d.current.weather_code;
+          const temp = d.current.temperature_2m;
+          show(codeToEmoji(code), temp, '현재 날씨 ' + Math.round(temp) + '°');
+        })
+        .catch(() => { el.textContent = ''; });
+    }
+    // 위치 권한 — 허용하면 현재 위치, 아니면 서울 기본값
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => fetchWeather(pos.coords.latitude.toFixed(3),
+                            pos.coords.longitude.toFixed(3)),
+        ()  => fetchWeather(37.566, 126.978),   // 서울
+        { timeout: 8000, maximumAge: 1800000 }
+      );
+    } else {
+      fetchWeather(37.566, 126.978);
+    }
+    // 클릭하면 새로고침
+    el.addEventListener('click', () => {
+      el.textContent = '⏳';
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => fetchWeather(pos.coords.latitude.toFixed(3),
+                              pos.coords.longitude.toFixed(3)),
+          ()  => fetchWeather(37.566, 126.978)
+        );
+      } else {
+        fetchWeather(37.566, 126.978);
+      }
+    });
+  })();
 
   // ===== 초기화 =====
   loadBg();
