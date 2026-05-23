@@ -1038,6 +1038,8 @@
   }
   .pl-item:hover { background: var(--pink-soft); }
   .pl-item.on { background: var(--pink-soft); color: var(--pink-d); font-weight: 700; }
+  .pl-item.pl-dragging { opacity: 0.4; }
+  .pl-item.pl-drag-over { box-shadow: inset 0 2px 0 var(--pink-d); }
   .pl-item .pl-name {
     flex: 1; min-width: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -3318,7 +3320,14 @@
   (function ytMusic() {
     const PL_KEY = 'chathub:ytPlaylist';
     const LOOP_KEY = 'chathub:ytLoop';
-    const DEFAULT_VID = '9teD-_Yx1Cg';
+    // 기본 재생목록 (처음 방문 시)
+    const DEFAULT_PLAYLIST = [
+      { id: '9teD-_Yx1Cg', title: '유튜브 음악' },
+      { id: 'z3bhYQaWXkI', title: '유튜브 음악' },
+      { id: 'sWW09GQrc7M', title: '유튜브 음악' },
+      { id: '2hpwi4MzPfg', title: '유튜브 음악' },
+      { id: 'hO3oQ7pmssQ', title: '유튜브 음악' }
+    ];
 
     // 재생목록: [{ id, title }]
     let playlist = [];
@@ -3328,7 +3337,7 @@
       if (!Array.isArray(playlist)) playlist = [];
     } catch { playlist = []; }
     if (playlist.length === 0) {
-      playlist = [{ id: DEFAULT_VID, title: '유튜브 음악' }];
+      playlist = DEFAULT_PLAYLIST.map(t => ({ id: t.id, title: t.title }));
     }
     let curTrack = 0;
     // 반복 모드: 'off' | 'all' | 'one'
@@ -3389,6 +3398,7 @@
     }
 
     // 재생목록 UI
+    let plDragIdx = null;
     function renderPlaylist() {
       const wrap = $('musicPlaylist');
       wrap.innerHTML = '';
@@ -3402,6 +3412,7 @@
       playlist.forEach((tr, i) => {
         const item = document.createElement('div');
         item.className = 'pl-item' + (i === curTrack ? ' on' : '');
+        item.draggable = true;
         const name = document.createElement('span');
         name.className = 'pl-name';
         name.textContent = (i === curTrack ? '♪ ' : '') + tr.title;
@@ -3422,6 +3433,41 @@
           item.appendChild(del);
         }
         item.addEventListener('click', () => loadTrack(i, true));
+
+        // 드래그로 순서 변경
+        item.addEventListener('dragstart', e => {
+          plDragIdx = i;
+          item.classList.add('pl-dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        item.addEventListener('dragend', () => {
+          item.classList.remove('pl-dragging');
+          wrap.querySelectorAll('.pl-item').forEach(x =>
+            x.classList.remove('pl-drag-over'));
+        });
+        item.addEventListener('dragover', e => {
+          e.preventDefault();
+          if (plDragIdx === null || plDragIdx === i) return;
+          item.classList.add('pl-drag-over');
+        });
+        item.addEventListener('dragleave', () => {
+          item.classList.remove('pl-drag-over');
+        });
+        item.addEventListener('drop', e => {
+          e.preventDefault();
+          item.classList.remove('pl-drag-over');
+          if (plDragIdx === null || plDragIdx === i) return;
+          // 현재 재생 중인 곡 객체를 기억
+          const curObj = playlist[curTrack];
+          const moved = playlist.splice(plDragIdx, 1)[0];
+          playlist.splice(i, 0, moved);
+          curTrack = playlist.indexOf(curObj);
+          if (curTrack < 0) curTrack = 0;
+          plDragIdx = null;
+          savePlaylist();
+          renderPlaylist();
+        });
+
         wrap.appendChild(item);
       });
     }
