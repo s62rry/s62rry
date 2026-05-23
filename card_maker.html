@@ -20,7 +20,6 @@
     --field: #f9fafc;
     --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05);
     --ui: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
-    --hl-color: #ffe17d;
   }
   [data-theme="dark"] {
     --bg: #14161c;
@@ -368,6 +367,15 @@
       repeating-conic-gradient(#23262f 0% 25%, transparent 0% 50%)
       0 0 / 22px 22px;
   }
+  /* 카드 + 페이지 네비를 세로로 묶음 */
+  .preview-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 540px;
+  }
 
   /* 발췌 카드 */
   #card {
@@ -411,7 +419,7 @@
   #quoteText strong {
     font-weight: 700;
   }
-  /* 형광펜 — 그라데이션의 색 정지점(58%~88%)으로 띠를 직접 그린다.
+  /* 형광펜 — 그라데이션의 색 정지점(48%~92%)으로 띠를 직접 그린다.
      background-size·position 계산 없이 줄 높이에 자동 비례하므로
      크기 보정·줄바꿈에도 글자 아래쪽에 안정적으로 깔린다.
      실제 카드 렌더로 % 값 검증 완료. 글자색은 본문 그대로. */
@@ -438,6 +446,88 @@
     margin-top: 7px;
     font-size: 11px;
     color: var(--text-dim);
+  }
+  /* 여러 장 안내 */
+  .multi-help {
+    display: flex; align-items: center;
+    gap: 8px; flex-wrap: wrap;
+    margin-top: 7px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .multi-help b {
+    font-weight: 700; color: var(--text);
+    font-family: ui-monospace, Menlo, monospace;
+  }
+  /* 카드 페이지 네비게이션 (미리보기 아래) */
+  .page-nav {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px;
+    padding: 8px 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+  }
+  .page-btn {
+    width: 28px; height: 26px;
+    padding: 0; justify-content: center;
+    font-size: 11px;
+  }
+  .page-ind {
+    font-size: 12px; font-weight: 600;
+    color: var(--text);
+    min-width: 56px; text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  /* 히스토리 목록 */
+  .history-list {
+    display: flex; flex-direction: column;
+    gap: 6px;
+    max-height: 280px; overflow-y: auto;
+  }
+  .history-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 7px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.13s ease, background 0.13s ease;
+  }
+  .history-item:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .history-thumb {
+    width: 40px; height: 40px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid var(--border);
+  }
+  .history-info { flex: 1; min-width: 0; }
+  .history-text {
+    font-size: 12px; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .history-meta {
+    font-size: 10.5px; color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .history-del {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    border: 0; border-radius: 50%;
+    background: transparent; color: var(--text-dim);
+    font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .history-del:hover { background: #e0556b; color: #fff; }
+  .history-empty {
+    font-size: 11.5px; color: var(--text-dim);
+    text-align: center; padding: 14px 0;
   }
   .fh-tip i { font-style: italic; }
   .fh-tip b { font-weight: 700; }
@@ -652,6 +742,10 @@
           형광펜 색
           <span class="hl-swatches" id="hlSwatches"><!-- JS --></span>
         </span>
+      </div>
+      <div class="multi-help">
+        줄에 <b>---</b> 만 입력해 구분하면 여러 장의 카드로 나뉘어요.
+        <button class="mini-btn" id="insertSepBtn" type="button">--- 넣기</button>
       </div>
     </div>
 
@@ -917,22 +1011,39 @@
       <div class="hint">자주 쓰는 배경색·글자색 조합을 한 번에 적용합니다.</div>
     </div>
 
+    <!-- 히스토리 -->
+    <div class="section">
+      <div class="section-title">
+        히스토리
+        <button class="mini-btn" id="historyClear" title="히스토리 전체 삭제">전체 삭제</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+      <div class="hint">이미지를 저장하거나 복사하면 그때의 문구·설정이 자동으로 기록돼요. 항목을 누르면 그 설정을 다시 불러옵니다.</div>
+    </div>
+
   </div>
 
   <!-- ===== 미리보기 ===== -->
   <div class="preview">
-    <div id="card">
-      <div id="cardBg"></div>
-      <div id="cardOverlay"></div>
-      <div class="card-inner">
-        <div id="quoteText">문구를 입력하면 여기에 표시됩니다.</div>
-        <div class="card-sep" id="cardSep"></div>
-        <div class="card-credit">
-          <div class="credit-text">
-            <span id="charName">캐릭터</span>
-            <span id="makerName">제작자</span>
+    <div class="preview-stack">
+      <div id="card">
+        <div id="cardBg"></div>
+        <div id="cardOverlay"></div>
+        <div class="card-inner">
+          <div id="quoteText">문구를 입력하면 여기에 표시됩니다.</div>
+          <div class="card-sep" id="cardSep"></div>
+          <div class="card-credit">
+            <div class="credit-text">
+              <span id="charName">캐릭터</span>
+              <span id="makerName">제작자</span>
+            </div>
           </div>
         </div>
+      </div>
+      <div class="page-nav" id="pageNav" style="display:none;">
+        <button class="page-btn" id="pagePrev" type="button">◀</button>
+        <span class="page-ind" id="pageInd">1 / 1</span>
+        <button class="page-btn" id="pageNext" type="button">▶</button>
       </div>
     </div>
   </div>
@@ -1531,15 +1642,45 @@
     return s;
   }
 
+  // ============ 카드 렌더링 ============
   // 형광펜 색을 실제 카드와 안내 예시에 함께 적용
   function applyHighlightColor() {
     document.documentElement.style.setProperty('--hl-color', state.hlColor);
     quoteText.style.setProperty('--hl-color', state.hlColor);
   }
 
-  // ============ 카드 렌더링 ============
+  // 여러 장 — 현재 보고 있는 페이지 번호 (0부터)
+  let curPage = 0;
+
+  // 본문을 '---' 구분선으로 나눠 페이지 배열로 반환
+  function getPages() {
+    const raw = $('quoteInput').value;
+    // 한 줄에 --- (앞뒤 공백 허용) 만 있는 줄을 구분선으로
+    const parts = raw.split(/\n[ \t]*-{3,}[ \t]*\n/);
+    // 각 조각의 앞뒤 빈 줄만 정리 (내부 줄바꿈은 유지)
+    return parts.map(p => p.replace(/^\n+|\n+$/g, ''));
+  }
+
+  // 페이지 네비게이션 표시 갱신
+  function updatePageNav() {
+    const pages = getPages();
+    const nav = $('pageNav');
+    if (pages.length <= 1) {
+      nav.style.display = 'none';
+      curPage = 0;
+    } else {
+      nav.style.display = 'flex';
+      if (curPage >= pages.length) curPage = pages.length - 1;
+      if (curPage < 0) curPage = 0;
+      $('pageInd').textContent = (curPage + 1) + ' / ' + pages.length;
+    }
+  }
+
   function renderCard() {
-    const q = $('quoteInput').value;
+    const pages = getPages();
+    if (curPage >= pages.length) curPage = pages.length - 1;
+    if (curPage < 0) curPage = 0;
+    const q = pages[curPage] || '';
     const base = q.trim() ? q : '문구를 입력하면 여기에 표시됩니다.';
     // 인용부호: 켜면 문구 앞뒤에 큰따옴표 / 서식 적용
     const inner = state.quoteMark ? ('\u201C' + base + '\u201D') : base;
@@ -1555,8 +1696,41 @@
     // 출처 표시 on/off
     cardSep.style.display = state.showCredit ? '' : 'none';
     cardCredit.style.display = state.showCredit ? '' : 'none';
+
+    updatePageNav();
   }
   $('quoteInput').addEventListener('input', renderCard);
+
+  // 페이지 이동 버튼
+  $('pagePrev').addEventListener('click', () => {
+    if (curPage > 0) { curPage--; renderCard(); }
+  });
+  $('pageNext').addEventListener('click', () => {
+    const pages = getPages();
+    if (curPage < pages.length - 1) { curPage++; renderCard(); }
+  });
+  // 구분선 넣기 버튼 — 현재 커서 위치에 --- 줄 삽입
+  $('insertSepBtn').addEventListener('click', () => {
+    const ta = $('quoteInput');
+    const v = ta.value;
+    // 커서(선택영역) 위치
+    const s = ta.selectionStart;
+    const e = ta.selectionEnd;
+    const before = v.slice(0, s);
+    const after = v.slice(e);
+    // 앞은 줄바꿈으로 끝나야, 뒤는 줄바꿈으로 시작해야 '한 줄 ---' 이 됨
+    let ins = '---';
+    if (before.length && !before.endsWith('\n')) ins = '\n' + ins;
+    if (after.length && !after.startsWith('\n')) ins = ins + '\n';
+    else if (after.length === 0) ins = ins + '\n';
+    ta.value = before + ins + after;
+    // 커서를 삽입한 --- 줄 다음으로
+    const caret = (before + ins).length;
+    ta.focus();
+    ta.setSelectionRange(caret, caret);
+    renderCard();
+  });
+
 
   // ============ 형광펜 색 스와치 ============
   function renderHlSwatches() {
@@ -2133,23 +2307,67 @@
     });
   }
 
+  // 한 페이지를 렌더하고 끝나면 원래 페이지로 복귀
+  function renderPageCanvas(pageIdx) {
+    const keep = curPage;
+    curPage = pageIdx;
+    renderCard();
+    return renderCardCanvas().then(canvas => {
+      curPage = keep;
+      renderCard();
+      return canvas;
+    }).catch(err => {
+      curPage = keep;
+      renderCard();
+      throw err;
+    });
+  }
+
   function saveImage() {
-    toast('이미지 생성 중...');
-    renderCardCanvas().then(canvas => {
-      const a = document.createElement('a');
-      a.href = canvas.toDataURL('image/png');
-      a.download = 'quote-card.png';
-      a.click();
-      toast('이미지를 저장했습니다');
-    }).catch(() => toast('이미지 생성에 실패했습니다'));
+    const pages = getPages();
+    if (pages.length <= 1) {
+      // 한 장
+      toast('이미지 생성 중...');
+      renderCardCanvas().then(canvas => {
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'quote-card.png';
+        a.click();
+        toast('이미지를 저장했습니다');
+        addHistory();
+      }).catch(() => toast('이미지 생성에 실패했습니다'));
+      return;
+    }
+    // 여러 장 — 순차로 한 장씩 저장
+    toast(pages.length + '장 생성 중...');
+    let i = 0;
+    function step() {
+      if (i >= pages.length) {
+        toast(pages.length + '장을 모두 저장했습니다');
+        addHistory();
+        return;
+      }
+      renderPageCanvas(i).then(canvas => {
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'quote-card-' + (i + 1) + '.png';
+        a.click();
+        i++;
+        // 브라우저가 연속 다운로드를 막지 않도록 약간 텀
+        setTimeout(step, 400);
+      }).catch(() => toast('이미지 생성에 실패했습니다'));
+    }
+    step();
   }
   function copyImage() {
     if (!navigator.clipboard || !window.ClipboardItem) {
       toast('이 브라우저는 이미지 복사를 지원하지 않습니다');
       return;
     }
+    // 복사는 현재 보고 있는 페이지 한 장만
     toast('이미지 생성 중...');
     renderCardCanvas().then(canvas => {
+      addHistory();   // 캔버스가 만들어졌으면 기록 (복사 성공 여부와 무관)
       canvas.toBlob(blob => {
         if (!blob) { toast('이미지 생성에 실패했습니다'); return; }
         navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
@@ -2160,6 +2378,146 @@
   }
   $('downloadBtn').addEventListener('click', saveImage);
   $('copyBtn').addEventListener('click', copyImage);
+
+  // ============ 히스토리 ============
+  const HISTORY_KEY = 'quotecard:history';
+  const HISTORY_MAX = 30;
+  let history = [];
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (raw) history = JSON.parse(raw);
+    if (!Array.isArray(history)) history = [];
+  } catch { history = []; }
+  function saveHistory() {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); }
+    catch {
+      // 용량 초과 시 오래된 항목부터 비우며 재시도
+      while (history.length > 1) {
+        history.pop();
+        try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); return; }
+        catch {}
+      }
+    }
+  }
+  // 현재 카드 상태를 히스토리에 추가 (작은 썸네일 포함)
+  function addHistory() {
+    const pages = getPages();
+    const fullText = $('quoteInput').value.trim();
+    if (!fullText) return;
+
+    const now = new Date();
+    const stamp = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 '
+      + String(now.getHours()).padStart(2, '0') + ':'
+      + String(now.getMinutes()).padStart(2, '0');
+    // 기록 항목을 먼저 만들어 넣고 (썸네일은 나중에 채움)
+    function commit(thumb) {
+      const entry = {
+        id: Date.now(),
+        text: fullText,
+        maker: makerInput.value.trim(),
+        char: charInput.value.trim(),
+        pageCount: pages.length,
+        thumb: thumb || '',
+        stamp: stamp
+      };
+      if (history.length && history[0].text === fullText) {
+        history[0] = entry;
+      } else {
+        history.unshift(entry);
+      }
+      if (history.length > HISTORY_MAX) history = history.slice(0, HISTORY_MAX);
+      saveHistory();
+      renderHistory();
+    }
+    // 썸네일 생성 시도 — 실패해도 기록은 남김
+    let canvasPromise;
+    try {
+      canvasPromise = renderCardCanvas();
+    } catch (err) {
+      // html2canvas 미로드 등 — 썸네일 없이 기록
+      commit('');
+      return;
+    }
+    canvasPromise.then(canvas => {
+      const tw = 120;
+      const th = Math.round(canvas.height * (tw / canvas.width));
+      const tc = document.createElement('canvas');
+      tc.width = tw; tc.height = th;
+      tc.getContext('2d').drawImage(canvas, 0, 0, tw, th);
+      let thumb = '';
+      try { thumb = tc.toDataURL('image/jpeg', 0.6); } catch {}
+      commit(thumb);
+    }).catch(() => commit(''));
+  }
+  function renderHistory() {
+    const wrap = $('historyList');
+    wrap.innerHTML = '';
+    if (history.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'history-empty';
+      e.textContent = '아직 기록이 없어요';
+      wrap.appendChild(e);
+      return;
+    }
+    history.forEach((h, i) => {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+
+      const thumb = document.createElement('div');
+      thumb.className = 'history-thumb';
+      if (h.thumb) thumb.style.backgroundImage = 'url(' + h.thumb + ')';
+
+      const info = document.createElement('div');
+      info.className = 'history-info';
+      const txt = document.createElement('div');
+      txt.className = 'history-text';
+      // 첫 줄만 미리보기로
+      txt.textContent = h.text.split('\n')[0];
+      const meta = document.createElement('div');
+      meta.className = 'history-meta';
+      const parts = [h.stamp];
+      if (h.pageCount > 1) parts.push(h.pageCount + '장');
+      if (h.char) parts.push(h.char);
+      meta.textContent = parts.join(' · ');
+      info.appendChild(txt);
+      info.appendChild(meta);
+
+      const del = document.createElement('button');
+      del.className = 'history-del';
+      del.textContent = '×';
+      del.title = '기록 삭제';
+      del.addEventListener('click', e => {
+        e.stopPropagation();
+        history = history.filter(x => x.id !== h.id);
+        saveHistory();
+        renderHistory();
+      });
+
+      // 항목 클릭 — 그 문구·제작자·캐릭터 복원
+      item.addEventListener('click', () => {
+        $('quoteInput').value = h.text;
+        if (h.maker) makerInput.value = h.maker;
+        if (h.char) charInput.value = h.char;
+        curPage = 0;
+        renderCard();
+        toast('이 기록을 불러왔어요');
+      });
+
+      item.appendChild(thumb);
+      item.appendChild(info);
+      item.appendChild(del);
+      wrap.appendChild(item);
+    });
+  }
+  $('historyClear').addEventListener('click', () => {
+    if (history.length === 0) return;
+    history = [];
+    saveHistory();
+    renderHistory();
+    toast('히스토리를 모두 지웠어요');
+  });
+  renderHistory();
+
 
   // ============ 카드 우클릭 메뉴 ============
   const ctxMenu = $('ctxMenu');
