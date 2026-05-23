@@ -2204,6 +2204,27 @@
     });
   }
 
+  // 형광펜 mark 들의 위치를 quoteText 기준 좌표(줄별 사각형)로 측정
+  function measureHighlights() {
+    const baseRect = quoteText.getBoundingClientRect();
+    const marks = quoteText.querySelectorAll('mark.qhl');
+    const rects = [];
+    marks.forEach(mk => {
+      // getClientRects: 줄바꿈되면 줄마다 사각형이 따로 나옴
+      const list = mk.getClientRects();
+      for (let i = 0; i < list.length; i++) {
+        const r = list[i];
+        rects.push({
+          x: r.left - baseRect.left,
+          y: r.top - baseRect.top,
+          w: r.width,
+          h: r.height
+        });
+      }
+    });
+    return rects;
+  }
+
   function renderCardCanvas() {
     // 화면 카드 너비에 맞춰 scale 을 정함 — 카드가 작게 보여도
     // 결과 이미지는 충분한 해상도(목표 너비 ~1360px)가 되도록.
@@ -2214,13 +2235,49 @@
     const radius = parseInt($('radiusRange').value, 10) * scale;
     const blur = (state.bgMode === 'image' && state.bgImageData)
       ? parseInt($('bgBlurRange').value, 10) : 0;
-    const opt = { scale: scale, useCORS: true, backgroundColor: null };
 
-    // 화면에 보이는 카드를 그대로 캡처한다.
-    // 형광펜이 단순 background-color 라 캡처도 화면과 동일 — 별도 처리 불필요.
+    // ── 형광펜 처리 ──────────────────────────────────────
+    // html2canvas 는 인라인 요소(mark)의 background 를 줄 단위로 잘못
+    // 칠한다. 그래서 캡처 직전 onclone 콜백에서, 복제본의 형광펜을
+    // 측정해둔 줄별 위치에 맞춰 '절대배치 div' 로 깔아준다.
+    // div(블록 요소)의 위치·배경은 html2canvas 가 정확히 그린다.
+    const hlRects = measureHighlights();   // quoteText 기준 좌표
+    const hlColor = state.hlColor;
+
+    const opt = {
+      scale: scale,
+      useCORS: true,
+      backgroundColor: null,
+      onclone: function (clonedDoc) {
+        const cqt = clonedDoc.getElementById('quoteText');
+        if (!cqt) return;
+        // 복제본의 형광펜 배경은 숨김 (글자만 남김)
+        cqt.querySelectorAll('mark.qhl').forEach(mk => {
+          mk.style.backgroundColor = 'transparent';
+          mk.style.backgroundImage = 'none';
+        });
+        if (hlRects.length === 0) return;
+        // quoteText 안에 형광펜 띠 div 들을 절대배치로 삽입.
+        // 음수 z-index 라 quoteText 배경 위·글자(텍스트) 아래에 깔린다.
+        const cs = clonedDoc.defaultView.getComputedStyle(cqt);
+        if (cs.position === 'static') cqt.style.position = 'relative';
+        hlRects.forEach(r => {
+          const band = clonedDoc.createElement('div');
+          band.style.position = 'absolute';
+          band.style.left = r.x + 'px';
+          band.style.top = r.y + 'px';
+          band.style.width = r.w + 'px';
+          band.style.height = r.h + 'px';
+          band.style.background = hlColor;
+          band.style.zIndex = '-1';   // 글자보다 뒤
+          band.style.pointerEvents = 'none';
+          cqt.insertBefore(band, cqt.firstChild);
+        });
+      }
+    };
+
     function lockCardSize() {}
     function unlockCardSize() {}
-    lockCardSize();
 
     function clipRound(ctx, w, h) {
       if (radius <= 0) return;
@@ -2243,13 +2300,11 @@
       const savedTransform = cardBg.style.transform;
 
       return makeBlurredImage(state.bgImageData, blur).then(blurredURL => {
-        // 화면 blur/transform 끄고, 미리 구운 블러 이미지로 교체
         cardBg.style.filter = 'none';
         cardBg.style.transform = 'none';
         cardBg.style.backgroundImage = 'url(' + blurredURL + ')';
 
         return html2canvas(card, opt).then(src => {
-          // 원복
           cardBg.style.backgroundImage = savedBgImage;
           cardBg.style.filter = savedFilter;
           cardBg.style.transform = savedTransform;
