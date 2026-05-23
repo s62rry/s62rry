@@ -370,8 +370,9 @@
 
   /* 발췌 카드 */
   #card {
-    width: 540px;
-    height: 540px;
+    width: 100%;
+    max-width: 540px;
+    aspect-ratio: 1 / 1;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -487,7 +488,6 @@
     main { grid-template-columns: 1fr; height: auto; }
     .editor { border-right: 0; border-bottom: 1px solid var(--border); }
     .preview { padding: 20px; }
-    #card { width: 100%; max-width: 460px; }
   }
 </style>
 </head>
@@ -1426,10 +1426,12 @@
     card.style.padding = pad + 'px';
     card.style.textAlign = state.align;
     card.style.borderRadius = radius + 'px';
-    // 카드 비율
+    // 카드 비율 — 너비는 가변(최대치 제한), 높이는 비율로 자동
     const r = RATIOS[state.ratio];
-    card.style.width = r.w + 'px';
-    card.style.height = r.h + 'px';
+    card.style.width = '100%';
+    card.style.maxWidth = r.w + 'px';
+    card.style.height = 'auto';
+    card.style.aspectRatio = r.w + ' / ' + r.h;
 
     // 본문 크기 = 슬라이더 크기 × 글씨체 보정 배율
     const realSize = size * fontScale;
@@ -1847,6 +1849,27 @@
       ? parseInt($('bgBlurRange').value, 10) : 0;
     const opt = { scale: scale, useCORS: true, backgroundColor: null };
 
+    // 캡처 동안만 카드를 비율별 고정 픽셀 크기로 (미리보기가 줄어 있어도
+    // 저장 이미지는 항상 같은 해상도가 되도록)
+    const r = RATIOS[state.ratio];
+    const savedCardW = card.style.width;
+    const savedCardH = card.style.height;
+    const savedCardMaxW = card.style.maxWidth;
+    const savedCardAR = card.style.aspectRatio;
+    function lockCardSize() {
+      card.style.width = r.w + 'px';
+      card.style.height = r.h + 'px';
+      card.style.maxWidth = 'none';
+      card.style.aspectRatio = 'auto';
+    }
+    function unlockCardSize() {
+      card.style.width = savedCardW;
+      card.style.height = savedCardH;
+      card.style.maxWidth = savedCardMaxW;
+      card.style.aspectRatio = savedCardAR;
+    }
+    lockCardSize();
+
     function clipRound(ctx, w, h) {
       if (radius <= 0) return;
       const r = Math.min(radius, w / 2, h / 2);
@@ -1878,6 +1901,7 @@
           cardBg.style.backgroundImage = savedBgImage;
           cardBg.style.filter = savedFilter;
           cardBg.style.transform = savedTransform;
+          unlockCardSize();
 
           const w = src.width, h = src.height;
           const out = document.createElement('canvas');
@@ -1890,6 +1914,7 @@
           cardBg.style.backgroundImage = savedBgImage;
           cardBg.style.filter = savedFilter;
           cardBg.style.transform = savedTransform;
+          unlockCardSize();
           throw err;
         });
       });
@@ -1897,6 +1922,7 @@
 
     // 블러 없음 — 통째로 캡처 후 둥근 모서리만 적용
     return html2canvas(card, opt).then(src => {
+      unlockCardSize();
       const w = src.width, h = src.height;
       const out = document.createElement('canvas');
       out.width = w; out.height = h;
@@ -1904,6 +1930,9 @@
       clipRound(ctx, w, h);
       ctx.drawImage(src, 0, 0);
       return out;
+    }).catch(err => {
+      unlockCardSize();
+      throw err;
     });
   }
 
