@@ -1001,6 +1001,59 @@
   }
   .music-play svg { width: 14px; height: 14px; }
   .music-play:hover { color: #fff; opacity: 0.88; }
+
+  /* 반복 버튼 */
+  .music-loop { position: relative; }
+  .music-loop.active { color: var(--pink-d); }
+  .music-loop .loop-one {
+    position: absolute;
+    right: -1px; top: -1px;
+    font-size: 7px; font-weight: 800;
+    background: var(--pink-d);
+    color: #fff;
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    display: none;
+    align-items: center; justify-content: center;
+    line-height: 1;
+  }
+  .music-loop.one .loop-one { display: flex; }
+
+  /* 재생목록 */
+  .music-playlist {
+    margin-top: 9px;
+    max-height: 116px;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+    gap: 3px;
+  }
+  .pl-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 7px;
+    border-radius: 7px;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: background 0.12s ease;
+  }
+  .pl-item:hover { background: var(--pink-soft); }
+  .pl-item.on { background: var(--pink-soft); color: var(--pink-d); font-weight: 700; }
+  .pl-item .pl-name {
+    flex: 1; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pl-item .pl-del {
+    flex-shrink: 0;
+    border: 0; background: transparent;
+    color: var(--ink-faint);
+    font-size: 12px; cursor: pointer;
+    padding: 0 2px;
+  }
+  .pl-item .pl-del:hover { color: var(--pink-d); }
+  .pl-empty {
+    font-size: 10px; color: var(--ink-faint);
+    text-align: center; padding: 8px 0;
+  }
   .dday-empty {
     font-size: 11px; color: var(--ink-faint);
     text-align: center; padding: 12px 0;
@@ -1537,7 +1590,7 @@
   <div class="widget" id="musicWidget" style="top:30px; right:240px;">
     <div class="widget-head">
       <span>♪ 뮤직</span>
-      <button class="widget-refresh" id="musicEdit" title="유튜브 영상 바꾸기">✎</button>
+      <button class="widget-refresh" id="musicAdd" title="재생목록에 추가">＋</button>
     </div>
     <div class="yt-frame">
       <div id="ytPlayer"></div>
@@ -1551,22 +1604,30 @@
       <span id="musicDur">0:00</span>
     </div>
     <div class="music-controls">
-      <button class="music-btn" id="musicBack" title="10초 뒤로">
+      <button class="music-btn" id="musicPrev" title="이전 곡">
         <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M11 12 19 6.5v11z"/>
-          <path d="M4 12 12 6.5v11z"/>
-          <rect x="3" y="6.5" width="2.4" height="11" rx="1.2"/>
+          <rect x="4" y="6" width="2.6" height="12" rx="1.3"/>
+          <path d="M20 6.5 11 12l9 5.5z"/>
         </svg>
       </button>
       <button class="music-btn music-play" id="musicPlay" title="재생/일시정지"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5 19 12 8 18.5z"/></svg></button>
-      <button class="music-btn" id="musicFwd" title="10초 앞으로">
+      <button class="music-btn" id="musicNext" title="다음 곡">
         <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M13 12 5 6.5v11z"/>
-          <path d="M20 12 12 6.5v11z"/>
-          <rect x="18.6" y="6.5" width="2.4" height="11" rx="1.2"/>
+          <path d="M4 6.5 13 12 4 17.5z"/>
+          <rect x="17.4" y="6" width="2.6" height="12" rx="1.3"/>
         </svg>
       </button>
+      <button class="music-btn music-loop" id="musicLoop" title="반복: 끄기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 2.5 20.5 6 17 9.5"/>
+          <path d="M3.5 11V9a3 3 0 0 1 3-3h14"/>
+          <path d="M7 21.5 3.5 18 7 14.5"/>
+          <path d="M20.5 13v2a3 3 0 0 1-3 3h-14"/>
+        </svg>
+        <span class="loop-one" id="loopOne">1</span>
+      </button>
     </div>
+    <div class="music-playlist" id="musicPlaylist"><!-- JS --></div>
   </div>
 </div>
 
@@ -1659,7 +1720,7 @@
   <!-- 상태바 -->
   <div class="statusbar">
     <span id="statusText">5개 항목</span>
-    <span class="sb-end" id="adminTrigger">♥ s62rry</span>
+    <span class="sb-end" id="adminTrigger">♥ S62RRY</span>
   </div>
 
   <!-- 오른쪽 아래 모서리 — 크기 조절 -->
@@ -3253,50 +3314,63 @@
     makeWidgetDraggable($('musicWidget'), $('musicWidget').querySelector('.widget-head'));
   }, 80);
 
-  // ===== 유튜브 뮤직 위젯 =====
+  // ===== 유튜브 뮤직 위젯 (재생목록 + 반복) =====
   (function ytMusic() {
-    const YT_KEY = 'chathub:ytVideo';
+    const PL_KEY = 'chathub:ytPlaylist';
+    const LOOP_KEY = 'chathub:ytLoop';
     const DEFAULT_VID = '9teD-_Yx1Cg';
-    let videoId = DEFAULT_VID;
+
+    // 재생목록: [{ id, title }]
+    let playlist = [];
     try {
-      const saved = localStorage.getItem(YT_KEY);
-      if (saved) videoId = saved;
+      const raw = localStorage.getItem(PL_KEY);
+      if (raw) playlist = JSON.parse(raw);
+      if (!Array.isArray(playlist)) playlist = [];
+    } catch { playlist = []; }
+    if (playlist.length === 0) {
+      playlist = [{ id: DEFAULT_VID, title: '유튜브 음악' }];
+    }
+    let curTrack = 0;
+    // 반복 모드: 'off' | 'all' | 'one'
+    let loopMode = 'off';
+    try {
+      const lm = localStorage.getItem(LOOP_KEY);
+      if (lm === 'all' || lm === 'one' || lm === 'off') loopMode = lm;
     } catch {}
 
     let player = null;
     let ready = false;
     let progressTimer = null;
 
+    function savePlaylist() {
+      try { localStorage.setItem(PL_KEY, JSON.stringify(playlist)); } catch {}
+    }
     function fmt(sec) {
       if (isNaN(sec) || sec < 0) sec = 0;
       const m = Math.floor(sec / 60);
       const s = Math.floor(sec % 60);
       return m + ':' + String(s).padStart(2, '0');
     }
-    // 유튜브 URL/ID 에서 영상 ID 추출
     function parseVideoId(input) {
       input = (input || '').trim();
       if (!input) return null;
-      // 순수 ID (11자)
       if (/^[\w-]{11}$/.test(input)) return input;
-      let m = input.match(/[?&]v=([\w-]{11})/);     // watch?v=
+      let m = input.match(/[?&]v=([\w-]{11})/);
       if (m) return m[1];
-      m = input.match(/youtu\.be\/([\w-]{11})/);    // youtu.be/
+      m = input.match(/youtu\.be\/([\w-]{11})/);
       if (m) return m[1];
-      m = input.match(/embed\/([\w-]{11})/);        // embed/
+      m = input.match(/embed\/([\w-]{11})/);
       if (m) return m[1];
-      m = input.match(/shorts\/([\w-]{11})/);       // shorts/
+      m = input.match(/shorts\/([\w-]{11})/);
       if (m) return m[1];
       return null;
     }
 
-    // 재생·일시정지 SVG 아이콘
     const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5 19 12 8 18.5z"/></svg>';
     const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5.5" width="4" height="13" rx="1.4"/><rect x="13.5" y="5.5" width="4" height="13" rx="1.4"/></svg>';
     function updatePlayBtn() {
       if (!ready || !player) return;
       const st = player.getPlayerState();
-      // 1 = 재생중
       $('musicPlay').innerHTML = (st === 1) ? ICON_PAUSE : ICON_PLAY;
     }
     function startProgress() {
@@ -3314,34 +3388,137 @@
       if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
     }
 
-    // 유튜브 IFrame API 로드
+    // 재생목록 UI
+    function renderPlaylist() {
+      const wrap = $('musicPlaylist');
+      wrap.innerHTML = '';
+      if (playlist.length === 0) {
+        const e = document.createElement('div');
+        e.className = 'pl-empty';
+        e.textContent = '＋ 로 유튜브 음악을 추가해요';
+        wrap.appendChild(e);
+        return;
+      }
+      playlist.forEach((tr, i) => {
+        const item = document.createElement('div');
+        item.className = 'pl-item' + (i === curTrack ? ' on' : '');
+        const name = document.createElement('span');
+        name.className = 'pl-name';
+        name.textContent = (i === curTrack ? '♪ ' : '') + tr.title;
+        item.appendChild(name);
+        // 삭제 (1곡만 남으면 삭제 불가)
+        if (playlist.length > 1) {
+          const del = document.createElement('button');
+          del.className = 'pl-del';
+          del.textContent = '×';
+          del.addEventListener('click', e => {
+            e.stopPropagation();
+            playlist.splice(i, 1);
+            if (curTrack >= playlist.length) curTrack = playlist.length - 1;
+            else if (i < curTrack) curTrack--;
+            savePlaylist();
+            renderPlaylist();
+          });
+          item.appendChild(del);
+        }
+        item.addEventListener('click', () => loadTrack(i, true));
+        wrap.appendChild(item);
+      });
+    }
+    // 트랙 로드
+    function loadTrack(i, autoplay) {
+      if (i < 0 || i >= playlist.length) return;
+      curTrack = i;
+      if (ready && player) {
+        if (autoplay) player.loadVideoById(playlist[i].id);
+        else player.cueVideoById(playlist[i].id);
+      }
+      $('musicNow').textContent = '♪ ' + playlist[i].title;
+      renderPlaylist();
+    }
+    function nextTrack(auto) {
+      if (playlist.length === 0) return;
+      let i = curTrack + 1;
+      if (i >= playlist.length) {
+        // 전체 반복이 아니면 마지막에서 멈춤 (자동 진행 시)
+        if (auto && loopMode !== 'all') { updatePlayBtn(); return; }
+        i = 0;
+      }
+      loadTrack(i, true);
+    }
+    function prevTrack() {
+      if (playlist.length === 0) return;
+      let i = curTrack - 1;
+      if (i < 0) i = playlist.length - 1;
+      loadTrack(i, true);
+    }
+
+    // 반복 버튼 UI
+    function updateLoopBtn() {
+      const btn = $('musicLoop');
+      btn.classList.toggle('active', loopMode !== 'off');
+      btn.classList.toggle('one', loopMode === 'one');
+      btn.title = loopMode === 'off' ? '반복: 끄기'
+                : loopMode === 'all' ? '반복: 전체'
+                : '반복: 한 곡';
+    }
+    updateLoopBtn();
+    $('musicLoop').addEventListener('click', () => {
+      loopMode = loopMode === 'off' ? 'all'
+               : loopMode === 'all' ? 'one' : 'off';
+      try { localStorage.setItem(LOOP_KEY, loopMode); } catch {}
+      updateLoopBtn();
+      const msg = loopMode === 'off' ? '반복 끄기'
+                : loopMode === 'all' ? '전체 반복' : '한 곡 반복';
+      toast('<span class="th">♥</span> ' + msg);
+    });
+
+    // 유튜브 IFrame API
     function loadYTApi(cb) {
       if (window.YT && window.YT.Player) { cb(); return; }
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
       document.head.appendChild(tag);
-      // API 준비 콜백 (전역)
       window.onYouTubeIframeAPIReady = cb;
     }
-
     function createPlayer() {
       player = new YT.Player('ytPlayer', {
-        videoId: videoId,
+        videoId: playlist[curTrack].id,
         playerVars: { rel: 0, modestbranding: 1, playsinline: 1 },
         events: {
           onReady: () => {
             ready = true;
-            $('musicNow').textContent = '♪ ' + (player.getVideoData().title || '유튜브 음악');
+            const t = player.getVideoData().title;
+            if (t) {
+              playlist[curTrack].title = t;
+              savePlaylist();
+            }
+            $('musicNow').textContent = '♪ ' + (playlist[curTrack].title || '유튜브 음악');
+            renderPlaylist();
             updatePlayBtn();
           },
           onStateChange: e => {
             updatePlayBtn();
-            if (e.data === 1) startProgress();   // 재생 → 진행바 갱신
-            else if (e.data === 0) stopProgress(); // 종료
+            if (e.data === 1) startProgress();
+            else if (e.data === 0) {
+              stopProgress();
+              // 곡 종료 — 반복/다음곡 처리
+              if (loopMode === 'one') {
+                player.seekTo(0, true);
+                player.playVideo();
+              } else {
+                nextTrack(true);
+              }
+            }
             // 제목 갱신
             if (e.data === 1 && player.getVideoData) {
               const t = player.getVideoData().title;
-              if (t) $('musicNow').textContent = '♪ ' + t;
+              if (t && playlist[curTrack]) {
+                playlist[curTrack].title = t;
+                $('musicNow').textContent = '♪ ' + t;
+                savePlaylist();
+                renderPlaylist();
+              }
             }
           }
         }
@@ -3349,23 +3526,15 @@
     }
     loadYTApi(createPlayer);
 
-    // 재생 / 일시정지
+    // 컨트롤
     $('musicPlay').addEventListener('click', () => {
       if (!ready || !player) return;
       const st = player.getPlayerState();
       if (st === 1) player.pauseVideo();
       else player.playVideo();
     });
-    // 10초 뒤로 / 앞으로
-    $('musicBack').addEventListener('click', () => {
-      if (!ready || !player) return;
-      player.seekTo(Math.max(0, player.getCurrentTime() - 10), true);
-    });
-    $('musicFwd').addEventListener('click', () => {
-      if (!ready || !player) return;
-      player.seekTo(player.getCurrentTime() + 10, true);
-    });
-    // 진행바 클릭 — 구간 이동
+    $('musicPrev').addEventListener('click', prevTrack);
+    $('musicNext').addEventListener('click', () => nextTrack(false));
     $('musicBar').addEventListener('click', e => {
       if (!ready || !player) return;
       const d = player.getDuration() || 0;
@@ -3374,35 +3543,30 @@
       const ratio = (e.clientX - rect.left) / rect.width;
       player.seekTo(Math.max(0, Math.min(1, ratio)) * d, true);
     });
-    // 영상 바꾸기 — 예쁜 모달
-    function applyVideo(input) {
-      const vid = parseVideoId(input);
-      if (!vid) return false;
-      videoId = vid;
-      try { localStorage.setItem(YT_KEY, vid); } catch {}
-      if (ready && player) {
-        player.loadVideoById(vid);
-        $('musicNow').textContent = '♪ 불러오는 중...';
-      }
-      return true;
-    }
+
+    // 재생목록에 곡 추가 — 예쁜 모달
     function openYtModal() {
-      $('ytInput').value = 'https://www.youtube.com/watch?v=' + videoId;
+      $('ytInput').value = '';
       $('ytHint').textContent = '';
       $('ytModal').classList.add('show');
-      setTimeout(() => { $('ytInput').focus(); $('ytInput').select(); }, 50);
+      setTimeout(() => $('ytInput').focus(), 50);
     }
     function closeYtModal() { $('ytModal').classList.remove('show'); }
     function confirmYt() {
-      const ok = applyVideo($('ytInput').value);
-      if (!ok) {
+      const vid = parseVideoId($('ytInput').value);
+      if (!vid) {
         $('ytHint').textContent = '✘ 유튜브 주소를 인식하지 못했어요';
         return;
       }
+      playlist.push({ id: vid, title: '유튜브 음악' });
+      savePlaylist();
+      renderPlaylist();
       closeYtModal();
-      toast('<span class="th">♥</span> 영상을 바꿨어요');
+      // 방금 추가한 곡으로 이동해 재생
+      loadTrack(playlist.length - 1, true);
+      toast('<span class="th">♥</span> 재생목록에 추가했어요');
     }
-    $('musicEdit').addEventListener('click', openYtModal);
+    $('musicAdd').addEventListener('click', openYtModal);
     $('ytOk').addEventListener('click', confirmYt);
     $('ytCancel').addEventListener('click', closeYtModal);
     $('ytCancelX').addEventListener('click', closeYtModal);
@@ -3413,6 +3577,8 @@
     $('ytModal').addEventListener('click', e => {
       if (e.target === $('ytModal')) closeYtModal();
     });
+
+    renderPlaylist();
   })();
 
   // ===== 바탕화면 스티커 =====
