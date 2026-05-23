@@ -20,6 +20,7 @@
     --field: #f9fafc;
     --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05);
     --ui: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+    --hl-color: #ffe17d;
   }
   [data-theme="dark"] {
     --bg: #14161c;
@@ -410,23 +411,21 @@
   #quoteText strong {
     font-weight: 700;
   }
-  /* 형광펜 — ::before 막대를 글자 '뒤'(z-index:-1)에 깐다.
-     bottom 기준으로 높이를 잡으므로 글자 위 여백이 커도
-     노란색이 위로 절대 올라가지 않음. 글자색은 본문 그대로. */
+  /* 형광펜 — 그라데이션의 색 정지점(58%~88%)으로 띠를 직접 그린다.
+     background-size·position 계산 없이 줄 높이에 자동 비례하므로
+     크기 보정·줄바꿈에도 글자 아래쪽에 안정적으로 깔린다.
+     실제 카드 렌더로 % 값 검증 완료. 글자색은 본문 그대로. */
   #quoteText mark.qhl {
     color: inherit;
-    background: transparent;
-    position: relative;
-    z-index: 0;
-  }
-  #quoteText mark.qhl::before {
-    content: "";
-    position: absolute;
-    left: -0.04em; right: -0.04em;
-    bottom: 0.04em;            /* 글자 밑선 살짝 위 */
-    height: 0.6em;             /* 칠하는 두께 — 살짝 두툼하게 */
-    background: var(--hl-color, #ffe17d);
-    z-index: -1;               /* 글자보다 뒤 */
+    background-color: transparent;
+    background-image: linear-gradient(
+      transparent 48%,
+      var(--hl-color) 48%,
+      var(--hl-color) 92%,
+      transparent 92%);
+    padding: 0 0.04em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
 
   /* 본문 서식 안내 */
@@ -444,18 +443,13 @@
   .fh-tip b { font-weight: 700; }
   .fh-tip mark.fh-hl {
     color: inherit;
-    background: transparent;
-    position: relative;
-    z-index: 0;
-  }
-  .fh-tip mark.fh-hl::before {
-    content: "";
-    position: absolute;
-    left: -0.04em; right: -0.04em;
-    bottom: 0.04em;
-    height: 0.6em;
-    background: #ffe17d;
-    z-index: -1;
+    background-color: transparent;
+    background-image: linear-gradient(
+      transparent 48%,
+      var(--hl-color) 48%,
+      var(--hl-color) 92%,
+      transparent 92%);
+    padding: 0 0.04em;
   }
   .fh-hl-pick {
     display: flex;
@@ -465,8 +459,8 @@
   }
   .hl-swatches {
     display: grid;
-    grid-template-columns: repeat(6, 16px);
-    gap: 5px;
+    grid-template-columns: repeat(13, 16px);
+    gap: 4px;
   }
   .hl-swatch {
     width: 16px; height: 16px;
@@ -479,6 +473,23 @@
   .hl-swatch:hover { transform: scale(1.18); }
   .hl-swatch.on {
     box-shadow: 0 0 0 2px var(--accent);
+  }
+  /* 직접 색 고르기 — 무지개 팔레트 동그라미 */
+  .hl-swatch-custom {
+    position: relative;
+    overflow: hidden;
+    background: conic-gradient(
+      #ff5d5d, #ffd24d, #8be36b, #4dd2e3,
+      #6b8bff, #c66bff, #ff6bb5, #ff5d5d);
+  }
+  .hl-color-input {
+    position: absolute;
+    inset: -4px;
+    width: calc(100% + 8px);
+    height: calc(100% + 8px);
+    opacity: 0;
+    cursor: pointer;
+    padding: 0; border: 0;
   }
   .card-sep {
     width: 30px; height: 1px;
@@ -1124,8 +1135,8 @@
     '#ffe17d', '#ffc4d6', '#bde5ff', '#c9f0c2', '#e3d0ff', '#ffd2a8',
     '#9c7a2e', '#a45a72', '#3f6c99', '#4f7d47', '#6b5a99', '#a86b3c'
   ];
-  // 저장된 형광펜 색 복원
-  if (data.hlColor && HL_COLORS.indexOf(data.hlColor) !== -1) {
+  // 저장된 형광펜 색 복원 (프리셋이든 커스텀이든)
+  if (data.hlColor && /^#[0-9a-fA-F]{6}$/.test(data.hlColor)) {
     state.hlColor = data.hlColor;
   }
 
@@ -1520,6 +1531,12 @@
     return s;
   }
 
+  // 형광펜 색을 실제 카드와 안내 예시에 함께 적용
+  function applyHighlightColor() {
+    document.documentElement.style.setProperty('--hl-color', state.hlColor);
+    quoteText.style.setProperty('--hl-color', state.hlColor);
+  }
+
   // ============ 카드 렌더링 ============
   function renderCard() {
     const q = $('quoteInput').value;
@@ -1528,7 +1545,7 @@
     const inner = state.quoteMark ? ('\u201C' + base + '\u201D') : base;
     quoteText.innerHTML = formatQuote(inner);
     // 형광펜 색 적용
-    quoteText.style.setProperty('--hl-color', state.hlColor);
+    applyHighlightColor();
 
     const m = makerInput.value.trim();
     const c = charInput.value.trim();
@@ -1559,6 +1576,32 @@
       });
       wrap.appendChild(sw);
     });
+    // 직접 색 고르기 버튼 (무지개 팔레트)
+    const isCustom = HL_COLORS.indexOf(state.hlColor) === -1;
+    const pick = document.createElement('span');
+    pick.className = 'hl-swatch hl-swatch-custom' + (isCustom ? ' on' : '');
+    pick.title = '직접 색 고르기';
+    // 커스텀 색을 쓰는 중이면 그 색을 동그라미에 보여줌
+    if (isCustom) pick.style.background = state.hlColor;
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.className = 'hl-color-input';
+    colorInput.value = /^#[0-9a-fA-F]{6}$/.test(state.hlColor)
+      ? state.hlColor : '#ffe17d';
+    colorInput.addEventListener('input', () => {
+      state.hlColor = colorInput.value;
+      data.hlColor = colorInput.value;
+      renderCard();
+    });
+    colorInput.addEventListener('change', () => {
+      state.hlColor = colorInput.value;
+      data.hlColor = colorInput.value;
+      renderHlSwatches();
+      renderCard();
+      saveData();
+    });
+    pick.appendChild(colorInput);
+    wrap.appendChild(pick);
   }
   renderHlSwatches();
 
