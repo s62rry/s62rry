@@ -638,6 +638,16 @@
     transition: color 0.14s ease;
   }
   .statusbar .sb-end:hover { color: var(--pink-d); }
+  /* 상태바 우측 버튼 묶음 */
+  .statusbar .sb-end-group {
+    margin-left: auto;
+    display: flex; gap: 14px;
+  }
+  .statusbar .sb-act {
+    cursor: pointer; user-select: none;
+    transition: color 0.14s ease;
+  }
+  .statusbar .sb-act:hover { color: var(--pink-d); }
 
   /* ===== 비밀번호 모달 ===== */
   .overlay {
@@ -2154,7 +2164,10 @@
   </div>
   <div class="statusbar">
     <span id="noteStatus">0자</span>
-    <span class="sb-end" id="noteClear">이 메모 비우기</span>
+    <span class="sb-end-group">
+      <span class="sb-act" id="noteStripSpace">공백 모두 지우기</span>
+      <span class="sb-act" id="noteClear">이 메모 비우기</span>
+    </span>
   </div>
   <div class="resize-handle" id="noteResize">
     <svg viewBox="0 0 12 12" fill="currentColor"><rect x="9" y="1" width="2" height="2"/><rect x="9" y="5" width="2" height="2"/><rect x="5" y="5" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/><rect x="1" y="9" width="2" height="2"/></svg>
@@ -5093,6 +5106,19 @@
     if (notes[curNote]) { notes[curNote].body = ''; saveNotes(); }
     updateNoteStatus();
     toast('이 메모를 비웠어요');
+  });
+  // 공백 모두 지우기 — 띄어쓰기·탭·줄바꿈 전부 제거
+  $('noteStripSpace').addEventListener('click', () => {
+    if (!noteText.value) return;
+    const before = noteText.value;
+    // \s = 공백·탭·줄바꿈 등 모든 공백문자
+    const after = before.replace(/\s+/g, '');
+    if (after === before) { toast('지울 공백이 없어요'); return; }
+    noteText.value = after;
+    if (notes[curNote]) { notes[curNote].body = after; saveNotes(); }
+    updateNoteStatus();
+    const removed = before.length - after.length;
+    toast('공백 ' + removed + '자를 지웠어요');
   });
 
   // ----- 사진첩 — 이미지 올리고 보기 -----
