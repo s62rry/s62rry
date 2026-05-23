@@ -2214,32 +2214,23 @@
   }
 
   function renderCardCanvas() {
-    const scale = 2;
+    // 화면 카드 너비에 맞춰 scale 을 정함 — 카드가 작게 보여도
+    // 결과 이미지는 충분한 해상도(목표 너비 ~1360px)가 되도록.
+    const shownW = card.getBoundingClientRect().width || 540;
+    const TARGET_W = 1360;
+    let scale = TARGET_W / shownW;
+    scale = Math.max(2, Math.min(4, scale));   // 2~4배 사이로 제한
     const radius = parseInt($('radiusRange').value, 10) * scale;
     const blur = (state.bgMode === 'image' && state.bgImageData)
       ? parseInt($('bgBlurRange').value, 10) : 0;
     const opt = { scale: scale, useCORS: true, backgroundColor: null };
 
-    // 캡처 동안만 카드를 비율별 고정 픽셀 크기로 (미리보기가 줄어 있어도
-    // 저장 이미지는 항상 같은 해상도가 되도록)
-    const r = RATIOS[state.ratio];
-    const savedCardW = card.style.width;
-    const savedCardH = card.style.height;
-    const savedCardMaxW = card.style.maxWidth;
-    const savedCardAR = card.style.aspectRatio;
-    function lockCardSize() {
-      card.style.width = r.w + 'px';
-      card.style.height = r.h + 'px';
-      card.style.maxWidth = 'none';
-      card.style.aspectRatio = 'auto';
-    }
-    function unlockCardSize() {
-      card.style.width = savedCardW;
-      card.style.height = savedCardH;
-      card.style.maxWidth = savedCardMaxW;
-      card.style.aspectRatio = savedCardAR;
-    }
-    lockCardSize();
+    // 화면에 보이는 카드를 그대로 캡처한다.
+    // (예전엔 캡처 동안 카드를 고정 픽셀로 키웠는데, 글자 크기는
+    //  px 고정이라 안 따라 커져서 결과물 비율이 달라 보였음.
+    //  이제 화면 그대로 캡처 — 아래 두 함수는 호환용 빈 함수)
+    function lockCardSize() {}
+    function unlockCardSize() {}
 
     function clipRound(ctx, w, h) {
       if (radius <= 0) return;
