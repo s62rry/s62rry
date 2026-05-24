@@ -677,6 +677,15 @@
     cursor: not-allowed; opacity: 0.7;
   }
   .vlr-orig.is-locked input { cursor: not-allowed; }
+  /* 전체·최상위 숨기기 — 오리지널 체크 아래, 옅은 구분선 */
+  .vlr-orig.vlr-hidetop {
+    margin-top: 2px;
+    padding-top: 9px;
+    border-top: 1px dashed rgba(0,0,0,0.1);
+  }
+  [data-theme="dark"] .vlr-orig.vlr-hidetop {
+    border-top-color: rgba(255,255,255,0.12);
+  }
   .modal-foot {
     display: flex; gap: 8px;
     padding: 14px 18px;
@@ -955,6 +964,12 @@
           </label>
           <button class="danger vlr-del" id="verDeleteBtn">이 AU 삭제</button>
         </div>
+        <label class="vlr-orig vlr-hidetop" id="vlrHideTop">
+          <input type="checkbox" id="fHideTop">
+          <span class="vlr-orig-text">전체·최상위에서 숨기기
+            <span class="vlr-orig-sub">— 속한 카테고리에서만 보임</span>
+          </span>
+        </label>
         <div class="vlr-namebox" id="vlrNamebox">
           <label for="fVerLabel">AU 이름</label>
           <div class="vlr-au-row">
@@ -1238,13 +1253,16 @@
     if (typeof v.catId !== 'string') v.catId = '';
     if (typeof v.label !== 'string') v.label = '';
     if (typeof v.subLabel !== 'string') v.subLabel = '';
+    if (typeof v.hideTop !== 'boolean') v.hideTop = false;
     if (forceOrig) v.isOrig = true;
     else if (typeof v.isOrig !== 'boolean') v.isOrig = false;
     // 오리지널은 catId 사용 / AU는 label(+subLabel) 사용 — 반대쪽 비움
     if (v.isOrig) { v.label = ''; v.subLabel = ''; }
-    else v.catId = '';
+    else { v.catId = ''; v.hideTop = false; }
     // 상위 AU 가 없으면 하위도 의미 없음
     if (!v.label.trim()) v.subLabel = '';
+    // 카테고리 없으면 hideTop 무의미
+    if (!v.catId) v.hideTop = false;
     return v;
   }
   function normalizePersona(p) {
@@ -1502,11 +1520,16 @@
     return ids;
   }
   // 카테고리(+하위)에 속한 ★오리지널★ 수
+  // 그 카테고리가 최상위면, 하위에만 속한 hideTop 오리지널은 빼고 셈
   function countInCategory(id) {
     const ids = categoryWithDescendants(id);
+    const cat = store.categories.find(c => c.id === id);
+    const isTop = !!cat && !cat.parentId;
     let n = 0;
     store.personas.forEach(p => p.versions.forEach(v => {
-      if (v.isOrig && ids.indexOf(v.catId) >= 0) n++;
+      if (!v.isOrig || ids.indexOf(v.catId) < 0) return;
+      if (isTop && v.hideTop && v.catId !== id) return;
+      n++;
     }));
     return n;
   }
@@ -1534,7 +1557,12 @@
     all.innerHTML = '<span>전체</span>';
     const allCount = document.createElement('span');
     allCount.className = 'cat-count';
-    allCount.textContent = store.personas.length;
+    // 전체 보기에 실제로 뜨는 오리지널 수 (hideTop 제외)
+    let allN = 0;
+    store.personas.forEach(p => {
+      origVersions(p).forEach(v => { if (!v.hideTop) allN++; });
+    });
+    allCount.textContent = allN;
     all.appendChild(allCount);
     all.addEventListener('click', () => { curView = { type: 'all' }; refresh(); });
     wrap.appendChild(all);
@@ -1899,7 +1927,11 @@
     let cards = [];
     if (curView.type === 'all') {
       store.personas.forEach(p => {
-        origVersions(p).forEach(v => cards.push({ persona: p, version: v }));
+        origVersions(p).forEach(v => {
+          // '전체·최상위에서 숨기기' 켜진 오리지널은 전체에서 제외
+          if (v.hideTop) return;
+          cards.push({ persona: p, version: v });
+        });
       });
     } else if (curView.type === 'none') {
       store.personas.forEach(p => {
@@ -1911,12 +1943,17 @@
       });
     } else if (curView.type === 'cat') {
       const ids = categoryWithDescendants(curView.id);
+      // 보고 있는 카테고리가 최상위인가?
+      const curCat = store.categories.find(c => c.id === curView.id);
+      const viewingTop = !!curCat && !curCat.parentId;
       store.personas.forEach(p => {
         p.versions.forEach(v => {
           // 오리지널만 — 카테고리는 오리지널 전용
-          if (v.isOrig && ids.indexOf(v.catId) >= 0) {
-            cards.push({ persona: p, version: v });
-          }
+          if (!v.isOrig || ids.indexOf(v.catId) < 0) return;
+          // 최상위를 보는 중 + 그 캐릭터가 최상위에 직접 속하지 않고
+          // 하위에 속함 + hideTop 켜짐 → 제외
+          if (viewingTop && v.hideTop && v.catId !== curView.id) return;
+          cards.push({ persona: p, version: v });
         });
       });
     } else if (curView.type === 'verlabel') {
@@ -2127,6 +2164,7 @@
   function blankVersion(isOrig) {
     return {
       vid: uid(), isOrig: !!isOrig, catId: '', label: '', subLabel: '',
+      hideTop: false,
       name: '', age: '', height: '', gender: '',
       tagline: '', chars: [], memo: '', tags: [],
       hasImg: false, _img: ''
@@ -2215,11 +2253,13 @@
       v.catId = $('fCategory').value;
       v.label = '';
       v.subLabel = '';
+      v.hideTop = $('fHideTop').checked && !!v.catId;
     } else {
       v.label = $('fVerLabel').value.trim();
       v.subLabel = $('fVerSubLabel').value.trim();
       if (!v.label) v.subLabel = '';  // 상위 없으면 하위도 비움
       v.catId = '';
+      v.hideTop = false;
     }
     v.age = $('fAge').value.trim();
     v.height = $('fHeight').value.trim();
@@ -2230,6 +2270,22 @@
   function ensureFirstOrig() {
     if (editVersions.length && !editVersions[0].isOrig) {
       editVersions[0].isOrig = true;
+    }
+  }
+  // 카테고리 선택 여부에 따라 'hideTop' 체크박스 활성/비활성
+  function syncHideTopState() {
+    const hasCat = !!$('fCategory').value;
+    const box = $('fHideTop');
+    const wrap = $('vlrHideTop');
+    if (hasCat) {
+      box.disabled = false;
+      wrap.classList.remove('is-locked');
+      wrap.title = '';
+    } else {
+      box.disabled = true;
+      box.checked = false;
+      wrap.classList.add('is-locked');
+      wrap.title = '카테고리를 먼저 골라야 써요';
     }
   }
   // editVersions[editVerIdx] → 폼에 채움
@@ -2252,16 +2308,20 @@
     if (v.isOrig) {
       $('fCategoryField').style.display = '';
       $('vlrNamebox').style.display = 'none';
+      $('vlrHideTop').style.display = '';
       $('vlrHint').textContent =
         '오리지널이에요. 전체 화면에 항상 표시돼요. '
         + '카테고리로 분류할 수 있어요.';
     } else {
       $('fCategoryField').style.display = 'none';
       $('vlrNamebox').style.display = '';
+      $('vlrHideTop').style.display = 'none';
       $('vlrHint').textContent =
         'AU 이름을 적으면 사이드바 "AU" 목록에 모여요. '
         + '하위는 비워도 돼요. (예: 해리포터 › 그리핀도르)';
     }
+    $('fHideTop').checked = !!v.hideTop;
+    syncHideTopState();
     $('fVerLabel').value = v.label || '';
     $('fVerSubLabel').value = v.subLabel || '';
     $('verDeleteBtn').style.display =
@@ -2295,6 +2355,8 @@
     loadVersionToForm();
     renderEditVerTabs();
   });
+  // 카테고리 바꾸면 'hideTop' 체크박스 상태 갱신
+  $('fCategory').addEventListener('change', syncHideTopState);
   // AU 탭 이름
   function verTabLabel(v, i, topOnly) {
     if (v.isOrig) return '오리지널';
@@ -2552,6 +2614,7 @@
       catId: v.isOrig ? (v.catId || '') : '',
       label: v.isOrig ? '' : (v.label || ''),
       subLabel: v.isOrig ? '' : (v.label ? (v.subLabel || '') : ''),
+      hideTop: (v.isOrig && v.catId) ? !!v.hideTop : false,
       name: v.name || '',
       age: v.age || '',
       height: v.height || '',
@@ -2937,6 +3000,7 @@
               catId: isOrig ? (rv.catId || '') : '',
               label: isOrig ? '' : (rv.label || ''),
               subLabel: (isOrig || !rv.label) ? '' : (rv.subLabel || ''),
+              hideTop: (isOrig && rv.catId) ? !!rv.hideTop : false,
               name: rv.name || '',
               age: rv.age || '',
               height: rv.height || '',
