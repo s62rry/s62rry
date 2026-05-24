@@ -228,6 +228,7 @@
   .explorer.collapsed .toolbar,
   .explorer.collapsed .body,
   .explorer.collapsed .app-body,
+  .explorer.collapsed .content,
   .explorer.collapsed .statusbar { display: none; }
   /* 최대화 */
   .explorer.maximized {
@@ -526,6 +527,11 @@
     transition: background 0.13s ease, color 0.13s ease;
   }
   .side-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .side-item .side-ic-px {
+    width: 16px; height: 16px; flex-shrink: 0;
+    display: inline-flex; image-rendering: pixelated;
+  }
+  .side-item .side-ic-px svg { width: 16px; height: 16px; }
   .side-item:hover { background: #fff; color: var(--ink); }
   .side-item.active {
     background: var(--pink-soft);
@@ -710,7 +716,108 @@
     font-size: 11px; color: var(--pink-d);
     text-align: center; min-height: 14px; margin-top: 8px;
   }
+  .pw-tip {
+    font-size: 10.5px; color: var(--ink-soft);
+    text-align: center; margin-top: 9px;
+    background: var(--side);
+    border-radius: 8px; padding: 6px 10px;
+  }
   .pw-row { display: flex; gap: 9px; margin-top: 12px; }
+
+  /* 관리자 — 데이터 백업/복원 모달 */
+  .adm-data { padding: 20px 22px 22px; }
+  .adm-data-head { text-align: center; margin-bottom: 16px; }
+  .adm-data-title { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .adm-data-sub {
+    font-size: 11px; color: var(--ink-soft);
+    margin-top: 5px; line-height: 1.5;
+  }
+  .adm-data-btn {
+    width: 100%;
+    display: flex; align-items: center; gap: 12px;
+    text-align: left;
+    background: var(--side);
+    border: 1.5px solid var(--line2);
+    border-radius: 12px;
+    padding: 13px 14px;
+    cursor: pointer;
+    margin-bottom: 9px;
+    transition: border-color 0.13s ease, background 0.13s ease;
+  }
+  .adm-data-btn:last-child { margin-bottom: 0; }
+  .adm-data-btn:hover { border-color: var(--sky); background: var(--sky-soft); }
+  .adm-data-btn .adb-ic {
+    font-size: 21px; flex-shrink: 0;
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .adm-data-btn .adb-txt { display: flex; flex-direction: column; gap: 2px; }
+  .adm-data-btn .adb-t { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .adm-data-btn .adb-d { font-size: 10.5px; color: var(--ink-soft); }
+
+  /* 관리자 — 섹션 라벨 */
+  .adm-section-label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--ink-faint);
+    margin: 4px 0 8px;
+  }
+  /* 관리자 — 프로필 편집 */
+  .adm-profile {
+    background: var(--side);
+    border: 1px solid var(--line2);
+    border-radius: 11px;
+    padding: 12px;
+    margin-bottom: 16px;
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .adm-profile-row { display: flex; align-items: center; gap: 9px; }
+  .adm-pf-key {
+    font-size: 11px; color: var(--ink-soft);
+    width: 42px; flex-shrink: 0;
+  }
+  .adm-pf-avatar { display: flex; align-items: center; gap: 7px; flex: 1; }
+  .adm-pf-preview {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--pink-d);
+    color: #fff; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    background-size: cover; background-position: center;
+  }
+  .adm-pf-icon-input {
+    width: 52px; text-align: center;
+    font-family: var(--font); font-size: 14px;
+    color: var(--ink); background: var(--win);
+    border: 1px solid var(--line2); border-radius: 8px;
+    padding: 7px 4px; outline: none;
+  }
+  .adm-pf-icon-input:focus { border-color: var(--sky); }
+  .adm-pf-img-btn {
+    font-size: 14px;
+    background: var(--win);
+    border: 1px solid var(--line2); border-radius: 8px;
+    padding: 6px 9px; cursor: pointer;
+  }
+  .adm-pf-img-btn:hover { border-color: var(--sky); }
+  .adm-pf-text-input {
+    flex: 1;
+    font-family: var(--font); font-size: 12px;
+    color: var(--ink); background: var(--win);
+    border: 1px solid var(--line2); border-radius: 8px;
+    padding: 8px 10px; outline: none;
+  }
+  .adm-pf-text-input:focus { border-color: var(--sky); }
+  .adm-pf-save {
+    font-family: var(--font);
+    font-size: 11px; font-weight: 600;
+    color: #fff; background: var(--pink-d);
+    border: 0; border-radius: 8px;
+    padding: 8px; cursor: pointer; margin-top: 2px;
+    transition: opacity 0.13s ease;
+  }
+  .adm-pf-save:hover { opacity: 0.88; }
+
   .btn {
     flex: 1;
     font-family: var(--font);
@@ -759,6 +866,7 @@
   .ac-text { font-size: 11.5px; line-height: 1.7; color: var(--ink-soft); }
 
   .bg-preview {
+    position: relative;
     height: 112px;
     border-radius: 10px;
     border: 1px solid var(--line2);
@@ -766,11 +874,19 @@
     background-size: cover; background-position: center;
     display: flex; align-items: center; justify-content: center;
     margin-bottom: 11px;
+    overflow: hidden;
   }
   .bg-preview span {
+    position: relative; z-index: 2;
     font-size: 11px; color: var(--ink);
     background: rgba(255,255,255,0.85);
     padding: 3px 10px; border-radius: 999px;
+  }
+  /* 미리보기 박스 안 그림 레이어 (색·패턴 위에 얹힘) */
+  .prev-img {
+    position: absolute; inset: 0;
+    z-index: 1;
+    background-repeat: no-repeat;
   }
   .bg-controls { display: flex; gap: 8px; margin-bottom: 13px; }
   .bg-opt { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
@@ -798,6 +914,97 @@
     background: var(--pink-soft);
     color: var(--ink);
   }
+  .seg.seg-sm button { font-size: 10px; padding: 5px 2px; }
+
+  /* 직접 만들기 — 색 + 패턴 */
+  .bg-custom { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+  .bg-custom-row { display: flex; }
+  .bg-custom-color {
+    display: flex; align-items: center; gap: 6px;
+    cursor: pointer;
+  }
+  .bg-custom-colors { gap: 14px; }
+  .bg-custom-color .bg-cc-name {
+    font-size: 10.5px; color: var(--ink-soft);
+  }
+  /* 컬러피커 — 브라우저 기본 검은 테두리 제거 */
+  input[type="color"] {
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  input[type="color"]::-webkit-color-swatch {
+    border: none; border-radius: 5px;
+  }
+  input[type="color"]::-moz-color-swatch {
+    border: none; border-radius: 5px;
+  }
+  .bg-custom-color input[type="color"] {
+    width: 40px; height: 28px;
+    border: 1px solid var(--line2);
+    border-radius: 8px;
+    background: var(--win);
+    cursor: pointer; padding: 3px;
+  }
+  .bg-custom-apply {
+    font-family: var(--font);
+    font-size: 11px; font-weight: 600;
+    color: #fff; background: var(--pink-d);
+    border: 0; border-radius: 8px;
+    padding: 8px; cursor: pointer;
+    transition: opacity 0.13s ease;
+  }
+  .bg-custom-apply:hover { opacity: 0.88; }
+
+  /* 시간대별 배경 저장 */
+  .bg-time-wrap { flex: 1; }
+  .bg-time-hint {
+    font-size: 10px; color: var(--ink-soft);
+    line-height: 1.5; margin-bottom: 8px;
+  }
+  .bg-time-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+  .bg-time-slot {
+    background: var(--win);
+    border: 1px solid var(--line2);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex; flex-direction: column;
+    gap: 6px;
+  }
+  .bg-time-slot .bts-prev {
+    position: relative;
+    width: 100%; height: 38px;
+    border-radius: 7px;
+    background: #e3f0fd;
+    background-size: cover; background-position: center;
+    border: 1px solid var(--line2);
+    overflow: hidden;
+  }
+  .bg-time-slot .bts-info {
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 6px;
+  }
+  .bg-time-slot .bts-label { font-size: 11px; color: var(--ink); }
+  .bg-time-slot .bts-state {
+    font-size: 9.5px; color: var(--ink-soft);
+    background: var(--side);
+    border-radius: 6px; padding: 1px 6px;
+    max-width: 60px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+  .bg-time-slot .bts-save {
+    font-family: var(--font);
+    font-size: 10px; font-weight: 600;
+    color: var(--pink-d);
+    background: var(--pink-soft);
+    border: 0; border-radius: 7px;
+    padding: 6px; cursor: pointer;
+    transition: opacity 0.13s ease;
+  }
+  .bg-time-slot .bts-save:hover { opacity: 0.82; }
   .range {
     flex: 1;
     -webkit-appearance: none; appearance: none;
@@ -1423,7 +1630,7 @@
   .start-menu {
     position: fixed;
     left: 10px; bottom: 52px;
-    width: 250px;
+    width: 290px;
     background: rgba(255,255,255,0.92);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -1444,16 +1651,39 @@
     display: flex; align-items: center; gap: 10px;
     padding: 6px 6px 12px;
   }
+  .sm-head > div {
+    min-width: 0;
+  }
   .sm-avatar {
-    width: 38px; height: 38px;
+    width: 36px; height: 36px;
     border-radius: 50%;
     background: var(--pink-d);
-    color: #fff; font-size: 16px;
+    color: #fff; font-size: 15px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .sm-hello { font-size: 13px; font-weight: 700; color: var(--ink); }
-  .sm-sub { font-size: 11px; color: var(--ink-soft); }
+  .sm-hello {
+    font-size: 12px; font-weight: 700; color: var(--ink);
+    line-height: 1.35;
+    white-space: nowrap;
+  }
+  .sm-sub {
+    font-size: 10.5px; color: var(--ink-soft);
+    line-height: 1.35; margin-top: 1px;
+    white-space: nowrap;
+  }
+  .sm-admin-btn {
+    margin-left: auto;
+    width: 30px; height: 30px;
+    border: 0; border-radius: 8px;
+    background: transparent;
+    color: var(--ink-faint);
+    cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.13s ease, color 0.13s ease;
+  }
+  .sm-admin-btn:hover { background: var(--pink-soft); color: var(--pink-d); }
+  .sm-admin-btn svg { width: 17px; height: 17px; }
   .sm-section {
     font-size: 10.5px; font-weight: 700;
     color: var(--ink-faint);
@@ -2014,8 +2244,8 @@
       <div class="side-group">
         <div class="side-group-label">기타</div>
         <div class="side-item" id="sideAdmin">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          관리자
+          <span class="side-ic-px" id="sideBgIc"></span>
+          배경 바꾸기
         </div>
       </div>
     </aside>
@@ -2048,53 +2278,20 @@
 
 </div>
 
-<!-- 비밀번호 모달 -->
-<div class="overlay" id="pwOverlay">
-  <div class="modal">
-    <div class="modal-bar">
-      <div class="traffic"><i class="r"></i><i class="y"></i><i class="g"></i></div>
-      <div class="mb-t">잠금</div>
-      <div class="mb-sp"></div>
-    </div>
-    <div class="pw-top">
-      <div class="pw-lock">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </div>
-      <div class="pw-title">관리자 잠금</div>
-      <div class="pw-desc">비밀번호를 입력하세요</div>
-    </div>
-    <div class="pw-form">
-      <input type="password" id="pwInput" class="pw-input" placeholder="••••" autocomplete="off" inputmode="numeric">
-      <div class="pw-hint" id="pwHint"></div>
-      <div class="pw-row">
-        <button class="btn" id="pwCancel">취소</button>
-        <button class="btn primary" id="pwOk">확인</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 관리자 화면 -->
+<!-- 배경 바꾸기 창 -->
 <div class="admin" id="adminScreen">
   <div class="explorer" id="adminWin">
     <div class="titlebar" id="adminBar">
       <div class="traffic"><i class="r" id="adminClose"></i><i class="y" id="adminMin"></i><i class="g" id="adminMax"></i></div>
       <div class="tb-title">
-        <span class="fi">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#e87fab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-          </svg>
-        </span>
-        관리자 모드
+        <span class="fi" id="adminTitleIc"></span>
+        배경 바꾸기
       </div>
       <div class="tb-spacer"></div>
     </div>
     <div class="content" style="padding:18px;">
       <div class="admin-card">
-        <div class="ac-title">♥ 안녕하세요, 관리자님!</div>
+        <div class="ac-title">♥ 배경 바꾸기</div>
         <div class="ac-text">아래에서 바탕화면 배경을 원하는 그림으로 바꿀 수 있어요.</div>
       </div>
       <div class="content-head"><h2>🎨 배경 꾸미기</h2></div>
@@ -2107,9 +2304,73 @@
             <button data-auto="on">아침·낮·저녁·밤</button>
           </div>
         </div>
+        <div class="bg-opt bg-time-opt" id="bgTimeColors" style="align-items:flex-start;">
+          <span class="bg-opt-label">시간대 배경</span>
+          <div class="bg-time-wrap">
+            <div class="bg-time-hint">위에서 배경(색·패턴·직접 만들기·그림)을 꾸민 뒤 "현재 배경 저장"을 누르면, 시간대 자동이 켜졌을 때 그 시간이 되면 자동으로 바뀌어요.</div>
+            <div class="bg-time-grid">
+              <div class="bg-time-slot" data-time="morning">
+                <div class="bts-prev" data-time="morning"></div>
+                <div class="bts-info">
+                  <div class="bts-label">🌅 아침</div>
+                  <div class="bts-state" data-time="morning">기본</div>
+                </div>
+                <button class="bts-save" data-time="morning">현재 배경 저장</button>
+              </div>
+              <div class="bg-time-slot" data-time="day">
+                <div class="bts-prev" data-time="day"></div>
+                <div class="bts-info">
+                  <div class="bts-label">☀️ 낮</div>
+                  <div class="bts-state" data-time="day">기본</div>
+                </div>
+                <button class="bts-save" data-time="day">현재 배경 저장</button>
+              </div>
+              <div class="bg-time-slot" data-time="evening">
+                <div class="bts-prev" data-time="evening"></div>
+                <div class="bts-info">
+                  <div class="bts-label">🌆 저녁</div>
+                  <div class="bts-state" data-time="evening">기본</div>
+                </div>
+                <button class="bts-save" data-time="evening">현재 배경 저장</button>
+              </div>
+              <div class="bg-time-slot" data-time="night">
+                <div class="bts-prev" data-time="night"></div>
+                <div class="bts-info">
+                  <div class="bts-label">🌙 밤</div>
+                  <div class="bts-state" data-time="night">기본</div>
+                </div>
+                <button class="bts-save" data-time="night">현재 배경 저장</button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="bg-opt" style="align-items:flex-start;">
           <span class="bg-opt-label">색 · 패턴</span>
           <div class="bg-presets" id="bgPresets"><!-- JS가 채움 --></div>
+        </div>
+        <div class="bg-opt" style="align-items:flex-start;">
+          <span class="bg-opt-label">직접 만들기</span>
+          <div class="bg-custom">
+            <div class="bg-custom-row bg-custom-colors">
+              <label class="bg-custom-color">
+                <input type="color" id="bgCustomColor" value="#ffe1ee">
+                <span class="bg-cc-name">바탕색</span>
+              </label>
+              <label class="bg-custom-color">
+                <input type="color" id="bgCustomColor2" value="#ff9ec7">
+                <span class="bg-cc-name" id="bgCustomColor2Label">무늬색</span>
+              </label>
+            </div>
+            <div class="bg-custom-row">
+              <div class="seg seg-sm" id="bgPatternSeg">
+                <button data-pat="solid" class="on">민무늬</button>
+                <button data-pat="dots">도트</button>
+                <button data-pat="grid">격자</button>
+                <button data-pat="check">체크</button>
+                <button data-pat="gradient">그라데이션</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="bg-controls">
           <button class="btn primary" id="bgPickBtn">🌄 그림 고르기</button>
@@ -2121,6 +2382,7 @@
           <div class="seg" id="bgFitSeg">
             <button data-fit="cover" class="on">꽉 차게</button>
             <button data-fit="contain">전체 보이게</button>
+            <button data-fit="center">원본 크기</button>
             <button data-fit="repeat">바둑판</button>
           </div>
         </div>
@@ -2132,14 +2394,8 @@
           고른 배경은 <b>이 브라우저에만</b> 저장돼요. 다른 사람·다른 기기에서는 기본 배경으로 보여요.
         </div>
       </div>
-      <div class="admin-warn">
-        ⚠ 비밀번호는 페이지 안에 들어 있어 진짜 보안용은 아니에요 · 숨김 페이지로만 써 주세요
-      </div>
     </div>
-    <div class="statusbar">
-      <span>admin mode</span>
-      <span class="sb-end" id="adminLogout">↩ 나가기</span>
-    </div>
+    <div class="statusbar"></div>
     <div class="resize-handle" id="adminResize" title="끌어서 크기 조절">
       <svg viewBox="0 0 12 12" fill="currentColor">
         <rect x="9" y="1" width="2" height="2"/>
@@ -2251,11 +2507,17 @@
 <!-- 시작 메뉴 -->
 <div class="start-menu" id="startMenu">
   <div class="sm-head">
-    <span class="sm-avatar">♥</span>
+    <span class="sm-avatar" id="smAvatar">♥</span>
     <div>
-      <div class="sm-hello">안녕하세요!</div>
-      <div class="sm-sub">행복한 하루 되세요</div>
+      <div class="sm-hello">잘 자, 나의 작은 영웅.</div>
+      <div class="sm-sub">내 모든 문장의 마침표는, 전부 너야.</div>
     </div>
+    <button class="sm-admin-btn" id="smAdminBtn" title="관리자 모드">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
   </div>
   <div class="sm-section">도구</div>
   <div class="sm-list" id="smTools"><!-- JS가 채움 --></div>
@@ -2268,21 +2530,99 @@
       <span class="sm-ic" id="smIcPhoto"></span><span>사진첩</span>
     </div>
     <div class="sm-item" data-sm="admin">
-      <span class="sm-ic sm-ic-gear">⚙</span><span>관리자 모드</span>
-    </div>
-  </div>
-  <div class="sm-section">데이터</div>
-  <div class="sm-list">
-    <div class="sm-item" data-sm="backup">
-      <span class="sm-ic sm-ic-gear">💾</span><span>설정 백업</span>
-    </div>
-    <div class="sm-item" data-sm="restore">
-      <span class="sm-ic sm-ic-gear">📂</span><span>백업 불러오기</span>
+      <span class="sm-ic" id="smIcBg"></span><span>배경 바꾸기</span>
     </div>
   </div>
 </div>
 <!-- 백업 불러오기용 숨은 파일 입력 -->
 <input type="file" id="restoreFile" accept="application/json,.json" style="display:none">
+
+<!-- 관리자 비밀번호 모달 -->
+<div class="overlay" id="admPwOverlay">
+  <div class="modal">
+    <div class="modal-bar">
+      <div class="traffic"><i class="r" id="admPwClose"></i><i class="y"></i><i class="g"></i></div>
+      <div class="mb-t">관리자 모드</div>
+      <div class="mb-sp"></div>
+    </div>
+    <div class="pw-top">
+      <div class="pw-lock">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div class="pw-title">관리자 모드</div>
+      <div class="pw-desc">비밀번호를 입력하세요</div>
+    </div>
+    <div class="pw-form">
+      <input type="password" id="admPwInput" class="pw-input" placeholder="••••" autocomplete="off" inputmode="numeric" maxlength="12">
+      <div class="pw-tip">🤍 두부 기념일</div>
+      <div class="pw-hint" id="admPwHint"></div>
+      <div class="pw-row">
+        <button class="btn" id="admPwCancel">취소</button>
+        <button class="btn primary" id="admPwOk">확인</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 관리자 — 데이터 백업/복원 모달 -->
+<div class="overlay" id="admDataOverlay">
+  <div class="modal">
+    <div class="modal-bar">
+      <div class="traffic"><i class="r" id="admDataClose"></i><i class="y"></i><i class="g"></i></div>
+      <div class="mb-t">관리자 모드</div>
+      <div class="mb-sp"></div>
+    </div>
+    <div class="adm-data">
+      <div class="adm-data-head">
+        <div class="adm-data-title">♥ 관리자 모드</div>
+        <div class="adm-data-sub">시작 메뉴 프로필을 바꾸거나 설정을 백업할 수 있어요.</div>
+      </div>
+
+      <div class="adm-section-label">시작 메뉴 프로필</div>
+      <div class="adm-profile">
+        <div class="adm-profile-row">
+          <span class="adm-pf-key">아이콘</span>
+          <div class="adm-pf-avatar">
+            <span class="adm-pf-preview" id="admPfPreview">♥</span>
+            <input type="text" id="admPfIcon" class="adm-pf-icon-input"
+                   maxlength="2" placeholder="♥">
+            <button class="adm-pf-img-btn" id="admPfImgBtn" title="그림으로">🖼️</button>
+            <input type="file" id="admPfImgFile" accept="image/*" style="display:none">
+          </div>
+        </div>
+        <div class="adm-profile-row">
+          <span class="adm-pf-key">윗줄</span>
+          <input type="text" id="admPfTop" class="adm-pf-text-input"
+                 maxlength="40" placeholder="윗줄 문구">
+        </div>
+        <div class="adm-profile-row">
+          <span class="adm-pf-key">아랫줄</span>
+          <input type="text" id="admPfSub" class="adm-pf-text-input"
+                 maxlength="40" placeholder="아랫줄 문구">
+        </div>
+        <button class="adm-pf-save" id="admPfSave">프로필 저장</button>
+      </div>
+
+      <div class="adm-section-label">데이터</div>
+      <button class="adm-data-btn" id="admExportBtn">
+        <span class="adb-ic">💾</span>
+        <span class="adb-txt">
+          <span class="adb-t">설정 백업</span>
+          <span class="adb-d">메모·사진·디데이·위젯·배경 등을 파일로 저장</span>
+        </span>
+      </button>
+      <button class="adm-data-btn" id="admImportBtn">
+        <span class="adb-ic">📂</span>
+        <span class="adb-txt">
+          <span class="adb-t">백업 불러오기</span>
+          <span class="adb-d">저장해둔 백업 파일로 되돌리기</span>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- 시계 달력 -->
 <div class="calendar-pop" id="calendarPop">
@@ -2522,6 +2862,31 @@
         '................',
         '................'
       ]
+    },
+    {
+      name: '페르소나<br>보관함', ext: 'usercha.html',
+      url: 'https://s62rry.github.io/chat/usercha.html',
+      cat: 'collect', color: 'ic-sky', fav: false,
+      // 인물 카드 — 머리 + 어깨 실루엣 (파란 톤)
+      pal: { f:'#3d7ec0', b:'#bfe0fb', h:'#ffffff', s:'#ffffff' },
+      px: [
+        '................',
+        '.ffffffffffffff.',
+        '.fbbbbbbbbbbbbf.',
+        '.fbbbbbhhhbbbbf.',
+        '.fbbbbhhhhhbbbf.',
+        '.fbbbbhhhhhbbbf.',
+        '.fbbbbbhhhbbbbf.',
+        '.fbbbbbbbbbbbbf.',
+        '.fbbbbsssssbbbf.',
+        '.fbbbssssssssbf.',
+        '.fbbssssssssssf.',
+        '.fbsssssssssssf.',
+        '.fbsssssssssssf.',
+        '.ffffffffffffff.',
+        '................',
+        '................'
+      ]
     }
   ];
 
@@ -2641,6 +3006,30 @@
     '................',
     '................'
   ];
+  // 배경 바꾸기 — 화가 팔레트 (둥근 판 + 색물감 4개)
+  const BG_PX = [
+    '................',
+    '...oooooooooo...',
+    '..oWWWWWWWWWWo..',
+    '.oWW11WWW22WWo..',
+    '.oWW11WWW22WWWo.',
+    '.oWWWWWWWWWWWWo.',
+    '.oWWWWWWWWWWWWo.',
+    '.oWW33WWW44WWWo.',
+    '.oWW33WWW44WWo..',
+    '..oWWWWWWWWWoo..',
+    '..oWWWWWWWoo....',
+    '...oWWWWoo......',
+    '....ooooo.......',
+    '................',
+    '................',
+    '................'
+  ];
+  const BG_PAL = {
+    'o':'#c98fae', 'W':'#fbe6f0',
+    '1':'#ff7eb0', '2':'#ffd166', '3':'#7fd6b0', '4':'#6cb6f0'
+  };
+
   $('decoTrash').innerHTML = pixelSvg(TRASH_PX, { t:'#9b94a6', m:'#bdb6c6', h:'#d6d0dc' });
   $('decoNote').innerHTML  = pixelSvg(NOTE_PX,  { p:'#5cb3f5', w:'#ffffff', l:'#bde2fb' });
   $('decoPic').innerHTML   = pixelSvg(PIC_PX,   { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
@@ -2766,52 +3155,40 @@
   // 검색
   $('search').addEventListener('input', renderGrid);
 
-  // ===== 관리자 모드 =====
-  // ⚠ 이 비밀번호는 페이지 소스에 그대로 들어 있습니다. 진짜 보안용이 아니라
-  //   "숨김 페이지" 정도로만 쓰세요. 아래 값을 원하는 걸로 바꾸면 됩니다.
-  const ADMIN_PW = '1205';
-
-  const pwOverlay = $('pwOverlay');
-  const pwInput = $('pwInput');
-  const pwHint = $('pwHint');
+  // ===== 배경 바꾸기 창 =====
   const adminScreen = $('adminScreen');
 
-  function openPw() {
-    pwInput.value = '';
-    pwHint.textContent = '';
-    pwOverlay.classList.add('show');
-    setTimeout(() => pwInput.focus(), 50);
-  }
-  function closePw() { pwOverlay.classList.remove('show'); }
-  function tryLogin() {
-    if (pwInput.value === ADMIN_PW) {
-      closePw();
-      adminScreen.classList.add('show');
-      // 창 가운데로 + 맨 앞으로
-      if (window.adminW) {
-        adminW.win.style.zIndex = (++topZ);
-        adminW.center();
-        setTimeout(adminW.center, 40);
-      }
-      toast('<span class="th">♥</span> 관리자 모드');
-    } else {
-      pwHint.textContent = '✘ 비밀번호가 달라요';
-      pwInput.value = '';
-      pwInput.focus();
+  // 배경 바꾸기 창 열기 (비밀번호 없이 바로)
+  function openBgWindow() {
+    adminScreen.classList.add('show');
+    // 창 가운데로 + 맨 앞으로
+    if (window.adminW) {
+      adminW.win.classList.remove('collapsed');
+      adminW.win.style.zIndex = (++topZ);
+      adminW.center();
+      setTimeout(adminW.center, 40);
     }
+    if (typeof updateTaskbar === 'function') updateTaskbar();
   }
-  $('adminTrigger').addEventListener('click', openPw);
-  $('sideAdmin').addEventListener('click', openPw);
-  $('pwOk').addEventListener('click', tryLogin);
-  $('pwCancel').addEventListener('click', closePw);
-  pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
-  pwOverlay.addEventListener('click', e => { if (e.target === pwOverlay) closePw(); });
+  // 예전 이름 호환 — 여러 곳에서 openPw 로 호출되므로 별칭 유지
+  const openPw = openBgWindow;
 
-  function exitAdmin() { adminScreen.classList.remove('show'); }
-  $('adminLogout').addEventListener('click', exitAdmin);
+  $('adminTrigger').addEventListener('click', openBgWindow);
+  $('sideAdmin').addEventListener('click', openBgWindow);
+
+  function exitAdmin() {
+    adminScreen.classList.remove('show');
+    if (typeof updateTaskbar === 'function') updateTaskbar();
+  }
 
   window.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closePw(); exitAdmin(); }
+    if (e.key === 'Escape') {
+      exitAdmin();
+      const ap = document.getElementById('admPwOverlay');
+      const ad = document.getElementById('admDataOverlay');
+      if (ap) ap.classList.remove('show');
+      if (ad) ad.classList.remove('show');
+    }
   });
 
   // ===== 배경 꾸미기 =====
@@ -2839,18 +3216,26 @@
   ];
 
   // bgState: img(이미지) / preset(프리셋 id) / fit / dim / auto(시간대 자동)
-  let bgState = { img: '', preset: 'default', fit: 'cover', dim: 0, auto: false };
+  //   custom 모드: preset === 'custom' 이면 customColor(바탕) + customColor2(무늬)
+  //                + customPattern 사용
+  //   timeThemes: 시간대 자동의 각 시간대 배경 스냅샷
+  let bgState = {
+    img: '', preset: 'default', fit: 'cover', dim: 0, auto: false,
+    customColor: '#ffe1ee', customColor2: '#ff9ec7', customPattern: 'solid',
+    timeThemes: {}
+  };
 
   // 시간대별 자동 배경 — 아침·낮·저녁·밤
+  // css: 기본 그라데이션 / base: 컬러피커 기본값(사용자 미지정 시 표시용)
   const TIME_THEMES = [
     { id: 'morning', label: '아침', from: 6,  to: 11,
-      css: 'linear-gradient(180deg, #ffeede 0%, #ffe0ea 100%)' },
+      css: 'linear-gradient(180deg, #ffeede 0%, #ffe0ea 100%)', base: '#ffe6e2' },
     { id: 'day',     label: '낮',   from: 11, to: 17,
-      css: 'linear-gradient(180deg, #d8ecfd 0%, #e9f4fe 100%)' },
+      css: 'linear-gradient(180deg, #d8ecfd 0%, #e9f4fe 100%)', base: '#e1f0fd' },
     { id: 'evening', label: '저녁', from: 17, to: 20,
-      css: 'linear-gradient(180deg, #ffd9c4 0%, #e7c9e6 100%)' },
+      css: 'linear-gradient(180deg, #ffd9c4 0%, #e7c9e6 100%)', base: '#f3d1d5' },
     { id: 'night',   label: '밤',   from: 20, to: 6,
-      css: 'linear-gradient(180deg, #c5c3e8 0%, #d9d2 e8 100%)'.replace(' e8','e8') }
+      css: 'linear-gradient(180deg, #c5c3e8 0%, #d9d2e8 100%)', base: '#cfcbe8' }
   ];
   // 현재 시각에 맞는 시간대 테마를 반환
   function currentTimeTheme() {
@@ -2859,6 +3244,36 @@
       if (t.from < t.to) return h >= t.from && h < t.to;
       return h >= t.from || h < t.to;   // 밤처럼 자정을 넘는 구간
     }) || TIME_THEMES[1];
+  }
+  // 현재 bgState 에서 '배경 스펙'만 뽑아냄 (시간대 저장용 스냅샷)
+  function currentBgSpec() {
+    return {
+      preset: bgState.preset,
+      img: bgState.img || '',
+      fit: bgState.fit,
+      customColor: bgState.customColor,
+      customColor2: bgState.customColor2,
+      customPattern: bgState.customPattern
+    };
+  }
+  // 시간대 테마의 저장된 스펙 — 없으면 기본 그라데이션 스펙
+  function timeThemeSpec(theme) {
+    const saved = bgState.timeThemes && bgState.timeThemes[theme.id];
+    if (saved) return saved;
+    // 미저장 — 기본 그라데이션을 쓰는 특수 스펙
+    return { preset: '__timedefault__', img: '', fit: 'cover',
+             _gradient: theme.css };
+  }
+  // 스펙의 바탕 배경 CSS 문자열
+  function specBgCss(spec) {
+    if (spec.preset === '__timedefault__') return spec._gradient;
+    if (spec.preset === 'custom') {
+      return patternCss(spec.customColor || '#ffe1ee',
+                        spec.customColor2 || spec.customColor || '#ff9ec7',
+                        spec.customPattern || 'solid');
+    }
+    const p = BG_PRESETS.find(x => x.id === spec.preset);
+    return p ? p.css : '#e6f1fb';
   }
 
   function loadBg() {
@@ -2872,6 +3287,11 @@
           bgState.fit = s.fit || 'cover';
           bgState.dim = s.dim || 0;
           bgState.auto = !!s.auto;
+          bgState.customColor = s.customColor || '#ffe1ee';
+          bgState.customColor2 = s.customColor2 || '#ff9ec7';
+          bgState.customPattern = s.customPattern || 'solid';
+          bgState.timeThemes = (s.timeThemes && typeof s.timeThemes === 'object')
+            ? s.timeThemes : {};
         }
       }
     } catch {}
@@ -2883,58 +3303,134 @@
       toast('이미지가 너무 커서 저장하지 못했어요');
     }
   }
+  // 색 + 패턴을 background-image 레이어와 바탕색으로 분리해서 반환
+  //   { image: 'background-image 값 (없으면 빈 문자열)',
+  //     size:  '대응하는 background-size (없으면 빈 문자열)',
+  //     color: '바탕 background-color' }
+  // color1 = 바탕색, color2 = 무늬색
+  // pattern: solid / dots / grid / check / gradient
+  function patternLayers(color1, color2, pattern) {
+    const c2 = color2 || color1;
+    if (pattern === 'dots') {
+      return {
+        image: 'radial-gradient(' + c2 + ' 2.4px, transparent 2.6px)',
+        size: '18px 18px', color: color1
+      };
+    }
+    if (pattern === 'grid') {
+      return {
+        image: 'repeating-linear-gradient(0deg,' + c2 + ' 0 1.4px,transparent 1.4px 22px), '
+             + 'repeating-linear-gradient(90deg,' + c2 + ' 0 1.4px,transparent 1.4px 22px)',
+        size: '22px 22px, 22px 22px', color: color1
+      };
+    }
+    if (pattern === 'check') {
+      return {
+        image: 'repeating-conic-gradient(' + c2 + ' 0% 25%, ' + color1 + ' 0% 50%)',
+        size: '40px 40px', color: color1
+      };
+    }
+    if (pattern === 'gradient') {
+      return {
+        image: 'linear-gradient(135deg, ' + color1 + ' 0%, ' + c2 + ' 100%)',
+        size: 'cover', color: color1
+      };
+    }
+    return { image: '', size: '', color: color1 };   // solid
+  }
+  // 패턴을 background 단축 문자열로 (bgPreview 등 단순 칠하기용)
+  function patternCss(color1, color2, pattern) {
+    const L = patternLayers(color1, color2, pattern);
+    if (!L.image) return L.color;
+    return L.image + (L.size ? ' 0 0/' + L.size.split(', ')[0] : '')
+      + ', ' + L.color;
+  }
   function presetCss(id) {
+    if (id === 'custom') {
+      return patternCss(bgState.customColor, bgState.customColor2,
+                        bgState.customPattern);
+    }
     const p = BG_PRESETS.find(x => x.id === id);
     return p ? p.css : '#e6f1fb';
   }
-  function applyBg() {
-    // 바탕 색·패턴은 항상 body 에 (이미지 뒤에 깔림)
-    // 자동 모드면 현재 시간대 색, 아니면 고른 프리셋
-    if (bgState.auto && !bgState.img) {
-      document.body.style.background = currentTimeTheme().css;
+  // 배경 레이어에 이미지 fit 적용 (el = bgLayer 또는 미리보기)
+  function applyImgFit(el, fit, forPreview) {
+    if (fit === 'repeat') {
+      el.style.backgroundSize = 'auto';
+      el.style.backgroundRepeat = 'repeat';
+      el.style.backgroundPosition = '0 0';
+    } else if (fit === 'center') {
+      // 미리보기는 작아서 contain 으로 (원본 크기 의도 전달용)
+      el.style.backgroundSize = forPreview ? 'contain' : 'auto';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundPosition = 'center';
     } else {
-      document.body.style.background = presetCss(bgState.preset);
+      el.style.backgroundSize = fit;
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundPosition = 'center';
     }
-    if (bgState.img) {
+  }
+  function applyBg() {
+    // 자동 모드면 현재 시간대의 저장된 스펙, 아니면 현재 bgState 스펙
+    const spec = (bgState.auto)
+      ? timeThemeSpec(currentTimeTheme())
+      : currentBgSpec();
+    // 바탕 색·패턴 (이미지 뒤에 깔림)
+    document.body.style.background = specBgCss(spec);
+    // 이미지 레이어
+    if (spec.img) {
       bgLayer.classList.add('on');
-      bgLayer.style.backgroundImage = 'url(' + bgState.img + ')';
-      if (bgState.fit === 'repeat') {
-        bgLayer.style.backgroundSize = 'auto';
-        bgLayer.style.backgroundRepeat = 'repeat';
-      } else {
-        bgLayer.style.backgroundSize = bgState.fit;
-        bgLayer.style.backgroundRepeat = 'no-repeat';
-      }
+      bgLayer.style.backgroundImage = 'url(' + spec.img + ')';
+      applyImgFit(bgLayer, spec.fit || 'cover', false);
     } else {
       bgLayer.classList.remove('on');
       bgLayer.style.backgroundImage = '';
     }
     bgDimLayer.style.opacity = (bgState.dim / 100).toString();
   }
-  function syncBgPanel() {
-    if (bgState.img) {
-      bgPreview.style.backgroundImage = 'url(' + bgState.img + ')';
-      if (bgState.fit === 'repeat') {
-        bgPreview.style.backgroundSize = 'auto';
-        bgPreview.style.backgroundRepeat = 'repeat';
-      } else {
-        bgPreview.style.backgroundSize = bgState.fit;
-        bgPreview.style.backgroundRepeat = 'no-repeat';
+  // 스펙으로 미리보기 박스 하나를 칠하는 헬퍼
+  // 박스 = 색·패턴, 안쪽 자식(.prev-img) = 그림 — 2층으로 겹쳐서
+  // 그림이 작거나 일부만 차도 뒤 색·패턴이 함께 보임
+  function paintPreviewBox(el, spec, forPreview) {
+    // 박스 자체에 색·패턴
+    el.style.backgroundImage = '';
+    el.style.background = specBgCss(spec);
+    // 그림용 자식 레이어 확보
+    let imgEl = el.querySelector('.prev-img');
+    if (spec.img) {
+      if (!imgEl) {
+        imgEl = document.createElement('div');
+        imgEl.className = 'prev-img';
+        el.appendChild(imgEl);
       }
-      bgPreview.style.background = '';
-      bgPreview.style.backgroundImage = 'url(' + bgState.img + ')';
+      imgEl.style.backgroundImage = 'url(' + spec.img + ')';
+      applyImgFit(imgEl, spec.fit || 'cover', forPreview);
+      imgEl.style.display = '';
+    } else if (imgEl) {
+      imgEl.style.display = 'none';
+    }
+  }
+  function specLabel(spec) {
+    if (spec.img) return '내 사진';
+    if (spec.preset === '__timedefault__') return '기본';
+    if (spec.preset === 'custom') return '직접 만들기';
+    const p = BG_PRESETS.find(x => x.id === spec.preset);
+    return p ? p.label : '기본';
+  }
+  function syncBgPanel() {
+    // 큰 미리보기 — 지금 편집 중인 배경(currentBgSpec)을 항상 보여줌.
+    // (자동 모드의 시간대별 배경은 아래 슬롯 미리보기로 따로 확인)
+    const shownSpec = currentBgSpec();
+    paintPreviewBox(bgPreview, shownSpec, true);
+    if (shownSpec.img) {
       bgPreviewText.textContent = '내 사진';
-    } else if (bgState.auto) {
-      const tt = currentTimeTheme();
-      bgPreview.style.backgroundImage = '';
-      bgPreview.style.background = tt.css;
-      bgPreviewText.textContent = '시간대 자동 · ' + tt.label;
+    } else if (shownSpec.preset === 'custom') {
+      bgPreviewText.textContent = '내가 만든 배경';
     } else {
-      bgPreview.style.backgroundImage = '';
-      bgPreview.style.background = presetCss(bgState.preset);
-      const p = BG_PRESETS.find(x => x.id === bgState.preset);
+      const p = BG_PRESETS.find(x => x.id === shownSpec.preset);
       bgPreviewText.textContent = p ? p.label + ' 배경' : '기본 배경';
     }
+    // 세그먼트 동기화
     document.querySelectorAll('#bgFitSeg button').forEach(b => {
       b.classList.toggle('on', b.dataset.fit === bgState.fit);
     });
@@ -2945,6 +3441,34 @@
       s.classList.toggle('on',
         s.dataset.preset === bgState.preset && !bgState.img && !bgState.auto);
     });
+    // 직접 만들기 — 컬러 2개·패턴
+    const cc = $('bgCustomColor');
+    if (cc) {
+      cc.value = bgState.customColor;
+      const cc2 = $('bgCustomColor2');
+      if (cc2) cc2.value = bgState.customColor2 || '#ff9ec7';
+      document.querySelectorAll('#bgPatternSeg button').forEach(b => {
+        b.classList.toggle('on', b.dataset.pat === bgState.customPattern);
+      });
+      // 무늬색 라벨 — 그라데이션이면 '끝색', 민무늬면 흐리게
+      const lbl = $('bgCustomColor2Label');
+      if (lbl) {
+        lbl.textContent = (bgState.customPattern === 'gradient') ? '끝색' : '무늬색';
+      }
+      if (cc2) cc2.style.opacity = (bgState.customPattern === 'solid') ? '0.4' : '1';
+    }
+    // 시간대 배경 슬롯 — 시간대 자동이 켜졌을 때만 보임
+    const timeWrap = $('bgTimeColors');
+    if (timeWrap) {
+      timeWrap.style.display = bgState.auto ? 'flex' : 'none';
+      TIME_THEMES.forEach(theme => {
+        const spec = timeThemeSpec(theme);
+        const prev = timeWrap.querySelector('.bts-prev[data-time="' + theme.id + '"]');
+        const state = timeWrap.querySelector('.bts-state[data-time="' + theme.id + '"]');
+        if (prev) paintPreviewBox(prev, spec, true);
+        if (state) state.textContent = specLabel(spec);
+      });
+    }
     bgDimRange.value = bgState.dim;
   }
 
@@ -2959,7 +3483,6 @@
       s.style.background = p.css;
       s.addEventListener('click', () => {
         bgState.preset = p.id;
-        bgState.auto = false;   // 수동 프리셋 고르면 자동 해제
         saveBg();
         applyBg();
         syncBgPanel();
@@ -2968,6 +3491,53 @@
       wrap.appendChild(s);
     });
   })();
+
+  // ----- 직접 만들기 (색 + 패턴) -----
+  // 색·패턴을 고르면 바로 custom 배경으로 적용 (별도 버튼 없음).
+  // 그림(bgState.img)은 지우지 않음. 시간대 자동도 끄지 않음
+  // — 자동 모드면 슬롯의 "현재 배경 저장"으로 시간대에 담는 용도.
+  function applyCustomBg() {
+    bgState.preset = 'custom';
+    saveBg();
+    applyBg();
+    syncBgPanel();
+  }
+  $('bgCustomColor').addEventListener('input', () => {
+    bgState.customColor = $('bgCustomColor').value;
+    applyCustomBg();
+  });
+  $('bgCustomColor2').addEventListener('input', () => {
+    bgState.customColor2 = $('bgCustomColor2').value;
+    applyCustomBg();
+  });
+  // 패턴 세그먼트
+  $('bgPatternSeg').addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    bgState.customPattern = btn.dataset.pat;
+    document.querySelectorAll('#bgPatternSeg button').forEach(b => {
+      b.classList.toggle('on', b === btn);
+    });
+    applyCustomBg();
+  });
+
+  // ----- 시간대별 배경 저장 -----
+  // "현재 배경 저장" — 지금 적용된(자동 끈) 배경 스펙을 그 시간대에 저장
+  $('bgTimeColors').addEventListener('click', e => {
+    const btn = e.target.closest('.bts-save');
+    if (!btn) return;
+    const id = btn.dataset.time;
+    const theme = TIME_THEMES.find(t => t.id === id);
+    if (!theme) return;
+    if (!bgState.timeThemes) bgState.timeThemes = {};
+    // 현재 bgState 의 배경 스펙을 스냅샷으로 저장
+    bgState.timeThemes[id] = currentBgSpec();
+    bgState.auto = true;   // 저장했으니 시간대 자동을 켬
+    saveBg();
+    applyBg();      // 지금이 그 시간대면 바로 반영됨
+    syncBgPanel();
+    toast('<span class="th">♥</span> ' + theme.label + ' 배경으로 저장했어요');
+  });
 
   $('bgPickBtn').addEventListener('click', () => $('bgFile').click());
   $('bgFile').addEventListener('change', e => {
@@ -3010,7 +3580,7 @@
   // 자동 모드일 때 시간이 흐르면 배경도 따라 바뀜 (1분마다 확인)
   let _lastTheme = currentTimeTheme().id;
   setInterval(() => {
-    if (!bgState.auto || bgState.img) return;
+    if (!bgState.auto) return;
     const now = currentTimeTheme().id;
     if (now !== _lastTheme) {
       _lastTheme = now;
@@ -3217,9 +3787,10 @@
     apps.innerHTML = '';
     WINDOWS.forEach(entry => {
       const win = entry.w.win;
-      // 닫힌 창은 항목 없음 (메인은 closed 클래스, 앱은 display:none)
-      const isClosed = win.classList.contains('closed') ||
-                       win.style.display === 'none';
+      // 닫힘 판정 — entry.isClosed 가 있으면 그걸로, 없으면 기본 규칙
+      const isClosed = entry.isClosed
+        ? entry.isClosed()
+        : (win.classList.contains('closed') || win.style.display === 'none');
       if (isClosed) return;
       const item = document.createElement('div');
       item.className = 'task-item' +
@@ -3370,6 +3941,7 @@
   $('noteTitleIc').innerHTML  = pixelSvg(NOTE_PX, { p:'#5cb3f5', w:'#ffffff', l:'#bde2fb' });
   $('photoTitleIc').innerHTML = pixelSvg(PIC_PX, { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
   $('trashTitleIc').innerHTML = pixelSvg(TRASH_PX, { t:'#9b94a6', m:'#bdb6c6', h:'#d6d0dc' });
+  $('adminTitleIc').innerHTML = pixelSvg(BG_PX, BG_PAL);
 
   // 앱 열기 — 데스크톱 아이콘 더블클릭에서 호출
   function openApp(name) {
@@ -3447,16 +4019,169 @@
   // 시작 메뉴 앱 아이콘
   $('smIcNote').innerHTML  = pixelSvg(NOTE_PX, { p:'#5cb3f5', w:'#ffffff', l:'#bde2fb' });
   $('smIcPhoto').innerHTML = pixelSvg(PIC_PX, { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
+  $('smIcBg').innerHTML    = pixelSvg(BG_PX, BG_PAL);
+  $('sideBgIc').innerHTML  = pixelSvg(BG_PX, BG_PAL);
   // 시작 메뉴 앱 클릭
   document.querySelectorAll('#startMenu .sm-item[data-sm]').forEach(item => {
     item.addEventListener('click', () => {
       const t = item.dataset.sm;
       $('startMenu').classList.remove('show');
       if (t === 'note' || t === 'photo') openApp(t);
-      else if (t === 'admin') openPw();
-      else if (t === 'backup') exportBackup();
-      else if (t === 'restore') $('restoreFile').click();
+      else if (t === 'admin') openBgWindow();
     });
+  });
+
+  // ===== 관리자 모드 (비밀번호 → 데이터 백업/복원) =====
+  // ⚠ 비밀번호는 페이지 소스에 들어 있어 진짜 보안용은 아닙니다.
+  const ADMIN_PW = '1205';
+  const admPwOverlay = $('admPwOverlay');
+  const admDataOverlay = $('admDataOverlay');
+
+  function openAdminPw() {
+    $('startMenu').classList.remove('show');
+    $('admPwInput').value = '';
+    $('admPwHint').textContent = '';
+    admPwOverlay.classList.add('show');
+    setTimeout(() => $('admPwInput').focus(), 50);
+  }
+  function closeAdminPw() { admPwOverlay.classList.remove('show'); }
+  function tryAdminLogin() {
+    if ($('admPwInput').value === ADMIN_PW) {
+      closeAdminPw();
+      admDataOverlay.classList.add('show');
+      fillProfileForm();
+    } else {
+      $('admPwHint').textContent = '✘ 비밀번호가 달라요';
+      $('admPwInput').value = '';
+      $('admPwInput').focus();
+    }
+  }
+  $('smAdminBtn').addEventListener('click', openAdminPw);
+  $('admPwOk').addEventListener('click', tryAdminLogin);
+  $('admPwCancel').addEventListener('click', closeAdminPw);
+  $('admPwClose').addEventListener('click', closeAdminPw);
+  $('admPwInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') tryAdminLogin();
+  });
+  admPwOverlay.addEventListener('click', e => {
+    if (e.target === admPwOverlay) closeAdminPw();
+  });
+
+  function closeAdminData() { admDataOverlay.classList.remove('show'); }
+  $('admDataClose').addEventListener('click', closeAdminData);
+  admDataOverlay.addEventListener('click', e => {
+    if (e.target === admDataOverlay) closeAdminData();
+  });
+  $('admExportBtn').addEventListener('click', () => { exportBackup(); });
+  $('admImportBtn').addEventListener('click', () => { $('restoreFile').click(); });
+
+  // ===== 시작 메뉴 프로필 (아바타 + 상/하단 문구) =====
+  const PROFILE_KEY = 'chathub:profile';
+  // profile: { icon:'♥', img:'', top:'...', sub:'...' }
+  let profile = {
+    icon: '♥', img: '',
+    top: '잘 자, 나의 작은 영웅.',
+    sub: '내 모든 문장의 마침표는, 전부 너야.'
+  };
+  let pfPendingImg = '';   // 모달에서 새로 고른(아직 저장 안 한) 그림
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p && typeof p === 'object') {
+        if (typeof p.icon === 'string') profile.icon = p.icon;
+        if (typeof p.img === 'string') profile.img = p.img;
+        if (typeof p.top === 'string') profile.top = p.top;
+        if (typeof p.sub === 'string') profile.sub = p.sub;
+      }
+    }
+  } catch {}
+
+  // 시작 메뉴에 프로필 반영
+  function applyProfile() {
+    const av = $('smAvatar');
+    if (av) {
+      if (profile.img) {
+        av.textContent = '';
+        av.style.backgroundImage = 'url(' + profile.img + ')';
+        av.style.backgroundSize = 'cover';
+        av.style.backgroundPosition = 'center';
+      } else {
+        av.style.backgroundImage = '';
+        av.textContent = profile.icon || '♥';
+      }
+    }
+    const top = document.querySelector('.sm-hello');
+    const sub = document.querySelector('.sm-sub');
+    if (top) top.textContent = profile.top || '';
+    if (sub) sub.textContent = profile.sub || '';
+  }
+  applyProfile();
+
+  // 관리자 모달의 프로필 입력칸을 현재 값으로 채움
+  function fillProfileForm() {
+    pfPendingImg = profile.img || '';
+    $('admPfIcon').value = profile.img ? '' : (profile.icon || '♥');
+    $('admPfTop').value = profile.top || '';
+    $('admPfSub').value = profile.sub || '';
+    updatePfPreview();
+  }
+  // 모달 안 미리보기 갱신
+  function updatePfPreview() {
+    const prev = $('admPfPreview');
+    if (pfPendingImg) {
+      prev.textContent = '';
+      prev.style.backgroundImage = 'url(' + pfPendingImg + ')';
+    } else {
+      prev.style.backgroundImage = '';
+      prev.textContent = $('admPfIcon').value || '♥';
+    }
+  }
+  $('admPfIcon').addEventListener('input', () => {
+    pfPendingImg = '';   // 글자를 입력하면 그림 해제
+    updatePfPreview();
+  });
+  // 그림으로 아바타 설정
+  $('admPfImgBtn').addEventListener('click', () => $('admPfImgFile').click());
+  $('admPfImgFile').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('이미지 파일만 가능해요'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      // 아바타는 작으니 작게 리사이즈해서 저장
+      const img = new Image();
+      img.onload = () => {
+        const size = 120;
+        const cv = document.createElement('canvas');
+        cv.width = size; cv.height = size;
+        const ctx = cv.getContext('2d');
+        // 정사각형으로 가운데 크롭
+        const m = Math.min(img.naturalWidth, img.naturalHeight);
+        const sx = (img.naturalWidth - m) / 2;
+        const sy = (img.naturalHeight - m) / 2;
+        ctx.drawImage(img, sx, sy, m, m, 0, 0, size, size);
+        try { pfPendingImg = cv.toDataURL('image/jpeg', 0.85); }
+        catch { pfPendingImg = reader.result; }
+        updatePfPreview();
+      };
+      img.onerror = () => { pfPendingImg = reader.result; updatePfPreview(); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  // 프로필 저장
+  $('admPfSave').addEventListener('click', () => {
+    profile.img = pfPendingImg || '';
+    profile.icon = pfPendingImg ? (profile.icon || '♥')
+                                : ($('admPfIcon').value.trim() || '♥');
+    profile.top = $('admPfTop').value;
+    profile.sub = $('admPfSub').value;
+    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); }
+    catch { toast('그림이 너무 커서 저장하지 못했어요'); return; }
+    applyProfile();
+    toast('<span class="th">♥</span> 프로필을 저장했어요');
   });
 
   // ===== 설정 백업 / 복원 =====
@@ -5305,27 +6030,40 @@
     toast('<span class="th">♥</span> 이 사진을 배경으로 설정했어요');
   });
 
-  // ----- 관리자 창 -----
+  // ----- 배경 바꾸기 창 -----
   const adminW = makeWindow({
     win: $('adminWin'), bar: $('adminBar'), handle: $('adminResize'),
     minW: 380, minH: 320
   });
   window.adminW = adminW;
-  // 관리자 창 신호등 — 빨강/노랑 모두 관리자 화면 닫기, 초록 최대화
+  // 빨강=닫기, 노랑=접기(작업표시줄로), 초록=최대화
   $('adminClose').addEventListener('click', e => {
     e.stopPropagation();
     adminScreen.classList.remove('show');
     adminW.win.classList.remove('collapsed', 'maximized');
+    updateTaskbar();
   });
   $('adminMin').addEventListener('click', e => {
     e.stopPropagation();
-    adminScreen.classList.remove('show');
-    adminW.win.classList.remove('collapsed', 'maximized');
+    adminW.win.classList.remove('maximized');
+    adminW.win.classList.add('collapsed');
+    adminW.clamp();
+    updateTaskbar();
   });
   $('adminMax').addEventListener('click', e => {
     e.stopPropagation();
+    adminW.win.classList.remove('collapsed');
     adminW.win.classList.toggle('maximized');
     if (!adminW.win.classList.contains('maximized')) adminW.center();
+    updateTaskbar();
+  });
+
+  // 배경 창을 작업표시줄 목록에 등록
+  // (adminScreen 이 숨겨져 있으면 '닫힌 것'으로 간주되도록 래핑)
+  WINDOWS.push({
+    w: adminW,
+    label: '배경 바꾸기',
+    isClosed: () => !adminScreen.classList.contains('show')
   });
 
   window.addEventListener('resize', () => { mainW.clamp(); adminW.clamp(); });
