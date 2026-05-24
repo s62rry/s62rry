@@ -125,6 +125,7 @@
   }
   .cat-add-btn:hover { color: var(--accent-deep); }
   .cat-item {
+    position: relative;
     display: flex; align-items: center; gap: 8px;
     padding: 8px 10px;
     border-radius: 8px;
@@ -138,6 +139,67 @@
     color: var(--accent-deep);
     font-weight: 600;
   }
+  /* 카테고리 라벨 (화살표 + 이름) */
+  .cat-item .cat-label {
+    display: flex; align-items: center; gap: 6px;
+    min-width: 0; overflow: hidden;
+    white-space: nowrap; text-overflow: ellipsis;
+  }
+  /* 하위 카테고리 */
+  .cat-item.cat-sub { font-size: 12px; }
+  /* 대분류 — 옅은 배경으로 그룹 구분 */
+  .cat-item.cat-top {
+    background: var(--field);
+    font-weight: 600;
+  }
+  .cat-item.cat-top:hover { background: var(--border); }
+  .cat-item.cat-top.active {
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+  }
+  /* 대분류 접기/펴기 토글 */
+  .cat-item .cat-toggle {
+    font-size: 9px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    width: 11px; text-align: center;
+    cursor: pointer;
+  }
+  .cat-item .cat-toggle:hover { color: var(--accent-deep); }
+  /* 2단계 카테고리끼리 사이 — 짧고 옅은 구분선 */
+  .cat-item.cat-level-line::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 14px; right: 14px;
+    border-top: 1px solid var(--text-faint, rgba(0,0,0,0.06));
+    opacity: 0.6;
+  }
+  [data-theme="dark"] .cat-item.cat-level-line::before {
+    border-top-color: rgba(255,255,255,0.09);
+  }
+  /* "전체"와 카테고리 목록 사이 간격 */
+  .cat-item.cat-all { margin-bottom: 10px; }
+  /* 최상위 카테고리 사이 간격 */
+  .cat-item.cat-top-divider {
+    margin-top: 6px;
+  }
+  /* 미분류 — 맨 아래, 위에 구분선 */
+  .cat-item.cat-uncat {
+    margin-top: 6px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    color: var(--text-dim);
+  }
+  /* 카테고리 드래그 */
+  .cat-item.cat-top { cursor: grab; }
+  .cat-item.cat-dragging { opacity: 0.45; }
+  .cat-item.cat-drag-over {
+    box-shadow: inset 0 2px 0 var(--accent);
+  }
+  /* 하위 카테고리 — 회색 글씨 (단계 색 구분 없음) */
+  .cat-item.cat-sub .cat-name { color: var(--text-dim); }
+  /* 선택된 하위 카테고리는 강조색 */
+  .cat-item.cat-sub.active .cat-name { color: var(--accent-deep); }
   .cat-item .cat-count {
     margin-left: auto;
     font-size: 11px;
@@ -310,6 +372,7 @@
     overflow-y: auto;
     animation: pop 0.2s cubic-bezier(.22,1,.36,1);
   }
+  .modal.modal-sm { width: 360px; }
   @keyframes pop {
     from { opacity: 0; transform: scale(0.96) translateY(8px); }
     to   { opacity: 1; transform: scale(1) translateY(0); }
@@ -335,6 +398,10 @@
   .modal-body { padding: 18px; }
 
   .field { margin-bottom: 14px; }
+  .field-hint {
+    font-size: 10.5px; color: var(--text-dim);
+    margin-top: 5px; line-height: 1.5;
+  }
   .field label {
     display: block;
     font-size: 11.5px; font-weight: 600;
@@ -427,6 +494,11 @@
     display: flex; align-items: center; justify-content: center;
     color: var(--text-dim); font-size: 36px;
   }
+  /* 이름 + with 한 줄 */
+  .detail-name-row {
+    display: flex; align-items: baseline;
+    flex-wrap: wrap; gap: 4px 8px;
+  }
   .detail-name {
     font-size: 19px; font-weight: 800;
     color: var(--text-strong);
@@ -469,34 +541,70 @@
     margin-top: 2px;
   }
   .detail-section { margin-top: 14px; }
+  /* 섹션 라벨 줄 — 라벨 + 복사 버튼 */
+  .detail-section .ds-head {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
   .detail-section .ds-label {
     font-size: 11px; font-weight: 600;
     color: var(--text-dim);
-    margin-bottom: 5px;
   }
+  .detail-section .ds-copy {
+    font-family: var(--ui);
+    font-size: 10.5px;
+    color: var(--text-dim);
+    background: var(--field);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 9px; cursor: pointer;
+    transition: background 0.13s ease, color 0.13s ease;
+  }
+  .detail-section .ds-copy:hover {
+    background: var(--border);
+    color: var(--text);
+  }
+  .detail-section .ds-copy.copied {
+    background: var(--accent); color: #fff;
+    border-color: var(--accent);
+  }
+  /* 설정 본문 — 옅은 배경 박스 */
   .detail-section .ds-text {
     font-size: 11.5px; line-height: 1.6;
     color: var(--text);
     white-space: pre-wrap;
     word-break: break-word;
+    background: var(--field);
+    border-radius: 9px;
+    padding: 10px 12px;
+  }
+  /* 설정 글자 수 — 맨 하단 */
+  .detail-charcount {
+    margin-top: 8px;
+    text-align: right;
+    font-size: 10.5px;
+    color: var(--text-dim);
   }
   .detail-chars { display: flex; flex-wrap: wrap; gap: 5px; }
   .detail-chars .char-chip {
     font-size: 11.5px;
     padding: 3px 10px;
   }
-  /* with — 박스 안에 한 줄 */
-  .detail-with-box {
-    background: var(--field);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 9px 12px;
-    font-size: 12.5px;
-    line-height: 1.5;
+  /* with — 이름 옆에 작게 */
+  .detail-with {
+    display: inline-flex; align-items: baseline; gap: 5px;
+  }
+  .detail-with .with-label {
+    font-size: 11px; font-weight: 700;
+    color: var(--accent-deep);
+    flex-shrink: 0;
+  }
+  .detail-with .with-names {
+    font-size: 12px;
+    color: var(--text-dim);
     word-break: break-word;
   }
-  .detail-with-box .with-name { color: var(--text-strong); font-weight: 600; }
-  .detail-with-box .with-sep { color: var(--text-dim); margin-right: 5px; }
   /* 태그 칩 — # 스타일 */
   .detail-chars .tag-chip {
     background: var(--accent-soft);
@@ -657,8 +765,8 @@
       </div>
 
       <div class="field">
-        <label>기타 메모</label>
-        <textarea id="fMemo" placeholder="설정·성격·말투 등 자유롭게 적어두세요" rows="4"></textarea>
+        <label>설정</label>
+        <textarea id="fMemo" placeholder="페르소나 정보 — 설정·성격·말투 등 자유롭게 적어두세요" rows="4"></textarea>
       </div>
 
       <div class="field" style="margin-bottom:0;">
@@ -675,6 +783,32 @@
       <div class="spacer"></div>
       <button id="editCancel">취소</button>
       <button class="primary" id="editSave">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 카테고리 추가 모달 -->
+<div class="overlay" id="catOverlay">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h2>새 카테고리</h2>
+      <button class="modal-close" id="catClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>이름</label>
+        <input type="text" id="catNameInput" placeholder="카테고리 이름" maxlength="24">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>상위 카테고리</label>
+        <select id="catParentSelect"></select>
+        <div class="field-hint">상위를 고르면 그 안의 하위 카테고리가 돼요.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="spacer"></div>
+      <button id="catCancel">취소</button>
+      <button class="primary" id="catSave">추가</button>
     </div>
   </div>
 </div>
@@ -716,7 +850,7 @@
   }
 
   // ===== 데이터 =====
-  // { categories: [{id,name}], personas: [{id,name,catId,age,height,
+  // { categories: [{id,name,parentId}], personas: [{id,name,catId,age,height,
   //   gender,tagline,chars:[],memo,tags:[],img,created}] }
   let store = { categories: [], personas: [] };
   try {
@@ -739,14 +873,52 @@
   // 현재 보고 있는 카테고리 ('all' = 전체)
   let curCat = 'all';
   let searchText = '';
+  // 접혀 있는 대분류 id 집합
+  const COLLAPSE_KEY = 'personakeeper:collapsed';
+  let collapsedCats = new Set();
+  try {
+    const raw = localStorage.getItem(COLLAPSE_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) collapsedCats = new Set(arr);
+    }
+  } catch {}
+  function saveCollapsed() {
+    try {
+      localStorage.setItem(COLLAPSE_KEY,
+        JSON.stringify(Array.from(collapsedCats)));
+    } catch {}
+  }
 
   // ===== 카테고리 =====
+  // 한 카테고리의 직속 하위 카테고리들
+  // (parentId 없음/'' = 최상위)
+  function childCategories(parentId) {
+    if (!parentId) {
+      return store.categories.filter(c => !c.parentId
+        || !store.categories.find(x => x.id === c.parentId));
+    }
+    return store.categories.filter(c => c.parentId === parentId);
+  }
+  // 카테고리 + 그 하위 전체의 id 목록
+  function categoryWithDescendants(id) {
+    const ids = [id];
+    childCategories(id).forEach(c => {
+      ids.push.apply(ids, categoryWithDescendants(c.id));
+    });
+    return ids;
+  }
+  // 카테고리(+하위)에 속한 캐릭터 수
+  function countInCategory(id) {
+    const ids = categoryWithDescendants(id);
+    return store.personas.filter(p => ids.indexOf(p.catId) >= 0).length;
+  }
   function renderCategories() {
     const wrap = $('catList');
     wrap.innerHTML = '';
     // 전체
     const all = document.createElement('div');
-    all.className = 'cat-item' + (curCat === 'all' ? ' active' : '');
+    all.className = 'cat-item cat-all' + (curCat === 'all' ? ' active' : '');
     all.innerHTML = '<span>전체</span>';
     const allCount = document.createElement('span');
     allCount.className = 'cat-count';
@@ -754,12 +926,105 @@
     all.appendChild(allCount);
     all.addEventListener('click', () => { curCat = 'all'; refresh(); });
     wrap.appendChild(all);
-    // 미분류
+    // 사용자 카테고리 — 트리 구조 (단계는 색·세로바로 구분)
+    let firstTopDone = false;
+    function renderCatLevel(parentId, depth) {
+      const kids = childCategories(parentId);
+      kids.forEach((cat, idx) => {
+        const item = document.createElement('div');
+        item.className = 'cat-item' + (curCat === cat.id ? ' active' : '');
+        const hasKids = childCategories(cat.id).length > 0;
+        if (depth === 0) {
+          item.classList.add('cat-top');
+          if (firstTopDone) item.classList.add('cat-top-divider');
+          firstTopDone = true;
+          // 최상위 카테고리만 드래그로 순서 변경
+          item.draggable = true;
+          item.dataset.catId = cat.id;
+          item.addEventListener('dragstart', e => {
+            dragCatId = cat.id;
+            item.classList.add('cat-dragging');
+            e.dataTransfer.effectAllowed = 'move';
+          });
+          item.addEventListener('dragend', () => {
+            item.classList.remove('cat-dragging');
+            document.querySelectorAll('.cat-item.cat-drag-over').forEach(c =>
+              c.classList.remove('cat-drag-over'));
+          });
+          item.addEventListener('dragover', e => {
+            e.preventDefault();
+            if (dragCatId && dragCatId !== cat.id) {
+              item.classList.add('cat-drag-over');
+            }
+          });
+          item.addEventListener('dragleave', () => {
+            item.classList.remove('cat-drag-over');
+          });
+          item.addEventListener('drop', e => {
+            e.preventDefault();
+            item.classList.remove('cat-drag-over');
+            if (dragCatId && dragCatId !== cat.id) {
+              reorderCategory(dragCatId, cat.id);
+            }
+          });
+        }
+        if (depth > 0) {
+          item.classList.add('cat-sub');
+        }
+        // 2단계 카테고리끼리 사이에 구분선 (첫 2단계 제외)
+        if (depth === 1 && idx > 0) item.classList.add('cat-level-line');
+        // 들여쓰기는 1·2단계까지만 (3단계부터는 들여쓰기 없음)
+        item.style.paddingLeft = (10 + Math.min(depth, 2) * 12) + 'px';
+        const label = document.createElement('span');
+        label.className = 'cat-label';
+        // 대분류이고 하위가 있으면 — 접기/펴기 토글
+        const collapsed = collapsedCats.has(cat.id);
+        if (depth === 0 && hasKids) {
+          const tog = document.createElement('span');
+          tog.className = 'cat-toggle';
+          tog.textContent = collapsed ? '▸' : '▾';
+          tog.addEventListener('click', e => {
+            e.stopPropagation();
+            if (collapsedCats.has(cat.id)) collapsedCats.delete(cat.id);
+            else collapsedCats.add(cat.id);
+            saveCollapsed();
+            renderCategories();
+          });
+          label.appendChild(tog);
+        }
+        const txt = document.createElement('span');
+        txt.className = 'cat-name';
+        txt.textContent = cat.name;
+        label.appendChild(txt);
+        item.appendChild(label);
+        const count = document.createElement('span');
+        count.className = 'cat-count';
+        count.textContent = countInCategory(cat.id);
+        item.appendChild(count);
+        const del = document.createElement('button');
+        del.className = 'cat-del';
+        del.textContent = '×';
+        del.title = '카테고리 삭제';
+        del.addEventListener('click', e => {
+          e.stopPropagation();
+          deleteCategory(cat.id);
+        });
+        item.appendChild(del);
+        item.addEventListener('click', () => { curCat = cat.id; refresh(); });
+        wrap.appendChild(item);
+        // 하위 카테고리 재귀 — 대분류가 접혀 있으면 건너뜀
+        if (!(depth === 0 && collapsed)) {
+          renderCatLevel(cat.id, depth + 1);
+        }
+      });
+    }
+    renderCatLevel(undefined, 0);
+    // 미분류 — 맨 아래
     const hasUncat = store.personas.some(p => !p.catId
       || !store.categories.find(c => c.id === p.catId));
     if (hasUncat) {
       const un = document.createElement('div');
-      un.className = 'cat-item' + (curCat === 'none' ? ' active' : '');
+      un.className = 'cat-item cat-uncat' + (curCat === 'none' ? ' active' : '');
       un.innerHTML = '<span>미분류</span>';
       const c = document.createElement('span');
       c.className = 'cat-count';
@@ -769,59 +1034,97 @@
       un.addEventListener('click', () => { curCat = 'none'; refresh(); });
       wrap.appendChild(un);
     }
-    // 사용자 카테고리
-    store.categories.forEach(cat => {
-      const item = document.createElement('div');
-      item.className = 'cat-item' + (curCat === cat.id ? ' active' : '');
-      const label = document.createElement('span');
-      label.textContent = cat.name;
-      item.appendChild(label);
-      const count = document.createElement('span');
-      count.className = 'cat-count';
-      count.textContent = store.personas.filter(p => p.catId === cat.id).length;
-      item.appendChild(count);
-      const del = document.createElement('button');
-      del.className = 'cat-del';
-      del.textContent = '×';
-      del.title = '카테고리 삭제';
-      del.addEventListener('click', e => {
-        e.stopPropagation();
-        deleteCategory(cat.id);
-      });
-      item.appendChild(del);
-      item.addEventListener('click', () => { curCat = cat.id; refresh(); });
-      wrap.appendChild(item);
-    });
   }
-  function addCategory() {
-    const name = (prompt('새 카테고리 이름을 입력하세요') || '').trim();
-    if (!name) return;
-    if (store.categories.some(c => c.name === name)) {
-      toast('같은 이름의 카테고리가 있어요');
-      return;
-    }
-    store.categories.push({ id: uid(), name: name });
+  // 최상위 카테고리 순서 변경 — fromId 를 toId 앞으로
+  let dragCatId = null;
+  function reorderCategory(fromId, toId) {
+    const arr = store.categories;
+    const fromIdx = arr.findIndex(c => c.id === fromId);
+    if (fromIdx < 0) return;
+    const [moved] = arr.splice(fromIdx, 1);
+    const toIdx = arr.findIndex(c => c.id === toId);
+    if (toIdx < 0) { arr.push(moved); }
+    else { arr.splice(toIdx, 0, moved); }
     save();
+    renderCategories();
+  }
+  // ----- 카테고리 추가 모달 -----
+  function openCatModal() {
+    $('catNameInput').value = '';
+    // 상위 카테고리 선택칸 채우기 (최상위 + 1단계 하위까지만 부모 가능)
+    const sel = $('catParentSelect');
+    sel.innerHTML = '';
+    const none = document.createElement('option');
+    none.value = '';
+    none.textContent = '— 없음 (최상위) —';
+    sel.appendChild(none);
+    // 모든 카테고리를 상위 후보로 (깊이 제한 없음)
+    function addOpts(parentId, depth) {
+      childCategories(parentId).forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id;
+        o.textContent = '· '.repeat(depth) + c.name;
+        sel.appendChild(o);
+        addOpts(c.id, depth + 1);
+      });
+    }
+    addOpts(undefined, 0);
+    // 현재 보고 있는 카테고리가 있으면 그걸 상위 기본값으로
+    if (curCat !== 'all' && curCat !== 'none'
+        && store.categories.find(c => c.id === curCat)) {
+      sel.value = curCat;
+    }
+    $('catOverlay').classList.add('show');
+    setTimeout(() => $('catNameInput').focus(), 50);
+  }
+  function closeCatModal() { $('catOverlay').classList.remove('show'); }
+  function saveCategory() {
+    const name = $('catNameInput').value.trim();
+    if (!name) { toast('이름을 입력해주세요'); $('catNameInput').focus(); return; }
+    const parentId = $('catParentSelect').value || '';
+    // 같은 상위 아래 같은 이름 방지
+    const dup = store.categories.some(c =>
+      c.name === name && (c.parentId || '') === parentId);
+    if (dup) { toast('같은 이름의 카테고리가 있어요'); return; }
+    const cat = { id: uid(), name: name };
+    if (parentId) cat.parentId = parentId;
+    store.categories.push(cat);
+    save();
+    closeCatModal();
     refresh();
     toast('카테고리 "' + name + '" 추가됨');
   }
+  $('catAddBtn').addEventListener('click', openCatModal);
+  $('catClose').addEventListener('click', closeCatModal);
+  $('catCancel').addEventListener('click', closeCatModal);
+  $('catSave').addEventListener('click', saveCategory);
+  $('catNameInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); saveCategory(); }
+  });
+  $('catOverlay').addEventListener('click', e => {
+    if (e.target === $('catOverlay')) closeCatModal();
+  });
+
   function deleteCategory(id) {
     const cat = store.categories.find(c => c.id === id);
     if (!cat) return;
-    const n = store.personas.filter(p => p.catId === id).length;
-    const msg = n > 0
-      ? '"' + cat.name + '" 카테고리를 삭제할까요?\n안에 있던 캐릭터 ' + n
-        + '명은 미분류로 이동합니다.'
-      : '"' + cat.name + '" 카테고리를 삭제할까요?';
+    // 이 카테고리 + 모든 하위
+    const ids = categoryWithDescendants(id);
+    const subCount = ids.length - 1;
+    const n = store.personas.filter(p => ids.indexOf(p.catId) >= 0).length;
+    let msg = '"' + cat.name + '" 카테고리를 삭제할까요?';
+    if (subCount > 0) msg += '\n하위 카테고리 ' + subCount + '개도 함께 삭제돼요.';
+    if (n > 0) msg += '\n안에 있던 캐릭터 ' + n + '명은 미분류로 이동합니다.';
     if (!confirm(msg)) return;
-    store.categories = store.categories.filter(c => c.id !== id);
-    store.personas.forEach(p => { if (p.catId === id) p.catId = ''; });
-    if (curCat === id) curCat = 'all';
+    store.categories = store.categories.filter(c => ids.indexOf(c.id) < 0);
+    store.personas.forEach(p => {
+      if (ids.indexOf(p.catId) >= 0) p.catId = '';
+    });
+    if (ids.indexOf(curCat) >= 0) curCat = 'all';
     save();
     refresh();
     toast('카테고리를 삭제했어요');
   }
-  $('catAddBtn').addEventListener('click', addCategory);
 
   // ===== 페르소나 카드 그리드 =====
   function visiblePersonas() {
@@ -831,7 +1134,9 @@
       list = list.filter(p => !p.catId
         || !store.categories.find(c => c.id === p.catId));
     } else if (curCat !== 'all') {
-      list = list.filter(p => p.catId === curCat);
+      // 선택한 카테고리 + 그 하위 카테고리에 속한 캐릭터 모두
+      const ids = categoryWithDescendants(curCat);
+      list = list.filter(p => ids.indexOf(p.catId) >= 0);
     }
     // 검색
     const q = searchText.trim().toLowerCase();
@@ -1002,11 +1307,37 @@
     none.value = '';
     none.textContent = '— 미분류 —';
     sel.appendChild(none);
-    store.categories.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.id;
-      o.textContent = c.name;
-      sel.appendChild(o);
+    // 최상위 카테고리들 — 각각을 그룹으로 묶어 분류가 잘 보이게
+    childCategories(undefined).forEach(top => {
+      const subs = childCategories(top.id);
+      if (subs.length === 0) {
+        // 하위 없는 최상위 — 그냥 옵션
+        const o = document.createElement('option');
+        o.value = top.id;
+        o.textContent = top.name;
+        sel.appendChild(o);
+        return;
+      }
+      // 하위가 있으면 optgroup 으로
+      const grp = document.createElement('optgroup');
+      grp.label = top.name;
+      // 최상위 자신도 선택 가능하게 첫 옵션으로
+      const selfOpt = document.createElement('option');
+      selfOpt.value = top.id;
+      selfOpt.textContent = top.name + ' (전체)';
+      grp.appendChild(selfOpt);
+      // 하위들 — 깊이는 · 로 표시
+      function addSubs(parentId, depth) {
+        childCategories(parentId).forEach(c => {
+          const o = document.createElement('option');
+          o.value = c.id;
+          o.textContent = '· '.repeat(depth) + c.name;
+          grp.appendChild(o);
+          addSubs(c.id, depth + 1);
+        });
+      }
+      addSubs(top.id, 1);
+      sel.appendChild(grp);
     });
     sel.value = selectedId || '';
   }
@@ -1203,10 +1534,27 @@
     catEl.textContent = cat ? cat.name : '미분류';
     body.appendChild(catEl);
 
-    const name = document.createElement('div');
+    // 이름 + with (이름 옆에 붙임)
+    const nameRow = document.createElement('div');
+    nameRow.className = 'detail-name-row';
+    const name = document.createElement('span');
     name.className = 'detail-name';
     name.textContent = p.name || '이름 없음';
-    body.appendChild(name);
+    nameRow.appendChild(name);
+    if (p.chars && p.chars.length) {
+      const w = document.createElement('span');
+      w.className = 'detail-with';
+      const wl = document.createElement('span');
+      wl.className = 'with-label';
+      wl.textContent = 'with';
+      w.appendChild(wl);
+      const wn = document.createElement('span');
+      wn.className = 'with-names';
+      wn.textContent = p.chars.join(', ');
+      w.appendChild(wn);
+      nameRow.appendChild(w);
+    }
+    body.appendChild(nameRow);
 
     // 한 줄 소개 — 이름 바로 아래, 라벨 없이
     if (p.tagline) {
@@ -1214,6 +1562,11 @@
       tl.className = 'detail-tagline';
       tl.textContent = p.tagline;
       body.appendChild(tl);
+    }
+
+    // 태그 — 한 줄 소개 바로 밑
+    if (p.tags && p.tags.length) {
+      body.appendChild(makeTagSection(p.tags));
     }
 
     // 나이·키·성별
@@ -1228,42 +1581,17 @@
     });
     body.appendChild(stats);
 
-    if (p.chars && p.chars.length) {
-      body.appendChild(makeWithSection(p.chars));
-    }
+    // 설정 (기존 '기타 메모')
     if (p.memo) {
-      body.appendChild(makeSection('기타 메모', p.memo));
-    }
-    if (p.tags && p.tags.length) {
-      body.appendChild(makeTagSection(p.tags));
+      body.appendChild(makeSection('설정', p.memo));
+      // 맨 하단 — 설정 글자 수
+      const cnt = document.createElement('div');
+      cnt.className = 'detail-charcount';
+      cnt.textContent = '설정 ' + p.memo.length + '자';
+      body.appendChild(cnt);
     }
 
     $('detailOverlay').classList.add('show');
-  }
-  // with 섹션 — 박스 안에 한 줄로
-  function makeWithSection(arr) {
-    const sec = document.createElement('div');
-    sec.className = 'detail-section';
-    const label = document.createElement('div');
-    label.className = 'ds-label';
-    label.textContent = 'with';
-    const box = document.createElement('div');
-    box.className = 'detail-with-box';
-    arr.forEach((c, i) => {
-      const nm = document.createElement('span');
-      nm.className = 'with-name';
-      nm.textContent = c;
-      box.appendChild(nm);
-      if (i < arr.length - 1) {
-        const sep = document.createElement('span');
-        sep.className = 'with-sep';
-        sep.textContent = ',';
-        box.appendChild(sep);
-      }
-    });
-    sec.appendChild(label);
-    sec.appendChild(box);
-    return sec;
   }
   // 태그 섹션 — 라벨 없이, 각 태그 앞에 #
   function makeTagSection(arr) {
@@ -1283,15 +1611,52 @@
   function makeSection(label, text) {
     const sec = document.createElement('div');
     sec.className = 'detail-section';
-    const l = document.createElement('div');
+    // 라벨 줄 — 라벨 + 복사 버튼
+    const head = document.createElement('div');
+    head.className = 'ds-head';
+    const l = document.createElement('span');
     l.className = 'ds-label';
     l.textContent = label;
+    head.appendChild(l);
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'ds-copy';
+    copyBtn.textContent = '📋 복사';
+    copyBtn.addEventListener('click', () => {
+      const done = () => {
+        copyBtn.textContent = '✓ 복사됨!';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = '📋 복사';
+          copyBtn.classList.remove('copied');
+        }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, () => {
+          fallbackCopy(text); done();
+        });
+      } else {
+        fallbackCopy(text); done();
+      }
+    });
+    head.appendChild(copyBtn);
+    sec.appendChild(head);
+    // 메모 본문 — 옅은 배경 박스
     const t = document.createElement('div');
     t.className = 'ds-text';
     t.textContent = text;
-    sec.appendChild(l);
     sec.appendChild(t);
     return sec;
+  }
+  // clipboard API 안 될 때용 폴백
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch {}
+    document.body.removeChild(ta);
   }
   function escapeHtml(s) {
     return String(s).replace(/[&<>"]/g, ch => ({
