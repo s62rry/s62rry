@@ -2105,7 +2105,8 @@
         if (card._dragged) { card._dragged = false; return; }
         openDetail(p.id, v.vid);
       });
-      if (t === 'all' || t === 'none') {
+      // 모든 보기에서 카드 순서 드래그 가능 (캐릭터 순서가 바뀜)
+      {
         card.draggable = true;
         card.addEventListener('dragstart', e => {
           dragPid = p.id;
