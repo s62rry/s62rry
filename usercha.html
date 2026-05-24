@@ -552,14 +552,18 @@
     color: var(--text-dim);
   }
   .detail-section .ds-copy {
+    display: inline-flex; align-items: center; gap: 4px;
     font-family: var(--ui);
     font-size: 10.5px;
     color: var(--text-dim);
     background: var(--field);
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 3px 9px; cursor: pointer;
+    padding: 3px 8px; cursor: pointer;
     transition: background 0.13s ease, color 0.13s ease;
+  }
+  .detail-section .ds-copy svg {
+    width: 11px; height: 11px;
   }
   .detail-section .ds-copy:hover {
     background: var(--border);
@@ -1445,31 +1449,19 @@
     e.target.value = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) { toast('이미지 파일만 가능해요'); return; }
-    // 큰 이미지는 줄여서 저장 (localStorage 용량 절약)
+    // 큰 이미지는 줄여서 저장 (용량 절약)
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        // 카드용이라 가로 460px 이면 충분히 선명
-        const maxW = 460;
+        const maxW = 700;
         let w = img.naturalWidth, h = img.naturalHeight;
         if (w > maxW) { h = Math.round(h * (maxW / w)); w = maxW; }
         const cv = document.createElement('canvas');
         cv.width = w; cv.height = h;
         cv.getContext('2d').drawImage(img, 0, 0, w, h);
-        // 품질을 낮춰가며 적당한 용량(약 350KB 이하)으로
-        let dataUrl = '';
-        let quality = 0.72;
-        try {
-          dataUrl = cv.toDataURL('image/jpeg', quality);
-          while (dataUrl.length > 480000 && quality > 0.4) {
-            quality -= 0.12;
-            dataUrl = cv.toDataURL('image/jpeg', quality);
-          }
-          setEditImg(dataUrl);
-        } catch {
-          setEditImg(reader.result);
-        }
+        try { setEditImg(cv.toDataURL('image/jpeg', 0.88)); }
+        catch { setEditImg(reader.result); }
       };
       img.onerror = () => setEditImg(reader.result);
       img.src = reader.result;
@@ -1628,7 +1620,7 @@
       // 맨 하단 — 설정 글자 수
       const cnt = document.createElement('div');
       cnt.className = 'detail-charcount';
-      cnt.textContent = '설정 ' + p.memo.length + '자';
+      cnt.textContent = p.memo.length + '자';
       body.appendChild(cnt);
     }
 
@@ -1661,13 +1653,21 @@
     head.appendChild(l);
     const copyBtn = document.createElement('button');
     copyBtn.className = 'ds-copy';
-    copyBtn.textContent = '📋 복사';
+    // 복사 아이콘(SVG) + 텍스트
+    const copyIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+      + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+      + '<rect x="9" y="9" width="13" height="13" rx="2"/>'
+      + '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    const checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+      + 'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'
+      + '<polyline points="20 6 9 17 4 12"/></svg>';
+    copyBtn.innerHTML = copyIcon + '<span class="ds-copy-tx">copy</span>';
     copyBtn.addEventListener('click', () => {
       const done = () => {
-        copyBtn.textContent = '✓ 복사됨!';
+        copyBtn.innerHTML = checkIcon + '<span class="ds-copy-tx">copied!</span>';
         copyBtn.classList.add('copied');
         setTimeout(() => {
-          copyBtn.textContent = '📋 복사';
+          copyBtn.innerHTML = copyIcon + '<span class="ds-copy-tx">copy</span>';
           copyBtn.classList.remove('copied');
         }, 1400);
       };
