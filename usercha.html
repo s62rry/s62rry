@@ -1348,37 +1348,52 @@
     return store.personas;
   }
   // AU 트리 — [{ name, count, subs:[{name,count}] }]
-  //  count = 그 상위 AU 를 가진 AU 프로필 수 (하위 무관, 상위 일치 전부)
-  //  subs[].count = 그 (상위,하위) 조합을 가진 AU 프로필 수
+  //  목록(어떤 AU·하위가 있나)은 전체 기준 — 카테고리를 봐도 사라지지 않음
+  //  count(개수)는 현재 카테고리 맥락 기준 — 그 카테고리에 없으면 0
   function buildAuTree() {
+    // 1) 전체 기준으로 AU 구조(상위·하위 목록) 수집
+    const struct = new Map();  // 상위 -> Set(하위)
+    store.personas.forEach(p => p.versions.forEach(v => {
+      if (v.isOrig) return;
+      const lab = (v.label || '').trim();
+      if (!lab) return;
+      if (!struct.has(lab)) struct.set(lab, new Set());
+      const sub = (v.subLabel || '').trim();
+      if (sub) struct.get(lab).add(sub);
+    }));
+    if (struct.size === 0) return [];
+    // 2) 현재 맥락 기준으로 개수 집계
     const pool = personasForAuList();
-    const topMap = new Map();  // 상위이름 -> { count, subMap: Map(하위이름->count) }
+    const topCount = new Map();   // 상위 -> 수
+    const subCount = new Map();   // "상위\u0001하위" -> 수
     pool.forEach(p => p.versions.forEach(v => {
       if (v.isOrig) return;
       const lab = (v.label || '').trim();
       if (!lab) return;
-      if (!topMap.has(lab)) topMap.set(lab, { count: 0, subMap: new Map() });
-      const node = topMap.get(lab);
-      node.count++;
+      topCount.set(lab, (topCount.get(lab) || 0) + 1);
       const sub = (v.subLabel || '').trim();
       if (sub) {
-        node.subMap.set(sub, (node.subMap.get(sub) || 0) + 1);
+        const k = lab + '\u0001' + sub;
+        subCount.set(k, (subCount.get(k) || 0) + 1);
       }
     }));
+    // 3) 트리 조립 — 목록은 전체 구조, 개수는 맥락 기준(없으면 0)
     const tree = [];
-    sortByAuOrder(Array.from(topMap.keys()))
-      .forEach(name => {
-        const node = topMap.get(name);
-        const subKeys = Array.from(node.subMap.keys());
-        // 하위 정렬용 키: "상위\u0001하위"
-        const sortedSubs = sortByAuOrder(
-          subKeys.map(sn => name + '\u0001' + sn)
-        ).map(k => k.split('\u0001')[1]);
-        const subs = sortedSubs.map(sn => ({
-          name: sn, count: node.subMap.get(sn)
-        }));
-        tree.push({ name: name, count: node.count, subs: subs });
+    sortByAuOrder(Array.from(struct.keys())).forEach(name => {
+      const subNames = Array.from(struct.get(name));
+      const sortedSubs = sortByAuOrder(
+        subNames.map(sn => name + '\u0001' + sn)
+      ).map(k => k.split('\u0001')[1]);
+      const subs = sortedSubs.map(sn => ({
+        name: sn,
+        count: subCount.get(name + '\u0001' + sn) || 0
+      }));
+      tree.push({
+        name: name,
+        count: topCount.get(name) || 0,
+        subs: subs
       });
+    });
     return tree;
   }
   // AU 순서 변경 — 같은 묶음(상위끼리 / 같은 상위의 하위끼리)만
@@ -1573,7 +1588,7 @@
         if (depth === 1 && idx > 0) item.classList.add('cat-level-line');
         // 최상위(0)와 그 바로 아래(1)는 같은 들여쓰기, 3단계부터 들여쓰기
         const indentLevel = Math.max(0, depth - 1);
-        item.style.paddingLeft = (10 + Math.min(indentLevel, 2) * 12) + 'px';
+        item.style.paddingLeft = (10 + Math.min(indentLevel, 4) * 4) + 'px';
         const label = document.createElement('span');
         label.className = 'cat-label';
         const collapsed = collapsedCats.has(cat.id);
