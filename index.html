@@ -30,6 +30,13 @@
     --ink: #4a4651;
     --ink-soft: #948e9d;
     --ink-faint: #bdb8c5;
+    --titlebar: #ffeaf3;
+    --desktop-bg: #e3f0fd;
+    --label-bg: rgba(255,255,255,0.7);
+    --note-bg: #fffdf7;
+    --taskbar: rgba(255,255,255,0.82);
+    --win-border: #d8d4dc;
+    --menu-bg: rgba(255,255,255,0.92);
     --shadow: 0 16px 44px rgba(140,130,140,0.22);
     --font: 'Mabiyet', 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
   }
@@ -50,7 +57,7 @@
     color: var(--ink);
     height: 100%;
     overflow: hidden;
-    background: #e3f0fd;
+    background: var(--desktop-bg);
   }
 
   /* 사용자 지정 배경 */
@@ -66,6 +73,13 @@
     position: fixed; inset: 0; z-index: 0;
     pointer-events: none; background: #000; opacity: 0;
   }
+  /* 배경 효과 입자 레이어 */
+  #fxLayer {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+    display: none;
+  }
+  #fxLayer.on { display: block; }
 
   /* ===== 바탕화면 ===== */
   .desktop {
@@ -106,7 +120,7 @@
     font-size: 11.5px;
     color: var(--ink);
     line-height: 1.35;
-    background: rgba(255,255,255,0.7);
+    background: var(--label-bg);
     border-radius: 4px;
     padding: 1px 5px;
   }
@@ -122,10 +136,10 @@
     display: flex; align-items: center;
     gap: 8px;
     padding: 0 10px;
-    background: rgba(255,255,255,0.82);
+    background: var(--taskbar);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    border-top: 1px solid #d8d4dc;
+    border-top: 1px solid var(--line2);
   }
   .tb-start {
     display: flex; align-items: center; gap: 7px;
@@ -138,7 +152,7 @@
     flex-shrink: 0;
     transition: background 0.14s ease;
   }
-  .tb-start:hover { background: #ff7e95; }
+  .tb-start:hover { background: var(--pink); }
   .tb-start .start-ic {
     width: 14px; height: 14px;
     display: inline-block;
@@ -210,7 +224,7 @@
     /* 초기 위치는 JS가 가운데로 잡아줌 (left/top 픽셀값) */
     left: 50%; top: 50%;
     background: var(--win);
-    border: 1px solid #d8d4dc;
+    border: 1px solid var(--win-border);
     border-radius: 14px;
     box-shadow: var(--shadow);
     overflow: hidden;
@@ -228,8 +242,9 @@
   .explorer.collapsed .toolbar,
   .explorer.collapsed .body,
   .explorer.collapsed .app-body,
+  .explorer.collapsed .deco-tabs,
   .explorer.collapsed .content,
-  .explorer.collapsed .statusbar { display: none; }
+  .explorer.collapsed .statusbar { display: none !important; }
   /* 최대화 */
   .explorer.maximized {
     left: 12px !important; top: 12px !important;
@@ -289,7 +304,7 @@
     flex-shrink: 0;
   }
   .note-tab.on {
-    background: #fffdf7;
+    background: var(--note-bg);
     color: var(--ink);
   }
   .note-tab.dragging { opacity: 0.4; }
@@ -305,7 +320,7 @@
     font-family: var(--font);
     font-size: 11.5px;
     color: var(--ink);
-    background: #fff;
+    background: var(--win);
     border: 1px solid var(--sky);
     border-radius: 5px;
     padding: 1px 5px;
@@ -338,7 +353,7 @@
     font-family: var(--font);
     font-size: 14px; line-height: 1.7;
     color: var(--ink);
-    background: #fffdf7;
+    background: var(--note-bg);
   }
   .note-area::placeholder { color: var(--ink-faint); }
   /* 사진첩 */
@@ -416,7 +431,7 @@
     height: 42px; flex-shrink: 0;
     display: flex; align-items: center;
     padding: 0 14px;
-    background: #ffeaf3;
+    background: var(--titlebar);
     border-bottom: 1px solid var(--line2);
     cursor: grab;
     user-select: none;
@@ -431,7 +446,7 @@
     cursor: pointer;
     transition: background 0.13s ease;
   }
-  .traffic .r { background: #ff96b6; }
+  .traffic .r { background: #ff6b81; }
   .traffic .y { background: #f6cf86; }
   .traffic .g { background: #a4d7a8; }
   .traffic .r:hover { background: #ff7e95; }
@@ -1072,13 +1087,13 @@
   .widget {
     position: absolute;
     width: 200px;
-    background: rgba(255,255,255,0.82);
+    background: var(--menu-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid #d8d4dc;
+    border: 1px solid var(--win-border);
     border-radius: 14px;
     padding: 13px 14px;
-    box-shadow: 0 8px 22px rgba(140,130,140,0.14);
+    box-shadow: var(--shadow);
   }
   .widget.dragging { opacity: 0.85; }
   .widget-head {
@@ -1548,9 +1563,11 @@
     text-align: left;
     padding: 9px 11px;
   }
-  .dm-colors { display: flex; gap: 7px; flex-wrap: wrap; }
+  .dm-colors { display: flex; gap: 6px; }
   .dm-color {
-    width: 30px; height: 30px;
+    flex: 1;
+    aspect-ratio: 1 / 1;
+    min-width: 0;
     border-radius: 8px;
     border: 2px solid #fff;
     box-shadow: 0 0 0 1px var(--line2);
@@ -1559,6 +1576,26 @@
   }
   .dm-color:hover { transform: scale(1.13); }
   .dm-color.on { box-shadow: 0 0 0 2px var(--ink); }
+  /* 직접 색 고르기 스와치 */
+  .dm-color-custom {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    background: conic-gradient(#ff96b6, #ffd34d, #43c79b, #5cb3f5, #9a82dd, #ff96b6);
+    font-size: 14px;
+    overflow: hidden;
+  }
+  .dm-color-custom span {
+    position: relative; z-index: 1;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+    font-weight: 700;
+    pointer-events: none;
+  }
+  .dm-color-custom input[type=color] {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; border: none; padding: 0;
+  }
   .dm-row { display: flex; gap: 8px; margin-top: 15px; }
 
   /* 휴지통 앱 */
@@ -1631,10 +1668,10 @@
     position: fixed;
     left: 10px; bottom: 52px;
     width: 290px;
-    background: rgba(255,255,255,0.92);
+    background: var(--menu-bg);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid #d8d4dc;
+    border: 1px solid var(--win-border);
     border-radius: 14px;
     box-shadow: var(--shadow);
     padding: 12px;
@@ -1715,10 +1752,10 @@
     position: fixed;
     right: 10px; bottom: 52px;
     width: 248px;
-    background: rgba(255,255,255,0.94);
+    background: var(--menu-bg);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid #d8d4dc;
+    border: 1px solid var(--win-border);
     border-radius: 14px;
     box-shadow: var(--shadow);
     padding: 14px;
@@ -1779,10 +1816,10 @@
   .ctx-menu {
     position: fixed;
     width: 178px;
-    background: rgba(255,255,255,0.95);
+    background: var(--menu-bg);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    border: 1px solid #d8d4dc;
+    border: 1px solid var(--win-border);
     border-radius: 11px;
     box-shadow: var(--shadow);
     padding: 6px;
@@ -1828,6 +1865,174 @@
   .ctx-check:not(.on) .ctx-cbox { color: transparent; }
   /* 위젯 서브메뉴는 본 메뉴보다 위 */
   #widgetMenu { z-index: 76; }
+
+  /* ===== 배경·꾸미기 탭 ===== */
+  .deco-tabs {
+    display: flex; gap: 4px;
+    padding: 8px 14px 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--titlebar);
+    flex-shrink: 0;
+  }
+  .deco-tab {
+    border: none; background: transparent;
+    font-family: inherit; font-size: 12.5px;
+    color: var(--ink-soft); cursor: pointer;
+    padding: 8px 14px;
+    border-radius: 9px 9px 0 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.13s, border-color 0.13s, background 0.13s;
+  }
+  .deco-tab:hover { color: var(--pink-d); }
+  .deco-tab.on {
+    color: var(--pink-d); font-weight: 700;
+    border-bottom-color: var(--pink-d);
+    background: var(--win);
+  }
+
+  /* ===== 테마 탭 ===== */
+  .theme-swatch-name {
+    font-size: 11px; color: var(--ink-soft);
+  }
+  .theme-presets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 8px;
+  }
+  .theme-preset {
+    border: 1.5px solid var(--line2);
+    border-radius: 12px;
+    background: var(--win);
+    padding: 9px 8px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.13s, transform 0.1s;
+  }
+  .theme-preset:hover { transform: translateY(-2px); border-color: var(--pink); }
+  .theme-preset.on { border-color: var(--pink-d); background: var(--pink-soft); }
+  .theme-preset-dots {
+    display: flex; justify-content: center; gap: 5px;
+    margin-bottom: 6px;
+  }
+  .theme-preset-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--win);
+    box-shadow: 0 0 0 1px var(--line2);
+  }
+  .theme-preset-name {
+    font-size: 11px; color: var(--ink);
+  }
+  .theme-preset.on .theme-preset-name { color: var(--pink-d); font-weight: 700; }
+  .theme-reset-row {
+    margin: 4px 0 14px;
+  }
+
+  /* ===== 꾸미기 ===== */
+  .deco-body {
+    padding: 16px 18px;
+    overflow-y: auto;
+  }
+  .deco-sec { margin-bottom: 20px; }
+  .deco-sec-title {
+    font-size: 14px; font-weight: 700;
+    color: var(--ink, #4a4453);
+    margin-bottom: 3px;
+  }
+  .deco-sec-desc {
+    font-size: 11px; color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+  .deco-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 8px;
+  }
+  .deco-item {
+    border: 1.5px solid var(--line2);
+    border-radius: 12px;
+    background: var(--win);
+    padding: 10px 4px 7px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.13s, transform 0.1s, background 0.13s;
+  }
+  .deco-item:hover { transform: translateY(-2px); border-color: var(--pink); }
+  .deco-item.on {
+    border-color: var(--pink-d);
+    background: var(--pink-soft);
+  }
+  /* 텍스트형 아이템 (효과·트레일) */
+  .deco-item-text {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 38px;
+    padding: 8px 6px;
+  }
+  .deco-item .di-name {
+    font-size: 11.5px; color: var(--ink);
+  }
+  .deco-item.on .di-name { color: var(--pink-d); font-weight: 700; }
+  /* 커서 아이템 — 작은 미리보기 + 이름 */
+  .deco-item-cursor {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 56px;
+  }
+  .deco-item .di-cursor-img {
+    width: 24px; height: 24px;
+    object-fit: contain;
+    display: block; margin: 0 auto 5px;
+  }
+  .deco-cursor-custom {
+    margin-top: 10px;
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .deco-custom-hint {
+    font-size: 10.5px; color: var(--ink-soft);
+  }
+  /* 옵션 박스 — 효과/커서/트레일 설정을 옅은 카드로 묶음 */
+  .deco-opts {
+    margin-top: 10px;
+    background: var(--side);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 4px 12px;
+  }
+  /* 옵션 한 줄 — 라벨 | 컨트롤 */
+  .deco-opt-row, .deco-input-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .deco-opt-row:last-child, .deco-input-row:last-child { border-bottom: none; }
+  .deco-opt-label {
+    font-size: 11.5px; color: var(--ink); font-weight: 600;
+    width: 64px; flex-shrink: 0;
+  }
+  .deco-opt-row .range, .deco-input-row .range { flex: 1; }
+  .deco-range-val {
+    font-size: 11.5px; color: var(--pink-d); font-weight: 700;
+    min-width: 32px; text-align: right;
+  }
+  .deco-text-input {
+    flex: 1; max-width: 130px;
+    border: 1.5px solid var(--line2);
+    border-radius: 8px;
+    padding: 5px 9px;
+    font-size: 13px; font-family: inherit;
+    color: var(--ink);
+    background: var(--win);
+  }
+  .deco-text-input:focus { outline: none; border-color: var(--pink-d); }
+  .deco-color {
+    width: 44px; height: 26px;
+    border: 1.5px solid var(--line2);
+    border-radius: 8px;
+    background: var(--win); cursor: pointer;
+    padding: 2px;
+  }
+  .deco-opt-row .seg-sm { flex: 1; }
 
   /* ===== 바탕화면 스티커 ===== */
   .sticker {
@@ -2049,6 +2254,7 @@
 
 <div id="bgLayer"></div>
 <div id="bgDim"></div>
+<canvas id="fxLayer"></canvas>
 
 <!-- 바탕화면 -->
 <div class="desktop" id="desktop">
@@ -2182,8 +2388,8 @@
   <div class="titlebar" id="mainBar">
     <div class="traffic" id="traffic"><i class="r" id="btnClose"></i><i class="y" id="btnMin"></i><i class="g" id="btnMax"></i></div>
     <div class="tb-title">
-      <span class="fi">
-        <svg viewBox="0 0 24 24" fill="#ffc4d6" stroke="#ff96b6" stroke-width="1.5" stroke-linejoin="round">
+      <span class="fi" style="color:var(--pink-d)">
+        <svg viewBox="0 0 24 24" fill="var(--pink)" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
           <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
         </svg>
       </span>
@@ -2245,7 +2451,7 @@
         <div class="side-group-label">기타</div>
         <div class="side-item" id="sideAdmin">
           <span class="side-ic-px" id="sideBgIc"></span>
-          배경 바꾸기
+          바탕화면 설정
         </div>
       </div>
     </aside>
@@ -2278,23 +2484,27 @@
 
 </div>
 
-<!-- 배경 바꾸기 창 -->
+<!-- 배경 · 꾸미기 창 -->
 <div class="admin" id="adminScreen">
   <div class="explorer" id="adminWin">
     <div class="titlebar" id="adminBar">
       <div class="traffic"><i class="r" id="adminClose"></i><i class="y" id="adminMin"></i><i class="g" id="adminMax"></i></div>
       <div class="tb-title">
         <span class="fi" id="adminTitleIc"></span>
-        배경 바꾸기
+        바탕화면 설정
       </div>
       <div class="tb-spacer"></div>
     </div>
-    <div class="content" style="padding:18px;">
+    <div class="deco-tabs">
+      <button class="deco-tab on" data-tab="bg">🎨 배경 바꾸기</button>
+      <button class="deco-tab" data-tab="deco">✨ 꾸미기</button>
+      <button class="deco-tab" data-tab="theme">🎨 테마</button>
+    </div>
+    <div class="content" id="bgTabPanel" style="padding:18px;">
       <div class="admin-card">
         <div class="ac-title">♥ 배경 바꾸기</div>
         <div class="ac-text">아래에서 바탕화면 배경을 원하는 그림으로 바꿀 수 있어요.</div>
       </div>
-      <div class="content-head"><h2>🎨 배경 꾸미기</h2></div>
       <div class="admin-card">
         <div class="bg-preview" id="bgPreview"><span id="bgPreviewText">기본 배경</span></div>
         <div class="bg-opt">
@@ -2394,6 +2604,135 @@
           고른 배경은 <b>이 브라우저에만</b> 저장돼요. 다른 사람·다른 기기에서는 기본 배경으로 보여요.
         </div>
       </div>
+    </div>
+    <!-- 꾸미기 탭 패널 -->
+    <div class="content" id="decoTabPanel" style="padding:18px;display:none;">
+      <div class="admin-card">
+        <div class="ac-title">✨ 꾸미기</div>
+        <div class="ac-text">배경 효과와 마우스 커서를 바꿀 수 있어요.</div>
+      </div>
+      <div class="deco-sec">
+        <div class="deco-sec-title">배경 효과</div>
+        <div class="deco-sec-desc">바탕화면에 은은하게 떠다니는 효과예요.</div>
+        <div class="deco-grid" id="fxGrid"><!-- JS --></div>
+        <div class="deco-opts" id="fxOpts" style="display:none;">
+          <div class="deco-input-row" id="fxCustomRow" style="display:none;">
+            <span class="deco-opt-label">떠다닐 글자</span>
+            <input type="text" id="fxCustomInput" class="deco-text-input"
+                   maxlength="4" placeholder="✿ ♡ ☃">
+          </div>
+          <div class="deco-opt-row" id="fxModeRow" style="display:none;">
+            <span class="deco-opt-label">움직임</span>
+            <div class="seg seg-sm" id="fxModeSeg">
+              <button data-fxmode="fall" class="on">떨어짐</button>
+              <button data-fxmode="float">떠다님</button>
+            </div>
+          </div>
+          <div class="deco-opt-row" id="fxColorRow" style="display:none;">
+            <span class="deco-opt-label">색상</span>
+            <input type="color" id="fxColorInput" class="deco-color">
+          </div>
+          <div class="deco-opt-row" id="fxCountRow" style="display:none;">
+            <span class="deco-opt-label">개수</span>
+            <input type="range" id="fxCountInput" class="range" min="5" max="160" step="5">
+            <span class="deco-range-val" id="fxCountVal">34</span>
+          </div>
+          <div class="deco-opt-row" id="fxSizeRow" style="display:none;">
+            <span class="deco-opt-label">크기</span>
+            <input type="range" id="fxSizeInput" class="range" min="1" max="10" step="1">
+            <span class="deco-range-val" id="fxSizeVal">5</span>
+          </div>
+          <div class="deco-opt-row" id="fxSpeedRow" style="display:none;">
+            <span class="deco-opt-label">속도</span>
+            <input type="range" id="fxSpeedInput" class="range" min="1" max="10" step="1">
+            <span class="deco-range-val" id="fxSpeedVal">5</span>
+          </div>
+        </div>
+      </div>
+      <div class="deco-sec">
+        <div class="deco-sec-title">마우스 커서</div>
+        <div class="deco-sec-desc">커서 모양을 바꿔요. 내 이미지(GIF·PNG)도 쓸 수 있어요.</div>
+        <div class="deco-grid" id="cursorGrid"><!-- JS --></div>
+        <div class="deco-cursor-custom">
+          <button class="btn" id="cursorUpload">🖼️ 내 커서 이미지 올리기</button>
+          <input type="file" id="cursorFile" accept="image/png,image/gif,image/webp,image/jpeg" style="display:none">
+          <span class="deco-custom-hint" id="cursorCustomHint"></span>
+        </div>
+        <div class="deco-opts" id="cursorOpts" style="display:none;">
+          <div class="deco-opt-row" id="cursorSizeRow">
+            <span class="deco-opt-label">커서 크기</span>
+            <input type="range" id="cursorSizeInput" class="range" min="24" max="52" step="2">
+            <span class="deco-range-val" id="cursorSizeVal">32px</span>
+          </div>
+        </div>
+      </div>
+      <div class="deco-sec">
+        <div class="deco-sec-title">커서 따라다니는 효과</div>
+        <div class="deco-sec-desc">커서 뒤를 입자가 사슬처럼 부드럽게 쫓아와요.</div>
+        <div class="deco-grid" id="trailGrid"><!-- JS --></div>
+        <div class="deco-opts" id="trailOpts" style="display:none;">
+          <div class="deco-input-row" id="trailCustomRow" style="display:none;">
+            <span class="deco-opt-label">따라다닐 글자</span>
+            <input type="text" id="trailCustomInput" class="deco-text-input"
+                   maxlength="4" placeholder="✨ ♡ ⭐">
+          </div>
+          <div class="deco-opt-row" id="trailColorRow" style="display:none;">
+            <span class="deco-opt-label">색상</span>
+            <input type="color" id="trailColorInput" class="deco-color">
+          </div>
+          <div class="deco-opt-row" id="trailCountRow" style="display:none;">
+            <span class="deco-opt-label">꼬리 길이</span>
+            <input type="range" id="trailCountInput" class="range" min="1" max="12" step="1">
+            <span class="deco-range-val" id="trailCountVal">5</span>
+          </div>
+          <div class="deco-opt-row" id="trailSpeedRow" style="display:none;">
+            <span class="deco-opt-label">속도</span>
+            <input type="range" id="trailSpeedInput" class="range" min="1" max="10" step="1">
+            <span class="deco-range-val" id="trailSpeedVal">5</span>
+          </div>
+        </div>
+      </div>
+      <div class="bg-note">꾸미기 설정은 <b>이 브라우저에만</b> 저장돼요.</div>
+    </div>
+    <!-- 테마 탭 패널 -->
+    <div class="content" id="themeTabPanel" style="padding:18px;display:none;">
+      <div class="admin-card">
+        <div class="ac-title">🎨 테마 색상</div>
+        <div class="ac-text">도구함 전체의 색을 바꿔요. 두 가지 색만 정하면 그 톤이 쓰인 곳이 모두 맞춰 바뀌어요.</div>
+      </div>
+      <div class="deco-sec">
+        <div class="deco-sec-title">화면 모드</div>
+        <div class="deco-sec-desc">밝은 화면과 어두운 화면 중에 골라요.</div>
+        <div class="seg" id="themeModeSeg">
+          <button data-mode="light" class="on">☀️ 라이트</button>
+          <button data-mode="dark">🌙 다크</button>
+        </div>
+      </div>
+      <div class="deco-sec">
+        <div class="deco-sec-title">메인 색상</div>
+        <div class="deco-sec-desc">포인트 색(버튼·강조)과 보조 색(링크·선택)을 골라요.</div>
+        <div class="deco-opts">
+          <div class="deco-opt-row">
+            <span class="deco-opt-label">포인트 색</span>
+            <input type="color" id="themePinkInput" class="deco-color">
+            <span class="theme-swatch-name">버튼·강조·제목</span>
+          </div>
+          <div class="deco-opt-row">
+            <span class="deco-opt-label">보조 색</span>
+            <input type="color" id="themeBlueInput" class="deco-color">
+            <span class="theme-swatch-name">링크·선택·아이콘</span>
+          </div>
+        </div>
+      </div>
+      <div class="deco-sec">
+        <div class="deco-sec-title">미리 만든 테마</div>
+        <div class="deco-sec-desc">눌러서 바로 적용해 볼 수 있어요.</div>
+        <div class="theme-presets" id="themePresets"><!-- JS --></div>
+      </div>
+      <div class="theme-reset-row">
+        <button class="btn" id="themeReset">기본 색으로 되돌리기</button>
+      </div>
+      <div class="bg-note">테마 색은 <b>이 브라우저에만</b> 저장돼요.</div>
     </div>
     <div class="statusbar"></div>
     <div class="resize-handle" id="adminResize" title="끌어서 크기 조절">
@@ -2530,7 +2869,7 @@
       <span class="sm-ic" id="smIcPhoto"></span><span>사진첩</span>
     </div>
     <div class="sm-item" data-sm="admin">
-      <span class="sm-ic" id="smIcBg"></span><span>배경 바꾸기</span>
+      <span class="sm-ic" id="smIcBg"></span><span>바탕화면 설정</span>
     </div>
   </div>
 </div>
@@ -2647,7 +2986,7 @@
   <div class="ctx-item ctx-has-sub" id="ctxWidgetItem">
     <span>🧩 위젯</span><span class="ctx-arrow">▸</span>
   </div>
-  <div class="ctx-item" data-ctx="bg">🎨 배경 바꾸기</div>
+  <div class="ctx-item" data-ctx="bg">🎨 바탕화면 설정</div>
   <div class="ctx-item" data-ctx="note">📝 메모장 열기</div>
   <div class="ctx-item" data-ctx="photo">📷 사진첩 열기</div>
 </div>
@@ -2716,7 +3055,7 @@
       <input type="text" id="dmName" class="pw-input dm-input" placeholder="예: 생일, 기념일, 공개일" maxlength="20">
       <label class="dm-label">날짜</label>
       <input type="date" id="dmDate" class="pw-input dm-input">
-      <label class="dm-label">색깔</label>
+      <label class="dm-label">색상</label>
       <div class="dm-colors" id="dmColors"><!-- JS --></div>
       <label class="dm-label">카운트 방식</label>
       <div class="seg" id="dmMode">
@@ -2815,7 +3154,7 @@
   }
   // IDB 로 옮길 무거운 키 목록 (이미지가 들어가는 것들)
   const IDB_KEYS = ['chathub:photos', 'chathub:bg', 'chathub:profile',
-                    'chathub:trash', 'chathub:stickers'];
+                    'chathub:trash', 'chathub:stickers', 'chathub:deco'];
   // 'kv' 의 메모리 미러 — 시작 시 IDB 에서 읽어 채움
   const idbMirror = {};
   // 무거운 키는 IDB(미러) 에서, 나머지는 localStorage 에서 읽음
@@ -3039,8 +3378,36 @@
     '................',
     '................'
   ];
-  const FOLDER_PAL = { d:'#ff96b6', l:'#ffc4d6' };
-  $('deskIconArt').innerHTML = pixelSvg(FOLDER_PX, FOLDER_PAL);
+  // 도구함 폴더 아이콘 — 테마 포인트 색으로 그림
+  // 테마 색을 따르는 픽셀 아이콘들 — applyTheme 이 호출
+  // (theme 정의 후에만 실행되므로 안전)
+  function renderFolderIcon() {
+    // 도구함 폴더 (포인트 색)
+    const fpal = { d: theme.pink, l: mixWhite(theme.pink, 0.35) };
+    const fel = $('deskIconArt');
+    if (fel) fel.innerHTML = pixelSvg(FOLDER_PX, fpal);
+    // 메모장 — 보조 색 계열
+    const npal = {
+      p: theme.blue,
+      w: '#ffffff',
+      l: mixWhite(theme.blue, 0.55)
+    };
+    // 사진첩 — 보조 색 계열 (액자)
+    const ppal = {
+      f: mixBlack(theme.blue, 0.12),
+      b: mixWhite(theme.blue, 0.62),
+      s: '#f6cf86',
+      m: '#9adec5'
+    };
+    ['decoNote', 'noteTitleIc', 'smIcNote'].forEach(id => {
+      const el = $(id);
+      if (el) el.innerHTML = pixelSvg(NOTE_PX, npal);
+    });
+    ['decoPic', 'photoTitleIc', 'smIcPhoto'].forEach(id => {
+      const el = $(id);
+      if (el) el.innerHTML = pixelSvg(PIC_PX, ppal);
+    });
+  }
 
   // 바탕화면 꾸밈 아이콘들 (장식용)
   const TRASH_PX = [
@@ -3122,8 +3489,6 @@
   };
 
   $('decoTrash').innerHTML = pixelSvg(TRASH_PX, { t:'#9b94a6', m:'#bdb6c6', h:'#d6d0dc' });
-  $('decoNote').innerHTML  = pixelSvg(NOTE_PX,  { p:'#5cb3f5', w:'#ffffff', l:'#bde2fb' });
-  $('decoPic').innerHTML   = pixelSvg(PIC_PX,   { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
 
   // ----- 도구 사용 횟수 (자주 쓰는 것 판별용) -----
   const USAGE_KEY = 'chathub:toolUsage';
@@ -3249,10 +3614,26 @@
   // ===== 배경 바꾸기 창 =====
   const adminScreen = $('adminScreen');
 
-  // 배경 바꾸기 창 열기 (비밀번호 없이 바로)
-  function openBgWindow() {
+  // 배경/꾸미기 탭 전환
+  function switchDecoTab(tab) {
+    document.querySelectorAll('.deco-tab').forEach(b => {
+      b.classList.toggle('on', b.dataset.tab === tab);
+    });
+    $('bgTabPanel').style.display = (tab === 'bg') ? '' : 'none';
+    $('decoTabPanel').style.display = (tab === 'deco') ? '' : 'none';
+    $('themeTabPanel').style.display = (tab === 'theme') ? '' : 'none';
+    if (tab === 'deco') renderDecoUI();
+    if (tab === 'theme') renderThemeUI();
+  }
+  document.querySelectorAll('.deco-tab').forEach(btn => {
+    btn.addEventListener('click', () => switchDecoTab(btn.dataset.tab));
+  });
+
+  // 배경·꾸미기·테마 창 열기 (탭 지정 가능)
+  function openBgWindow(tab) {
     adminScreen.classList.add('show');
-    // 창 가운데로 + 맨 앞으로
+    const t = (tab === 'deco' || tab === 'theme') ? tab : 'bg';
+    switchDecoTab(t);
     if (window.adminW) {
       adminW.win.classList.remove('collapsed');
       adminW.win.style.zIndex = (++topZ);
@@ -3261,11 +3642,11 @@
     }
     if (typeof updateTaskbar === 'function') updateTaskbar();
   }
-  // 예전 이름 호환 — 여러 곳에서 openPw 로 호출되므로 별칭 유지
+  // 예전 이름 호환
   const openPw = openBgWindow;
 
-  $('adminTrigger').addEventListener('click', openBgWindow);
-  $('sideAdmin').addEventListener('click', openBgWindow);
+  $('adminTrigger').addEventListener('click', () => openBgWindow('bg'));
+  $('sideAdmin').addEventListener('click', () => openBgWindow('bg'));
 
   function exitAdmin() {
     adminScreen.classList.remove('show');
@@ -4029,8 +4410,6 @@
   });
 
   // 앱 창 타이틀 아이콘 (작게)
-  $('noteTitleIc').innerHTML  = pixelSvg(NOTE_PX, { p:'#5cb3f5', w:'#ffffff', l:'#bde2fb' });
-  $('photoTitleIc').innerHTML = pixelSvg(PIC_PX, { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
   $('trashTitleIc').innerHTML = pixelSvg(TRASH_PX, { t:'#9b94a6', m:'#bdb6c6', h:'#d6d0dc' });
   $('adminTitleIc').innerHTML = pixelSvg(BG_PX, BG_PAL);
 
@@ -4108,8 +4487,6 @@
     });
   })();
   // 시작 메뉴 앱 아이콘
-  $('smIcNote').innerHTML  = pixelSvg(NOTE_PX, { p:'#5cb3f5', w:'#ffffff', l:'#bde2fb' });
-  $('smIcPhoto').innerHTML = pixelSvg(PIC_PX, { f:'#5a9fe6', b:'#d6ecfb', s:'#f6cf86', m:'#9adec5' });
   $('smIcBg').innerHTML    = pixelSvg(BG_PX, BG_PAL);
   $('sideBgIc').innerHTML  = pixelSvg(BG_PX, BG_PAL);
   // 시작 메뉴 앱 클릭
@@ -4118,7 +4495,8 @@
       const t = item.dataset.sm;
       $('startMenu').classList.remove('show');
       if (t === 'note' || t === 'photo') openApp(t);
-      else if (t === 'admin') openBgWindow();
+      else if (t === 'admin') openBgWindow('bg');
+      else if (t === 'deco') openBgWindow('deco');
     });
   });
 
@@ -4450,6 +4828,7 @@
     else if (act === 'bg') openPw();
     else if (act === 'note') openApp('note');
     else if (act === 'photo') openApp('photo');
+    else if (act === 'deco') openBgWindow('deco');
   });
 
   // ===== 위젯 켜기/끄기 =====
@@ -5217,8 +5596,1079 @@
     renderPlaylist();
   })();
 
-  // ===== 바탕화면 스티커 =====
-  const STICKER_KEY = 'chathub:stickers';
+  // ===== 테마 — 핑크/블루 톤 + 라이트/다크 =====
+  const THEME_KEY = 'chathub:theme';
+  const THEME_DEFAULT = { pink: '#ff96b6', blue: '#5cb3f5', mode: 'light' };
+  let theme = {
+    pink: THEME_DEFAULT.pink, blue: THEME_DEFAULT.blue, mode: 'light'
+  };
+  try {
+    const raw = localStorage.getItem(THEME_KEY);
+    if (raw) {
+      const t = JSON.parse(raw);
+      if (t && typeof t === 'object') {
+        if (t.pink) theme.pink = t.pink;
+        if (t.blue) theme.blue = t.blue;
+        if (t.mode === 'dark' || t.mode === 'light') theme.mode = t.mode;
+      }
+    }
+  } catch {}
+  function saveTheme() {
+    try { localStorage.setItem(THEME_KEY, JSON.stringify(theme)); } catch {}
+  }
+  // hex → {r,g,b}
+  function hexToRgb(hex) {
+    let h = (hex || '').replace('#','');
+    if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    return {
+      r: parseInt(h.substr(0,2),16) || 0,
+      g: parseInt(h.substr(2,2),16) || 0,
+      b: parseInt(h.substr(4,2),16) || 0
+    };
+  }
+  // 색을 흰색 쪽으로 amt(0~1) 만큼 섞음 (밝게/연하게)
+  function mixWhite(hex, amt) {
+    const c = hexToRgb(hex);
+    return 'rgb(' + Math.round(c.r + (255-c.r)*amt) + ','
+      + Math.round(c.g + (255-c.g)*amt) + ','
+      + Math.round(c.b + (255-c.b)*amt) + ')';
+  }
+  // 색을 검정 쪽으로 amt(0~1) 만큼 섞음 (어둡게)
+  function mixBlack(hex, amt) {
+    const c = hexToRgb(hex);
+    return 'rgb(' + Math.round(c.r*(1-amt)) + ','
+      + Math.round(c.g*(1-amt)) + ','
+      + Math.round(c.b*(1-amt)) + ')';
+  }
+  // 메인 색 2개 + 모드로 CSS 변수 전체를 계산해 적용
+  function applyTheme() {
+    const root = document.documentElement.style;
+    const dark = theme.mode === 'dark';
+    // ----- 포인트 색 (핑크 자리) -----
+    root.setProperty('--pink-d', theme.pink);
+    root.setProperty('--pink', mixWhite(theme.pink, 0.28));
+    root.setProperty('--pink-soft',
+      dark ? mixBlack(theme.pink, 0.62) : mixWhite(theme.pink, 0.82));
+    // ----- 보조 색 (블루 자리) -----
+    root.setProperty('--sky', theme.blue);
+    root.setProperty('--sky-l', mixWhite(theme.blue, 0.42));
+    root.setProperty('--sky-soft',
+      dark ? mixBlack(theme.blue, 0.6) : mixWhite(theme.blue, 0.86));
+    // ----- 창·배경·글자 (모드에 따라) -----
+    if (dark) {
+      root.setProperty('--win', '#262430');
+      root.setProperty('--side', '#201e2a');
+      root.setProperty('--line', '#34313f');
+      root.setProperty('--line2', '#3d3a49');
+      root.setProperty('--ink', '#ece9f0');
+      root.setProperty('--ink-soft', '#a39db0');
+      root.setProperty('--ink-faint', '#6f6a7d');
+      root.setProperty('--titlebar', mixBlack(theme.pink, 0.72));
+      root.setProperty('--desktop-bg', mixBlack(theme.blue, 0.86));
+      root.setProperty('--label-bg', 'rgba(20,18,28,0.6)');
+      root.setProperty('--note-bg', '#2b2935');
+      root.setProperty('--taskbar', 'rgba(28,26,36,0.9)');
+      root.setProperty('--win-border', '#3d3a49');
+      root.setProperty('--menu-bg', 'rgba(38,36,48,0.96)');
+      root.setProperty('--shadow', '0 16px 44px rgba(0,0,0,0.5)');
+    } else {
+      root.setProperty('--win', '#ffffff');
+      root.setProperty('--side', mixWhite(theme.pink, 0.93));
+      root.setProperty('--line', mixWhite(theme.pink, 0.9));
+      root.setProperty('--line2', mixWhite(theme.pink, 0.84));
+      root.setProperty('--ink', '#4a4651');
+      root.setProperty('--ink-soft', '#948e9d');
+      root.setProperty('--ink-faint', '#bdb8c5');
+      root.setProperty('--titlebar', mixWhite(theme.pink, 0.9));
+      root.setProperty('--desktop-bg', mixWhite(theme.blue, 0.84));
+      root.setProperty('--label-bg', 'rgba(255,255,255,0.7)');
+      root.setProperty('--note-bg', '#fffdf7');
+      root.setProperty('--taskbar', 'rgba(255,255,255,0.82)');
+      root.setProperty('--win-border', mixWhite(theme.pink, 0.78));
+      root.setProperty('--menu-bg', 'rgba(255,255,255,0.92)');
+      root.setProperty('--shadow', '0 16px 44px rgba(140,130,140,0.22)');
+    }
+    // 폴더 아이콘도 테마 색으로 다시 그림
+    if (typeof renderFolderIcon === 'function') renderFolderIcon();
+  }
+  applyTheme();
+
+  // 미리 만든 테마 (포인트색 / 보조색)
+  const THEME_PRESETS = [
+    { name: '벚꽃',   pink: '#ff96b6', blue: '#5cb3f5' },
+    { name: '라벤더', pink: '#b89be0', blue: '#8fb8f0' },
+    { name: '민트',   pink: '#5fc9b0', blue: '#5cb3f5' },
+    { name: '복숭아', pink: '#ff9e7d', blue: '#ffc36b' },
+    { name: '장미',   pink: '#e85c8a', blue: '#c98fd8' },
+    { name: '코코아', pink: '#c89a82', blue: '#9ab0c4' },
+    { name: '바다',   pink: '#5bbdd0', blue: '#5c84f5' },
+    { name: '회색빛', pink: '#a89db0', blue: '#94a3b8' }
+  ];
+  function renderThemeUI() {
+    // 화면 모드 토글
+    document.querySelectorAll('#themeModeSeg button').forEach(btn => {
+      btn.classList.toggle('on', btn.dataset.mode === theme.mode);
+    });
+    // 색상 피커에 현재 값
+    $('themePinkInput').value = theme.pink;
+    $('themeBlueInput').value = theme.blue;
+    // 프리셋 버튼
+    const wrap = $('themePresets');
+    wrap.innerHTML = '';
+    THEME_PRESETS.forEach(pr => {
+      const on = (pr.pink === theme.pink && pr.blue === theme.blue);
+      const it = document.createElement('div');
+      it.className = 'theme-preset' + (on ? ' on' : '');
+      it.innerHTML =
+        '<div class="theme-preset-dots">'
+        + '<span class="theme-preset-dot" style="background:' + pr.pink + '"></span>'
+        + '<span class="theme-preset-dot" style="background:' + pr.blue + '"></span>'
+        + '</div><span class="theme-preset-name">' + pr.name + '</span>';
+      it.addEventListener('click', () => {
+        theme.pink = pr.pink;
+        theme.blue = pr.blue;
+        applyTheme();
+        saveTheme();
+        renderThemeUI();
+      });
+      wrap.appendChild(it);
+    });
+  }
+  // 포인트 색 변경
+  $('themePinkInput').addEventListener('input', e => {
+    theme.pink = e.target.value;
+    applyTheme();
+    saveTheme();
+    renderThemeUI();
+  });
+  // 보조 색 변경
+  $('themeBlueInput').addEventListener('input', e => {
+    theme.blue = e.target.value;
+    applyTheme();
+    saveTheme();
+    renderThemeUI();
+  });
+  // 화면 모드 (라이트/다크)
+  document.querySelectorAll('#themeModeSeg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      theme.mode = btn.dataset.mode;
+      applyTheme();
+      saveTheme();
+      renderThemeUI();
+    });
+  });
+  // 기본 색으로 되돌리기
+  $('themeReset').addEventListener('click', () => {
+    theme.pink = THEME_DEFAULT.pink;
+    theme.blue = THEME_DEFAULT.blue;
+    theme.mode = THEME_DEFAULT.mode;
+    applyTheme();
+    saveTheme();
+    renderThemeUI();
+    toast('<span class="th">♥</span> 기본 테마로 되돌렸어요');
+  });
+
+  // ===== 바탕화면 꾸미기 — 배경 효과 · 커서 =====
+  const DECO_KEY = 'chathub:deco';
+  // deco: 배경효과 fx/fxColor/fxCustomText/fxMode/fxCount,
+  //        커서 cursor/cursorImg/cursorSize,
+  //        트레일 trail/trailColor/trailCustomText/trailCount/trailSpeed
+  let deco = {
+    fx: 'none', fxColor: '', fxCustomText: '', fxMode: 'fall',
+    fxCount: 34, fxSpeed: 5, fxSize: 5,
+    cursor: 'default', cursorImg: '', cursorSize: 32,
+    trail: 'none', trailColor: '', trailCustomText: '',
+    trailCount: 5, trailSpeed: 5
+  };
+  try {
+    const raw = lsGet(DECO_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d && typeof d === 'object') {
+        deco.fx = d.fx || 'none';
+        deco.fxColor = d.fxColor || '';
+        deco.fxCustomText = d.fxCustomText || '';
+        deco.fxMode = d.fxMode || 'fall';
+        deco.fxCount = d.fxCount || 34;
+        deco.fxSpeed = d.fxSpeed || 5;
+        deco.fxSize = d.fxSize || 5;
+        deco.cursor = d.cursor || 'default';
+        deco.cursorImg = d.cursorImg || '';
+        deco.cursorSize = d.cursorSize || 32;
+        deco.trail = d.trail || 'none';
+        deco.trailColor = d.trailColor || '';
+        deco.trailCustomText = d.trailCustomText || '';
+        deco.trailCount = d.trailCount || 5;
+        deco.trailSpeed = d.trailSpeed || 5;
+      }
+    }
+  } catch {}
+  function saveDeco() {
+    try { lsSet(DECO_KEY, JSON.stringify(deco)); }
+    catch { toast('꾸미기 설정을 저장하지 못했어요'); }
+  }
+
+  // ----- 배경 효과 (canvas) -----
+  // 각 효과는 자기만의 그리기·움직임을 가짐. defaultColor 는 색 기본값.
+  const FX_TYPES = {
+    none:    { label: '없음',     mode: '',     defaultColor: '' },
+    snow:    { label: '눈',       mode: 'fall', defaultColor: '#ffffff' },
+    rain:    { label: '비',       mode: 'fall', defaultColor: '#9ec9f0' },
+    petal:   { label: '꽃잎',     mode: 'fall', defaultColor: '#ffb3d1' },
+    star:    { label: '별',       mode: 'fall', defaultColor: '#ffe06b' },
+    shootingstar: { label: '별똥별', mode: 'fall', defaultColor: '#fff0b0' },
+    heart:   { label: '하트',     mode: 'fall', defaultColor: '#ff8fb3' },
+    bubble:  { label: '비눗방울', mode: 'float', defaultColor: '#bfe3ff' },
+    firefly: { label: '반딧불이', mode: 'float', defaultColor: '#fff09a' },
+    sparkle: { label: '반짝이',   mode: 'float', defaultColor: '#fff0a0' },
+    dust:    { label: '빛가루',   mode: 'float', defaultColor: '#ffffff' },
+    custom:  { label: '직접 입력', mode: 'fall', defaultColor: '#ff9ec7' }
+  };
+  // 효과별 색을 정함 (사용자 지정 > 기본)
+  function fxColorOf(type) {
+    return deco.fxColor || (FX_TYPES[type] && FX_TYPES[type].defaultColor)
+      || '#ffffff';
+  }
+
+  const fxCanvas = $('fxLayer');
+  const fxCtx = fxCanvas.getContext('2d');
+  let fxParticles = [];
+  let fxRAF = null;
+
+  function fxResize() {
+    fxCanvas.width = window.innerWidth;
+    fxCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', fxResize);
+
+  // 효과별 입자 1개 생성
+  function fxMakeParticle(type, fromEdge) {
+    const W = fxCanvas.width, H = fxCanvas.height;
+    const r = Math.random();
+    if (type === 'snow') {
+      const s = 2 + r * 5;
+      return { x: Math.random()*W, y: fromEdge ? -s : Math.random()*H,
+        r: s, vy: 0.3 + Math.random()*0.9, sway: Math.random()*6.28,
+        swaySpeed: 0.01+Math.random()*0.025, alpha: 0.5+Math.random()*0.5 };
+    }
+    if (type === 'rain') {
+      const len = 12 + r * 16;
+      return { x: Math.random()*W, y: fromEdge ? -len-Math.random()*H : Math.random()*H,
+        len: len, vy: 3 + Math.random()*3, vx: 0.5 + Math.random()*0.6,
+        alpha: 0.22+Math.random()*0.35, width: 0.8+Math.random()*1 };
+    }
+    if (type === 'petal' || type === 'heart' || type === 'star'
+        || type === 'custom') {
+      const s = (type==='star'?7:10) + r * (type==='star'?7:14);
+      return { x: Math.random()*W, y: fromEdge ? -s : Math.random()*H,
+        size: s, vy: 0.5+Math.random()*1.3, vx:(Math.random()-0.5)*0.6,
+        sway: Math.random()*6.28, swaySpeed: 0.012+Math.random()*0.03,
+        rot: Math.random()*6.28, vrot:(Math.random()-0.5)*0.06,
+        alpha: 0.55+Math.random()*0.4 };
+    }
+    if (type === 'shootingstar') {
+      // 사선으로 떨어지는 별똥별 — 머리 + 꼬리
+      const len = 70 + r * 90;
+      const speed = 5 + Math.random()*5;
+      // 좌상 → 우하 방향 (대각선)
+      return { x: Math.random()*W*1.2 - W*0.2,
+        y: fromEdge ? -len-Math.random()*H*0.6 : Math.random()*H,
+        len: len, vx: speed*0.72, vy: speed*0.72,
+        head: 1.6+Math.random()*1.6,
+        alpha: 0.5+Math.random()*0.5 };
+    }
+    if (type === 'bubble') {
+      const s = 6 + r * 22;
+      return { x: Math.random()*W, y: Math.random()*H, r: s,
+        vy: -(0.2+Math.random()*0.7), vx:(Math.random()-0.5)*0.5,
+        sway: Math.random()*6.28, swaySpeed: 0.01+Math.random()*0.02,
+        alpha: 0.25+Math.random()*0.35 };
+    }
+    if (type === 'firefly' || type === 'sparkle' || type === 'dust') {
+      const s = type==='dust' ? 1+r*2.5 : 2+r*4;
+      return { x: Math.random()*W, y: Math.random()*H, r: s,
+        vx:(Math.random()-0.5)*(type==='dust'?0.4:0.8),
+        vy:(Math.random()-0.5)*(type==='dust'?0.4:0.8),
+        sway: Math.random()*6.28, swaySpeed: 0.008+Math.random()*0.02,
+        pulse: Math.random()*6.28, pulseSpeed: 0.02+Math.random()*0.05,
+        alpha: 0.5+Math.random()*0.5 };
+    }
+    return { x: Math.random()*W, y: Math.random()*H, r: 3, alpha: 0.5 };
+  }
+
+  function fxStart(type) {
+    fxStop();
+    if (type === 'none' || !FX_TYPES[type] || !FX_TYPES[type].mode) {
+      fxCanvas.classList.remove('on');
+      return;
+    }
+    fxResize();
+    fxCanvas.classList.add('on');
+    const def = FX_TYPES[type];
+    // 움직임 — 직접 입력은 사용자가 고른 모드, 그 외는 효과 고유 모드
+    const mode = (type === 'custom') ? (deco.fxMode || 'fall') : def.mode;
+    // 개수 — 사용자 지정값 (없으면 효과별 기본)
+    const defaultCount = (type === 'rain') ? 90
+      : (type === 'dust') ? 60
+      : (type === 'snow') ? 70
+      : (type === 'shootingstar') ? 8 : 34;
+    const count = Math.max(5, Math.min(160, deco.fxCount || defaultCount));
+    // 속도·크기 배수 (슬라이더 1~10, 5가 기본=1배)
+    const spd = 0.35 + (Math.max(1,Math.min(10, deco.fxSpeed||5)) - 1) * 0.18;
+    const szm = 0.4 + (Math.max(1,Math.min(10, deco.fxSize||5)) - 1) * 0.155;
+    fxParticles = [];
+    for (let i = 0; i < count; i++) {
+      const pt = fxMakeParticle(type, false);
+      pt._mode = mode;
+      // 속도 배수 — 이동 관련 속성에 곱함
+      if (pt.vy !== undefined) pt.vy *= spd;
+      if (pt.vx !== undefined) pt.vx *= spd;
+      // 크기 배수
+      if (pt.r !== undefined) pt.r *= szm;
+      if (pt.size !== undefined) pt.size *= szm;
+      if (pt.len !== undefined) pt.len *= szm;
+      if (pt.head !== undefined) pt.head *= szm;
+      fxParticles.push(pt);
+    }
+
+    // 입자를 다시 만들 때도 속도·크기 배수를 적용
+    function respawn(p) {
+      const np = fxMakeParticle(type, true);
+      np._mode = mode;
+      if (np.vy !== undefined) np.vy *= spd;
+      if (np.vx !== undefined) np.vx *= spd;
+      if (np.r !== undefined) np.r *= szm;
+      if (np.size !== undefined) np.size *= szm;
+      if (np.len !== undefined) np.len *= szm;
+      if (np.head !== undefined) np.head *= szm;
+      Object.assign(p, np);
+    }
+
+    function frame() {
+      const W = fxCanvas.width, H = fxCanvas.height;
+      const color = fxColorOf(type);
+      fxCtx.clearRect(0, 0, W, H);
+      fxParticles.forEach(p => {
+        const pmode = p._mode || mode;
+        // ----- 움직임 -----
+        if (pmode === 'fall') {
+          if (type === 'rain') {
+            p.y += p.vy; p.x += p.vx;
+            if (p.y > H + p.len) { respawn(p); }
+          } else if (type === 'shootingstar') {
+            p.x += p.vx; p.y += p.vy;
+            if (p.y > H + p.len || p.x > W + p.len) {
+              respawn(p);
+            }
+          } else {
+            p.sway += p.swaySpeed;
+            p.x += (p.vx||0) + Math.sin(p.sway) * 0.6;
+            p.y += p.vy;
+            if (p.rot !== undefined) p.rot += p.vrot;
+            const lim = p.size || p.r || 10;
+            if (p.y > H + lim) { respawn(p); }
+            if (p.x < -lim) p.x = W + lim;
+            if (p.x > W + lim) p.x = -lim;
+          }
+        } else { // float
+          p.sway += p.swaySpeed;
+          p.x += (p.vx||0) + Math.sin(p.sway) * 0.3;
+          p.y += (p.vy||0) + Math.cos(p.sway) * 0.25;
+          if (p.pulse !== undefined) p.pulse += p.pulseSpeed;
+          const lim = p.r || p.size || 10;
+          if (p.x < -lim) p.x = W + lim;
+          if (p.x > W + lim) p.x = -lim;
+          if (p.y < -lim) p.y = H + lim;
+          if (p.y > H + lim) p.y = -lim;
+        }
+        // ----- 그리기 -----
+        let a = p.alpha;
+        if (p.pulse !== undefined) a = p.alpha * (0.4 + 0.6*Math.abs(Math.sin(p.pulse)));
+        // 비·별똥별 — 화면 아래로 갈수록 서서히 옅어지고 짧아짐
+        let lenScale = 1;
+        if (type === 'rain' || type === 'shootingstar') {
+          const fade = 1 - Math.max(0, (p.y / H - 0.45)) / 0.55;
+          a *= Math.max(0.05, Math.min(1, fade));
+          // 길이 — 아래로 갈수록 점점 짧아짐 (위쪽 길게, 바닥 30%)
+          lenScale = Math.max(0.3, Math.min(1, 1 - Math.max(0, p.y / H - 0.15) * 0.8));
+        }
+        fxCtx.save();
+        fxCtx.globalAlpha = Math.max(0, Math.min(1, a));
+        if (type === 'snow' || type === 'bubble' || type === 'dust') {
+          // 부드러운 원
+          fxCtx.beginPath();
+          fxCtx.arc(p.x, p.y, p.r, 0, 6.2832);
+          if (type === 'bubble') {
+            fxCtx.strokeStyle = color;
+            fxCtx.lineWidth = 1.4;
+            fxCtx.stroke();
+            fxCtx.globalAlpha *= 0.35;
+            fxCtx.fillStyle = color;
+            fxCtx.fill();
+          } else {
+            fxCtx.fillStyle = color;
+            fxCtx.fill();
+          }
+        } else if (type === 'rain') {
+          // 가느다란 빗줄기 — 아래로 갈수록 짧아짐
+          const rlen = p.len * lenScale;
+          fxCtx.strokeStyle = color;
+          fxCtx.lineWidth = p.width;
+          fxCtx.lineCap = 'round';
+          fxCtx.beginPath();
+          fxCtx.moveTo(p.x, p.y);
+          fxCtx.lineTo(p.x - p.vx*1.6, p.y - rlen);
+          fxCtx.stroke();
+        } else if (type === 'shootingstar') {
+          // 별똥별 — 사선 꼬리(그라데이션) + 머리 빛점, 아래로 갈수록 짧아짐
+          const slen = p.len * lenScale;
+          const tailX = p.x - p.vx / Math.hypot(p.vx,p.vy) * slen;
+          const tailY = p.y - p.vy / Math.hypot(p.vx,p.vy) * slen;
+          const g = fxCtx.createLinearGradient(p.x, p.y, tailX, tailY);
+          g.addColorStop(0, color);
+          g.addColorStop(1, 'rgba(255,255,255,0)');
+          fxCtx.strokeStyle = g;
+          fxCtx.lineWidth = p.head;
+          fxCtx.lineCap = 'round';
+          fxCtx.beginPath();
+          fxCtx.moveTo(p.x, p.y);
+          fxCtx.lineTo(tailX, tailY);
+          fxCtx.stroke();
+          // 머리 — 작은 빛점
+          const hg = fxCtx.createRadialGradient(p.x,p.y,0, p.x,p.y,p.head*2.6);
+          hg.addColorStop(0, color);
+          hg.addColorStop(1, 'rgba(255,255,255,0)');
+          fxCtx.fillStyle = hg;
+          fxCtx.beginPath();
+          fxCtx.arc(p.x, p.y, p.head*2.6, 0, 6.2832);
+          fxCtx.fill();
+        } else if (type === 'firefly' || type === 'sparkle') {
+          // 빛나는 점 (글로우)
+          const g = fxCtx.createRadialGradient(p.x,p.y,0, p.x,p.y,p.r*4);
+          g.addColorStop(0, color);
+          g.addColorStop(1, 'rgba(255,255,255,0)');
+          fxCtx.fillStyle = g;
+          fxCtx.beginPath();
+          fxCtx.arc(p.x, p.y, p.r*4, 0, 6.2832);
+          fxCtx.fill();
+          if (type === 'sparkle') {
+            // 십자 반짝임
+            fxCtx.strokeStyle = color;
+            fxCtx.lineWidth = 1.3;
+            fxCtx.beginPath();
+            fxCtx.moveTo(p.x-p.r*2.4, p.y); fxCtx.lineTo(p.x+p.r*2.4, p.y);
+            fxCtx.moveTo(p.x, p.y-p.r*2.4); fxCtx.lineTo(p.x, p.y+p.r*2.4);
+            fxCtx.stroke();
+          }
+        } else {
+          // 모양 글리프 (꽃잎·별·하트·사용자 입력)
+          fxCtx.translate(p.x, p.y);
+          if (p.rot) fxCtx.rotate(p.rot);
+          fxCtx.fillStyle = color;
+          if (type === 'heart') drawHeart(fxCtx, p.size);
+          else if (type === 'star') drawStar(fxCtx, p.size);
+          else if (type === 'petal') drawPetal(fxCtx, p.size, color);
+          else if (type === 'custom') {
+            const txt = deco.fxCustomText || '✿';
+            fxCtx.font = p.size + 'px serif';
+            fxCtx.textAlign='center'; fxCtx.textBaseline='middle';
+            fxCtx.fillText(txt, 0, 0);
+          }
+        }
+        fxCtx.restore();
+      });
+      fxRAF = requestAnimationFrame(frame);
+    }
+    frame();
+  }
+  function fxStop() {
+    if (fxRAF) { cancelAnimationFrame(fxRAF); fxRAF = null; }
+    fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+  }
+  // 모양 그리기 헬퍼 (현재 fillStyle 사용, 0,0 중심)
+  function drawHeart(c, s) {
+    const k = s / 24;
+    c.beginPath();
+    c.moveTo(0, 7*k);
+    c.bezierCurveTo(-2*k,2*k, -11*k,1*k, -11*k,-5*k);
+    c.bezierCurveTo(-11*k,-11*k, -3*k,-12*k, 0,-5*k);
+    c.bezierCurveTo(3*k,-12*k, 11*k,-11*k, 11*k,-5*k);
+    c.bezierCurveTo(11*k,1*k, 2*k,2*k, 0,7*k);
+    c.fill();
+  }
+  function drawStar(c, s) {
+    const spikes=5, outer=s/2, inner=outer*0.42;
+    c.beginPath();
+    for (let i=0;i<spikes*2;i++) {
+      const rad = (i%2===0) ? outer : inner;
+      const ang = (Math.PI/spikes)*i - Math.PI/2;
+      const x = Math.cos(ang)*rad, y = Math.sin(ang)*rad;
+      i===0 ? c.moveTo(x,y) : c.lineTo(x,y);
+    }
+    c.closePath(); c.fill();
+  }
+  // 벚꽃잎 한 장 — 끝이 살짝 갈라진 부드러운 잎 (단색)
+  function drawPetal(c, s, color) {
+    const k = s / 22;
+    c.save();
+    c.beginPath();
+    c.moveTo(0, 10*k);                              // 잎자루 쪽 (아래)
+    c.bezierCurveTo(-7*k, 5*k, -7*k, -6*k, -1.6*k, -10*k);
+    c.bezierCurveTo(-0.6*k, -8*k, -0.6*k, -8*k, 0, -8.6*k); // 끝 살짝 V
+    c.bezierCurveTo(0.6*k, -8*k, 0.6*k, -8*k, 1.6*k, -10*k);
+    c.bezierCurveTo(7*k, -6*k, 7*k, 5*k, 0, 10*k);
+    c.closePath();
+    c.fillStyle = color;
+    c.fill();
+    c.restore();
+  }
+  // 색을 밝게(+)/어둡게(-) — pct: -100~100
+  function shadeColor(hex, pct) {
+    let h = hex.replace('#','');
+    if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    let r = parseInt(h.substr(0,2),16);
+    let g = parseInt(h.substr(2,2),16);
+    let b = parseInt(h.substr(4,2),16);
+    const f = pct/100;
+    r = Math.round(Math.max(0,Math.min(255, r + 255*f)));
+    g = Math.round(Math.max(0,Math.min(255, g + 255*f)));
+    b = Math.round(Math.max(0,Math.min(255, b + 255*f)));
+    return 'rgb('+r+','+g+','+b+')';
+  }
+
+  // ----- 커서 -----
+  // 내장 커서 — SVG data URL, hotspot 0 0, 외곽선 없음
+  const CURSOR_SVG = {
+    heart: "<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><path d='M14 25C6 19 2 14 2 9.5 2 6 5 3.5 8 3.5c2.3 0 4.4 1.3 6 3.5 1.6-2.2 3.7-3.5 6-3.5 3 0 6 2.5 6 6C26 14 22 19 14 25z' fill='%23ff7eb3'/></svg>",
+    star: "<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><path d='M14 2l3.5 7.2 7.9 1.1-5.7 5.6 1.4 7.9L14 21.1 6.9 23.8l1.4-7.9-5.7-5.6 7.9-1.1z' fill='%23ffd34d'/></svg>",
+    paw: "<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><ellipse cx='14' cy='18' rx='6.5' ry='5.5' fill='%23ffb3c7'/><ellipse cx='6.5' cy='12' rx='2.7' ry='3.4' fill='%23ffb3c7'/><ellipse cx='21.5' cy='12' rx='2.7' ry='3.4' fill='%23ffb3c7'/><ellipse cx='10.5' cy='7' rx='2.4' ry='3' fill='%23ffb3c7'/><ellipse cx='17.5' cy='7' rx='2.4' ry='3' fill='%23ffb3c7'/></svg>",
+    flower: "<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><g fill='%23ff9ec7'><circle cx='14' cy='6.5' r='4.2'/><circle cx='14' cy='21.5' r='4.2'/><circle cx='6.5' cy='14' r='4.2'/><circle cx='21.5' cy='14' r='4.2'/></g><circle cx='14' cy='14' r='4' fill='%23ffe06b'/></svg>"
+  };
+  const CURSOR_LABELS = {
+    default: '기본', heart: '하트', star: '별', paw: '발바닥',
+    flower: '꽃', custom: '내 이미지'
+  };
+  function cursorValue(kind, imgData) {
+    // 내장 SVG 커서 — 32px 이하라 CSS url() 로 충분, hotspot 0 0
+    if (kind === 'default' || kind === 'custom') return '';
+    const svg = CURSOR_SVG[kind];
+    if (!svg) return '';
+    return "url(\"data:image/svg+xml;utf8," + svg + "\") 0 0, auto";
+  }
+
+  // 커스텀 커서는 "가짜 커서"(마우스 따라다니는 DOM 요소)로 구현.
+  // CSS url() 커서는 32px 넘으면 브라우저가 무시 + GIF 가 잘 안 돼서.
+  let fakeCursorEl = null;
+  function ensureFakeCursor() {
+    if (fakeCursorEl) return;
+    fakeCursorEl = document.createElement('img');
+    fakeCursorEl.id = 'fakeCursor';
+    fakeCursorEl.style.cssText =
+      'position:fixed;left:0;top:0;z-index:99999;pointer-events:none;'
+      + 'display:none;image-rendering:auto;';
+    document.body.appendChild(fakeCursorEl);
+  }
+  let fakeCursorOn = false;
+  function applyCursor() {
+    // 1) 커스텀 이미지 커서 — 가짜 커서 사용
+    if (deco.cursor === 'custom' && deco.cursorImg) {
+      ensureFakeCursor();
+      const sz = Math.max(24, Math.min(52, deco.cursorSize || 32));
+      fakeCursorEl.src = deco.cursorImg;
+      fakeCursorEl.style.width = sz + 'px';
+      fakeCursorEl.style.height = 'auto';
+      fakeCursorEl.style.display = 'block';
+      fakeCursorOn = true;
+      // 진짜 커서는 숨김 (hotspot 0 0 기준이라 가짜를 정확히 겹침)
+      document.body.style.cursor = 'none';
+      applyCursorNoneToAll(true);
+      return;
+    }
+    // 2) 내장 SVG 커서 또는 기본
+    fakeCursorOn = false;
+    if (fakeCursorEl) fakeCursorEl.style.display = 'none';
+    applyCursorNoneToAll(false);
+    const v = cursorValue(deco.cursor, deco.cursorImg);
+    document.body.style.cursor = v || '';
+    // 내장 SVG 커서는 모든 요소에도 적용 (버튼 등이 자기 커서 갖지 않게)
+    if (v) {
+      styleCursorAll(v);
+    } else {
+      styleCursorAll('');
+    }
+  }
+  // 모든 요소의 커서를 통일 (동적 <style> 사용)
+  let cursorStyleEl = null;
+  function styleCursorAll(v) {
+    if (!cursorStyleEl) {
+      cursorStyleEl = document.createElement('style');
+      document.head.appendChild(cursorStyleEl);
+    }
+    cursorStyleEl.textContent = v
+      ? '*, *:hover { cursor: ' + v + ' !important; }'
+      : '';
+  }
+  function applyCursorNoneToAll(on) {
+    if (!cursorStyleEl) {
+      cursorStyleEl = document.createElement('style');
+      document.head.appendChild(cursorStyleEl);
+    }
+    if (on) {
+      cursorStyleEl.textContent = '*, *:hover { cursor: none !important; }';
+    } else if (cursorStyleEl.textContent.indexOf('none') >= 0) {
+      cursorStyleEl.textContent = '';
+    }
+  }
+  // 가짜 커서를 마우스에 붙임 (hotspot 0 0 — 왼쪽 위 모서리)
+  document.addEventListener('mousemove', e => {
+    if (fakeCursorOn && fakeCursorEl) {
+      fakeCursorEl.style.left = e.clientX + 'px';
+      fakeCursorEl.style.top = e.clientY + 'px';
+    }
+  });
+  document.addEventListener('mouseleave', () => {
+    if (fakeCursorEl) fakeCursorEl.style.display = 'none';
+  });
+  document.addEventListener('mouseenter', () => {
+    if (fakeCursorOn && fakeCursorEl) fakeCursorEl.style.display = 'block';
+  });
+
+  // ----- 커서 따라다니는 효과 (trail) -----
+  let trailParticles = [];
+  let trailRAF = null;
+  let trailCanvas = null, trailCtx = null;
+  function ensureTrailCanvas() {
+    if (trailCanvas) return;
+    trailCanvas = document.createElement('canvas');
+    trailCanvas.id = 'trailLayer';
+    trailCanvas.style.cssText =
+      'position:fixed;inset:0;z-index:9990;pointer-events:none;';
+    document.body.appendChild(trailCanvas);
+    trailCtx = trailCanvas.getContext('2d');
+    const rs = () => {
+      trailCanvas.width = window.innerWidth;
+      trailCanvas.height = window.innerHeight;
+    };
+    rs();
+    window.addEventListener('resize', rs);
+  }
+  // 트레일 종류 (기본색 포함)
+  const TRAIL_TYPES = {
+    none:    { label: '없음',   defaultColor: '' },
+    sparkle: { label: '반짝이', defaultColor: '#ffd86b' },
+    heart:   { label: '하트',   defaultColor: '#ff8fb3' },
+    star:    { label: '별',     defaultColor: '#ffe06b' },
+    bubble:  { label: '방울',   defaultColor: '#bfe3ff' },
+    custom:  { label: '직접 입력', defaultColor: '#ff9ec7' }
+  };
+  function trailColorOf() {
+    return deco.trailColor
+      || (TRAIL_TYPES[deco.trail] && TRAIL_TYPES[deco.trail].defaultColor)
+      || '#ffd86b';
+  }
+  // 트레일 = 커서 뒤를 사슬처럼 쫓아오는 입자들.
+  // 입자 개수 = 꼬리 길이, 각 입자는 앞 입자(맨앞은 커서)를 부드럽게 추적.
+  let trailChain = [];     // [{x,y}] — 0번이 커서에 가장 가까움
+  let trailMouseX = 0, trailMouseY = 0;
+  let trailHasMouse = false;
+  function rebuildTrailChain() {
+    const n = Math.max(1, Math.min(12, deco.trailCount || 5));
+    trailChain = [];
+    for (let i = 0; i < n; i++) {
+      trailChain.push({ x: trailMouseX, y: trailMouseY, rot: 0 });
+    }
+  }
+  let trailMoveAt = 0;     // 마지막으로 마우스가 움직인 시각
+  let trailFade = 1;       // 멈췄을 때 페이드 (1=보임, 0=사라짐)
+  function trailFrame() {
+    if (!trailCanvas) return;
+    trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+    if (deco.trail === 'none' || !trailHasMouse) {
+      trailRAF = requestAnimationFrame(trailFrame);
+      return;
+    }
+    const kind = deco.trail;
+    const color = trailColorOf();
+    // 추적 강도 — 속도(1~10)가 클수록 빠르게 따라붙음
+    const ease = 0.08 + (Math.max(1, Math.min(10, deco.trailSpeed || 5)) - 1)
+      * 0.055;
+    // 커서 완전히 뒤(오른쪽 아래 끝)에 오도록 오프셋.
+    // hotspot 0 0 이라 커서는 마우스 좌표에서 우하단으로 펼쳐짐 →
+    // 커서 크기만큼(살짝 더) 밀어야 커서 뒤쪽에 트레일이 옴.
+    let cursorPx;
+    if (deco.cursor === 'custom' && deco.cursorImg) {
+      cursorPx = Math.max(24, Math.min(52, deco.cursorSize || 32));
+    } else if (deco.cursor !== 'default') {
+      cursorPx = 28;   // 내장 SVG 커서 기준 크기
+    } else {
+      cursorPx = 20;   // 기본 화살표 커서 대략
+    }
+    const offset = cursorPx * 0.92;
+    const tx = trailMouseX + offset;
+    const ty = trailMouseY + offset;
+    // 사슬 업데이트: 0번은 커서(오프셋 적용)를, i번은 (i-1)번을 쫓음
+    for (let i = 0; i < trailChain.length; i++) {
+      const target = (i === 0)
+        ? { x: tx, y: ty }
+        : trailChain[i - 1];
+      const seg = trailChain[i];
+      const dx = target.x - seg.x, dy = target.y - seg.y;
+      seg.x += dx * ease;
+      seg.y += dy * ease;
+      seg.rot = (seg.rot || 0) + 0.06;
+    }
+    // 마우스가 멈췄는지 — 멈췄고 사슬이 다 모이면 서서히 사라짐
+    const idle = Date.now() - trailMoveAt;
+    const head = trailChain[0];
+    const lastSeg = trailChain[trailChain.length - 1];
+    // 꼬리 끝이 머리 근처에 다 모였는지
+    const gathered = Math.abs(lastSeg.x - tx) < 6
+      && Math.abs(lastSeg.y - ty) < 6;
+    if (idle > 260 && gathered) {
+      trailFade = Math.max(0, trailFade - 0.06);
+    } else {
+      trailFade = Math.min(1, trailFade + 0.16);
+    }
+    // 맨 뒤(꼬리 끝)부터 그려서 앞 입자가 위에 오게
+    for (let i = trailChain.length - 1; i >= 0; i--) {
+      const seg = trailChain[i];
+      // 뒤로 갈수록 작아지고 옅어짐
+      const t = trailChain.length === 1 ? 1 : 1 - i / trailChain.length;
+      const size = 8 + 12 * t;
+      const alpha = (0.35 + 0.6 * t) * trailFade;
+      if (alpha <= 0.01) continue;
+      trailCtx.save();
+      trailCtx.globalAlpha = alpha;
+      trailCtx.translate(seg.x, seg.y);
+      trailCtx.fillStyle = color;
+      if (kind === 'heart') {
+        drawHeart(trailCtx, size);
+      } else if (kind === 'star') {
+        trailCtx.rotate(seg.rot);
+        drawStar(trailCtx, size);
+      } else if (kind === 'bubble') {
+        trailCtx.strokeStyle = color;
+        trailCtx.lineWidth = 1.4;
+        trailCtx.beginPath();
+        trailCtx.arc(0, 0, size*0.5, 0, 6.2832);
+        trailCtx.stroke();
+        trailCtx.globalAlpha = alpha * 0.3;
+        trailCtx.beginPath();
+        trailCtx.arc(0, 0, size*0.5, 0, 6.2832);
+        trailCtx.fill();
+      } else if (kind === 'custom') {
+        trailCtx.font = size + 'px serif';
+        trailCtx.textAlign = 'center';
+        trailCtx.textBaseline = 'middle';
+        trailCtx.fillText(deco.trailCustomText || '✨', 0, 0);
+      } else {
+        // sparkle
+        const g = trailCtx.createRadialGradient(0,0,0, 0,0,size);
+        g.addColorStop(0, color);
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        trailCtx.fillStyle = g;
+        trailCtx.beginPath();
+        trailCtx.arc(0, 0, size, 0, 6.2832);
+        trailCtx.fill();
+        trailCtx.strokeStyle = color;
+        trailCtx.lineWidth = 1.1;
+        trailCtx.beginPath();
+        trailCtx.moveTo(-size*0.7,0); trailCtx.lineTo(size*0.7,0);
+        trailCtx.moveTo(0,-size*0.7); trailCtx.lineTo(0,size*0.7);
+        trailCtx.stroke();
+      }
+      trailCtx.restore();
+    }
+    trailRAF = requestAnimationFrame(trailFrame);
+  }
+  function trailStart() {
+    if (deco.trail === 'none') {
+      if (trailRAF) { cancelAnimationFrame(trailRAF); trailRAF = null; }
+      if (trailCtx) trailCtx.clearRect(0,0,trailCanvas.width,trailCanvas.height);
+      return;
+    }
+    ensureTrailCanvas();
+    rebuildTrailChain();
+    if (!trailRAF) trailFrame();
+  }
+  // 마우스 위치 추적 — 움직일 때마다 시각 기록 (멈춤 감지용)
+  document.addEventListener('mousemove', e => {
+    trailMouseX = e.clientX;
+    trailMouseY = e.clientY;
+    trailMoveAt = Date.now();
+    trailFade = 1;
+    if (!trailHasMouse) {
+      trailHasMouse = true;
+      // 첫 위치로 사슬 초기화 (한 곳에서 시작하지 않게)
+      trailChain.forEach(s => { s.x = trailMouseX; s.y = trailMouseY; });
+    }
+  });
+
+  // ----- 꾸미기 적용 -----
+  function applyDeco() {
+    fxStart(deco.fx);
+    applyCursor();
+    trailStart();
+  }
+
+  // ----- 꾸미기 창 UI -----
+  function renderDecoUI() {
+    // ----- 배경 효과 그리드 (텍스트) -----
+    const fxGrid = $('fxGrid');
+    fxGrid.innerHTML = '';
+    Object.keys(FX_TYPES).forEach(key => {
+      const def = FX_TYPES[key];
+      const it = document.createElement('div');
+      it.className = 'deco-item deco-item-text' + (deco.fx === key ? ' on' : '');
+      it.innerHTML = '<span class="di-name">' + def.label + '</span>';
+      it.addEventListener('click', () => {
+        deco.fx = key;
+        if (deco.fx === 'none') deco.fxColor = '';
+        saveDeco();
+        fxStart(key);
+        renderDecoUI();
+      });
+      fxGrid.appendChild(it);
+    });
+    // 효과 옵션 박스 — 효과가 있을 때만 통째로 표시
+    const hasFx = deco.fx !== 'none' && FX_TYPES[deco.fx];
+    $('fxOpts').style.display = hasFx ? 'block' : 'none';
+    // 효과 색상
+    const fxColorRow = $('fxColorRow');
+    if (hasFx) {
+      fxColorRow.style.display = 'flex';
+      $('fxColorInput').value = fxColorOf(deco.fx);
+    } else {
+      fxColorRow.style.display = 'none';
+    }
+    // 효과 — 직접 입력일 때 글자 입력칸
+    const fxCustomRow = $('fxCustomRow');
+    if (deco.fx === 'custom') {
+      fxCustomRow.style.display = 'flex';
+      $('fxCustomInput').value = deco.fxCustomText || '';
+    } else {
+      fxCustomRow.style.display = 'none';
+    }
+    // 효과 움직임 (직접 입력일 때만)
+    const fxModeRow = $('fxModeRow');
+    if (deco.fx === 'custom') {
+      fxModeRow.style.display = 'flex';
+      document.querySelectorAll('#fxModeSeg button').forEach(btn => {
+        btn.classList.toggle('on', btn.dataset.fxmode === (deco.fxMode || 'fall'));
+      });
+    } else {
+      fxModeRow.style.display = 'none';
+    }
+    // 효과 개수·크기·속도
+    if (hasFx) {
+      $('fxCountRow').style.display = 'flex';
+      $('fxCountInput').value = deco.fxCount || 34;
+      $('fxCountVal').textContent = (deco.fxCount || 34);
+      $('fxSizeRow').style.display = 'flex';
+      $('fxSizeInput').value = deco.fxSize || 5;
+      $('fxSizeVal').textContent = (deco.fxSize || 5);
+      $('fxSpeedRow').style.display = 'flex';
+      $('fxSpeedInput').value = deco.fxSpeed || 5;
+      $('fxSpeedVal').textContent = (deco.fxSpeed || 5);
+    } else {
+      $('fxCountRow').style.display = 'none';
+      $('fxSizeRow').style.display = 'none';
+      $('fxSpeedRow').style.display = 'none';
+    }
+    // ----- 커서 그리드 (텍스트 + 작은 미리보기) -----
+    const curGrid = $('cursorGrid');
+    curGrid.innerHTML = '';
+    ['default', 'heart', 'star', 'paw', 'flower', 'custom'].forEach(key => {
+      const it = document.createElement('div');
+      it.className = 'deco-item deco-item-cursor' + (deco.cursor === key ? ' on' : '');
+      let preview = '';
+      if (key === 'custom' && deco.cursorImg) {
+        preview = '<img class="di-cursor-img" src="' + deco.cursorImg + '">';
+      } else if (key !== 'default' && key !== 'custom') {
+        preview = '<img class="di-cursor-img" src="data:image/svg+xml;utf8,'
+          + CURSOR_SVG[key] + '">';
+      }
+      it.innerHTML = preview
+        + '<span class="di-name">' + CURSOR_LABELS[key] + '</span>';
+      it.addEventListener('click', () => {
+        if (key === 'custom' && !deco.cursorImg) {
+          $('cursorFile').click();
+          return;
+        }
+        deco.cursor = key;
+        saveDeco();
+        applyCursor();
+        renderDecoUI();
+      });
+      curGrid.appendChild(it);
+    });
+    $('cursorCustomHint').textContent = deco.cursorImg
+      ? '내 이미지가 등록돼 있어요'
+      : 'PNG·GIF 등 (애니메이션도 OK)';
+    // 커서 크기 — 커스텀 이미지일 때만 옵션 박스 표시
+    if (deco.cursor === 'custom' && deco.cursorImg) {
+      $('cursorOpts').style.display = 'block';
+      $('cursorSizeInput').value = deco.cursorSize || 32;
+      $('cursorSizeVal').textContent = (deco.cursorSize || 32) + 'px';
+    } else {
+      $('cursorOpts').style.display = 'none';
+    }
+    // ----- 트레일 그리드 (텍스트) -----
+    const trGrid = $('trailGrid');
+    trGrid.innerHTML = '';
+    Object.keys(TRAIL_TYPES).forEach(key => {
+      const it = document.createElement('div');
+      it.className = 'deco-item deco-item-text' + (deco.trail === key ? ' on' : '');
+      it.innerHTML = '<span class="di-name">' + TRAIL_TYPES[key].label + '</span>';
+      it.addEventListener('click', () => {
+        deco.trail = key;
+        if (deco.trail === 'none') deco.trailColor = '';
+        saveDeco();
+        trailStart();
+        renderDecoUI();
+      });
+      trGrid.appendChild(it);
+    });
+    // 트레일 옵션 박스 — 트레일이 있을 때만
+    const hasTrail = deco.trail !== 'none';
+    $('trailOpts').style.display = hasTrail ? 'block' : 'none';
+    // 트레일 — 직접 입력일 때 글자 입력칸
+    const trCustomRow = $('trailCustomRow');
+    if (deco.trail === 'custom') {
+      trCustomRow.style.display = 'flex';
+      $('trailCustomInput').value = deco.trailCustomText || '';
+    } else {
+      trCustomRow.style.display = 'none';
+    }
+    if (hasTrail) {
+      $('trailColorRow').style.display = 'flex';
+      $('trailColorInput').value = trailColorOf();
+      $('trailCountRow').style.display = 'flex';
+      $('trailCountInput').value = deco.trailCount || 5;
+      $('trailCountVal').textContent = (deco.trailCount || 5);
+      $('trailSpeedRow').style.display = 'flex';
+      $('trailSpeedInput').value = deco.trailSpeed || 5;
+      $('trailSpeedVal').textContent = (deco.trailSpeed || 5);
+    } else {
+      $('trailColorRow').style.display = 'none';
+      $('trailCountRow').style.display = 'none';
+      $('trailSpeedRow').style.display = 'none';
+    }
+  }
+  // 커서 이미지 업로드
+  $('cursorUpload').addEventListener('click', () => $('cursorFile').click());
+  $('cursorFile').addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('이미지 파일만 가능해요'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      const finish = (data) => {
+        deco.cursorImg = data;
+        deco.cursor = 'custom';
+        saveDeco(); applyCursor(); renderDecoUI();
+        toast('<span class="th">♥</span> 커서를 바꿨어요');
+      };
+      // GIF 는 애니메이션 유지를 위해 원본 그대로 사용
+      if (file.type === 'image/gif') { finish(result); return; }
+      // 그 외 — 너무 크면 256px 로만 줄임 (표시 크기는 CSS 가 조절)
+      const img = new Image();
+      img.onload = () => {
+        const max = 256;
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > max || h > max) {
+          const r = Math.min(max / w, max / h);
+          w = Math.round(w * r); h = Math.round(h * r);
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          try { finish(cv.toDataURL('image/png')); return; }
+          catch {}
+        }
+        finish(result);
+      };
+      img.onerror = () => finish(result);
+      img.src = result;
+    };
+    reader.readAsDataURL(file);
+  });
+  // 효과 색상 변경
+  $('fxColorInput').addEventListener('input', e => {
+    deco.fxColor = e.target.value;
+    saveDeco();
+    if (deco.fx !== 'none') fxStart(deco.fx);
+  });
+  // 효과 사용자 글자 변경
+  $('fxCustomInput').addEventListener('input', e => {
+    deco.fxCustomText = e.target.value;
+    saveDeco();
+    // 글리프만 바뀌면 됨 — 다음 프레임부터 자동 반영, 재시작 불필요
+  });
+  // 트레일 색상 변경
+  $('trailColorInput').addEventListener('input', e => {
+    deco.trailColor = e.target.value;
+    saveDeco();
+  });
+  // 트레일 사용자 글자 변경
+  $('trailCustomInput').addEventListener('input', e => {
+    deco.trailCustomText = e.target.value;
+    saveDeco();
+  });
+  // 커서 크기 변경
+  $('cursorSizeInput').addEventListener('input', e => {
+    deco.cursorSize = parseInt(e.target.value, 10) || 32;
+    $('cursorSizeVal').textContent = deco.cursorSize + 'px';
+    saveDeco();
+    applyCursor();
+  });
+  // 트레일 개수 변경
+  $('trailCountInput').addEventListener('input', e => {
+    deco.trailCount = parseInt(e.target.value, 10) || 5;
+    $('trailCountVal').textContent = deco.trailCount;
+    saveDeco();
+    trailStart();   // 꼬리 길이 바뀌면 사슬 재생성
+  });
+  // 트레일 따라오는 속도
+  $('trailSpeedInput').addEventListener('input', e => {
+    deco.trailSpeed = parseInt(e.target.value, 10) || 5;
+    $('trailSpeedVal').textContent = deco.trailSpeed;
+    saveDeco();
+  });
+  // 효과 개수
+  $('fxCountInput').addEventListener('input', e => {
+    deco.fxCount = parseInt(e.target.value, 10) || 34;
+    $('fxCountVal').textContent = deco.fxCount;
+    saveDeco();
+    if (deco.fx !== 'none') fxStart(deco.fx);
+  });
+  // 효과 크기
+  $('fxSizeInput').addEventListener('input', e => {
+    deco.fxSize = parseInt(e.target.value, 10) || 5;
+    $('fxSizeVal').textContent = deco.fxSize;
+    saveDeco();
+    if (deco.fx !== 'none') fxStart(deco.fx);
+  });
+  // 효과 속도
+  $('fxSpeedInput').addEventListener('input', e => {
+    deco.fxSpeed = parseInt(e.target.value, 10) || 5;
+    $('fxSpeedVal').textContent = deco.fxSpeed;
+    saveDeco();
+    if (deco.fx !== 'none') fxStart(deco.fx);
+  });
+  // 효과 움직임 (직접 입력 — 떨어짐/떠다님)
+  document.querySelectorAll('#fxModeSeg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deco.fxMode = btn.dataset.fxmode;
+      saveDeco();
+      if (deco.fx === 'custom') fxStart('custom');
+      renderDecoUI();
+    });
+  });
+  renderDecoUI();
+
+
   const STICKER_SET = ['🌸','💗','⭐','🌙','☁️','🍓','🧸','🎀','🦋','🌷',
                        '✨','🍀','🐰','🌈','💎','🎈','🍰','☕','📎','💌',
                        '🪄','🫧','🌻','🐱'];
@@ -5588,7 +7038,7 @@
   let dmColor = DDAY_COLORS[0];
   let dmMode = 'until';
 
-  // 색상 스와치 만들기
+  // 색상 스와치 만들기 (프리셋 + 직접 고르기)
   (function buildDdayColors() {
     const wrap = $('dmColors');
     DDAY_COLORS.forEach(c => {
@@ -5603,11 +7053,45 @@
       });
       wrap.appendChild(s);
     });
+    // 직접 색 고르기
+    const cu = document.createElement('label');
+    cu.className = 'dm-color dm-color-custom';
+    cu.id = 'dmColorCustom';
+    cu.title = '직접 색 고르기';
+    cu.innerHTML = '<span>＋</span>'
+      + '<input type="color" id="dmColorPicker">';
+    const picker = cu.querySelector('#dmColorPicker');
+    picker.addEventListener('input', () => {
+      dmColor = picker.value;
+      syncDmColors();
+      updateDmPreview();
+    });
+    wrap.appendChild(cu);
   })();
   function syncDmColors() {
-    document.querySelectorAll('#dmColors .dm-color').forEach(s => {
-      s.classList.toggle('on', s.dataset.color === dmColor);
-    });
+    let matched = false;
+    document.querySelectorAll('#dmColors .dm-color:not(.dm-color-custom)')
+      .forEach(s => {
+        const on = s.dataset.color === dmColor;
+        s.classList.toggle('on', on);
+        if (on) matched = true;
+      });
+    // 프리셋에 없는 색이면 — 커스텀 스와치를 그 색으로 표시
+    const cu = $('dmColorCustom');
+    if (cu) {
+      cu.classList.toggle('on', !matched);
+      if (!matched) {
+        cu.style.background = dmColor;
+        const sp = cu.querySelector('span');
+        if (sp) sp.textContent = '';
+        const pk = $('dmColorPicker');
+        if (pk) pk.value = dmColor;
+      } else {
+        cu.style.background = '';
+        const sp = cu.querySelector('span');
+        if (sp) sp.textContent = '＋';
+      }
+    }
   }
   function updateDmPreview() {
     const prev = $('dmPreview');
@@ -6166,7 +7650,7 @@
   // (adminScreen 이 숨겨져 있으면 '닫힌 것'으로 간주되도록 래핑)
   WINDOWS.push({
     w: adminW,
-    label: '배경 바꾸기',
+    label: '바탕화면 설정',
     isClosed: () => !adminScreen.classList.contains('show')
   });
 
@@ -6254,6 +7738,7 @@
   loadBg();
   applyBg();
   syncBgPanel();
+  applyDeco();
   renderGrid();
 
   } // end bootApp
