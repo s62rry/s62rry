@@ -835,7 +835,8 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // 모든 데이터는 사용자 브라우저(localStorage)에만 저장됩니다.
+  // 텍스트 데이터는 localStorage, 이미지는 IndexedDB 에 저장됩니다.
+  // (localStorage 는 약 5MB 한도라 이미지가 많으면 부족 — IndexedDB 는 훨씬 큼)
   const $ = id => document.getElementById(id);
   const STORE_KEY = 'personakeeper:data';
   const THEME_KEY = 'personakeeper:theme';
@@ -843,6 +844,62 @@
   let storageOK = true;
   try { localStorage.setItem('__t__','1'); localStorage.removeItem('__t__'); }
   catch { storageOK = false; }
+
+  // ===== IndexedDB — 캐릭터 이미지 저장소 =====
+  // store: 'images', key = persona id, value = base64 data URL
+  const IDB_NAME = 'personakeeper';
+  const IDB_STORE = 'images';
+  let _idb = null;
+  function idbOpen() {
+    return new Promise((resolve, reject) => {
+      if (_idb) { resolve(_idb); return; }
+      let req;
+      try { req = indexedDB.open(IDB_NAME, 1); }
+      catch (e) { reject(e); return; }
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(IDB_STORE)) {
+          db.createObjectStore(IDB_STORE);
+        }
+      };
+      req.onsuccess = () => { _idb = req.result; resolve(_idb); };
+      req.onerror = () => reject(req.error);
+    });
+  }
+  function idbGet(key) {
+    return idbOpen().then(db => new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result || '');
+      req.onerror = () => reject(req.error);
+    }));
+  }
+  function idbSet(key, val) {
+    return idbOpen().then(db => new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put(val, key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    }));
+  }
+  function idbDelete(key) {
+    return idbOpen().then(db => new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    }));
+  }
+  function idbAllKeys() {
+    return idbOpen().then(db => new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).getAllKeys();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    }));
+  }
+  // 메모리 이미지 캐시 — id → base64 (화면 그릴 때 동기 접근용)
+  const imgCache = {};
 
   // ===== 토스트 =====
   function toast(msg) {
@@ -854,8 +911,9 @@
   }
 
   // ===== 데이터 =====
-  // { categories: [{id,name,parentId}], personas: [{id,name,catId,age,height,
-  //   gender,tagline,chars:[],memo,tags:[],img,created}] }
+  // localStorage: { categories:[{id,name,parentId}],
+  //   personas:[{id,name,catId,age,height,gender,tagline,chars,memo,tags,
+  //              hasImg,created}] }   ← 이미지 자체는 IndexedDB 에
   let store = { categories: [], personas: [] };
   try {
     const raw = localStorage.getItem(STORE_KEY);
@@ -870,19 +928,24 @@
   function save() {
     if (!storageOK) { toast('브라우저 저장이 막혀 있어요'); return false; }
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      // 저장 전 — 이미지 필드는 빼고 hasImg 플래그만 (이미지는 IndexedDB)
+      const lean = {
+        categories: store.categories,
+        personas: store.personas.map(p => {
+          const c = {};
+          for (const k in p) { if (k !== 'img') c[k] = p[k]; }
+          return c;
+        })
+      };
+      localStorage.setItem(STORE_KEY, JSON.stringify(lean));
       return true;
     } catch (err) {
-      // localStorage 용량 초과 (대개 이미지 때문)
       toast('저장 공간이 가득 찼어요');
       alert(
-        '브라우저의 저장 공간(약 5MB)이 가득 찼어요.\n\n'
-        + '거의 항상 캐릭터 이미지 때문이에요. 텍스트는 용량을 거의\n'
-        + '안 쓰지만, 사진은 한 장당 수백 KB라서 금방 차요.\n\n'
-        + '이렇게 해보세요:\n'
-        + '• 상단 저장(↓) 버튼으로 지금 데이터를 파일로 백업\n'
-        + '• 이미지가 없거나 작은 캐릭터로 정리\n'
-        + '• 일부 캐릭터의 이미지를 빼거나 더 작은 사진으로 교체\n\n'
+        '브라우저의 텍스트 저장 공간이 가득 찼어요.\n\n'
+        + '이미지는 별도 저장소(IndexedDB)에 저장되니 보통은 텍스트가\n'
+        + '이렇게 차는 일은 드물어요. 캐릭터 수가 아주 많다면\n'
+        + '상단 저장(↓) 버튼으로 백업해 두는 걸 권해요.\n\n'
         + '※ 이번 변경 내용은 저장되지 않았어요.'
       );
       return false;
@@ -1221,7 +1284,8 @@
 
       const img = document.createElement('div');
       img.className = 'card-img';
-      if (p.img) img.style.backgroundImage = 'url(' + p.img + ')';
+      const cardImgData = imgCache[p.id];
+      if (cardImgData) img.style.backgroundImage = 'url(' + cardImgData + ')';
       else img.textContent = '👤';
 
       const body = document.createElement('div');
@@ -1428,7 +1492,7 @@
     const defaultCat = p ? (p.catId || '')
       : (curCat !== 'all' && curCat !== 'none' ? curCat : '');
     fillCategorySelect(defaultCat);
-    setEditImg(p ? (p.img || '') : '');
+    setEditImg(p ? (imgCache[p.id] || '') : '');
     renderEditChars();
     renderEditTags();
     $('editDelete').style.display = p ? '' : 'none';
@@ -1515,17 +1579,35 @@
       chars: editChars.slice(),
       memo: $('fMemo').value,
       tags: editTags.slice(),
-      img: editImg
+      hasImg: !!editImg
     };
+    let pid;
     if (editingId) {
+      pid = editingId;
       const p = store.personas.find(x => x.id === editingId);
-      if (p) Object.assign(p, fields);
+      if (p) {
+        // img 키는 store 에 두지 않음 — 기존 잔재 제거
+        delete fields.img;
+        for (const k in fields) p[k] = fields[k];
+        delete p.img;
+      }
       toast('수정했어요');
     } else {
       fields.id = uid();
+      pid = fields.id;
       fields.created = Date.now();
       store.personas.unshift(fields);
       toast('"' + name + '" 추가됨');
+    }
+    // 이미지 — IndexedDB 에 저장 (없으면 삭제)
+    if (editImg) {
+      imgCache[pid] = editImg;
+      idbSet(pid, editImg).catch(() => {
+        toast('이미지 저장에 실패했어요');
+      });
+    } else {
+      delete imgCache[pid];
+      idbDelete(pid).catch(() => {});
     }
     save();
     closeEdit();
@@ -1538,7 +1620,10 @@
     const p = store.personas.find(x => x.id === editingId);
     if (!p) return;
     if (!confirm('"' + (p.name || '이 캐릭터') + '"을(를) 삭제할까요?')) return;
-    store.personas = store.personas.filter(x => x.id !== editingId);
+    const delId = editingId;
+    store.personas = store.personas.filter(x => x.id !== delId);
+    delete imgCache[delId];
+    idbDelete(delId).catch(() => {});   // IndexedDB 이미지도 제거
     save();
     closeEdit();
     refresh();
@@ -1556,7 +1641,8 @@
 
     const img = document.createElement('div');
     img.className = 'detail-img';
-    if (p.img) img.style.backgroundImage = 'url(' + p.img + ')';
+    const detailImgData = imgCache[p.id];
+    if (detailImgData) img.style.backgroundImage = 'url(' + detailImgData + ')';
     else img.textContent = '👤';
     body.appendChild(img);
 
@@ -1742,13 +1828,20 @@
   });
 
   // ===== 저장 / 불러오기 (백업) =====
-  // 캐릭터·카테고리 전체를 파일 하나로 내보내고, 되돌릴 수 있어요.
+  // 백업 파일에는 이미지도 함께 담깁니다 (파일은 용량 제한 없음).
   $('exportBtn').addEventListener('click', () => {
+    // personas 에 이미지(img)를 다시 합쳐서 내보냄
+    const personasWithImg = store.personas.map(p => {
+      const c = {};
+      for (const k in p) { if (k !== 'hasImg') c[k] = p[k]; }
+      if (imgCache[p.id]) c.img = imgCache[p.id];
+      return c;
+    });
     const payload = {
       _app: 'personakeeper',
-      _version: 1,
+      _version: 2,
       _exportedAt: new Date().toISOString(),
-      data: store
+      data: { categories: store.categories, personas: personasWithImg }
     };
     let json;
     try { json = JSON.stringify(payload); }
@@ -1786,21 +1879,76 @@
         + '명이 백업 파일의 ' + ppl.length + '명으로 모두 바뀝니다.\n\n계속할까요?')) {
         return;
       }
-      store.categories = cats;
-      store.personas = ppl;
-      save();
-      curCat = 'all';
-      searchText = '';
-      $('searchInput').value = '';
-      refresh();
-      toast('캐릭터 ' + ppl.length + '명을 불러왔어요');
+      // 기존 IndexedDB 이미지 비우고, 백업의 이미지를 IndexedDB 로
+      const imgWrites = [];
+      // 이전 이미지 캐시 초기화
+      for (const k in imgCache) delete imgCache[k];
+      const cleanPersonas = ppl.map(p => {
+        const c = {};
+        for (const k in p) { if (k !== 'img') c[k] = p[k]; }
+        if (p.img && typeof p.img === 'string' && p.img.indexOf('data:') === 0) {
+          c.hasImg = true;
+          imgCache[p.id] = p.img;
+          imgWrites.push(idbSet(p.id, p.img).catch(() => {}));
+        } else {
+          c.hasImg = false;
+        }
+        return c;
+      });
+      // 기존 IndexedDB 이미지 중 백업에 없는 것 정리
+      idbAllKeys().then(keys => {
+        const keepIds = {};
+        cleanPersonas.forEach(p => { keepIds[p.id] = true; });
+        keys.forEach(k => { if (!keepIds[k]) idbDelete(k).catch(() => {}); });
+      }).catch(() => {});
+      Promise.all(imgWrites).then(() => {
+        store.categories = cats;
+        store.personas = cleanPersonas;
+        save();
+        curCat = 'all';
+        searchText = '';
+        $('searchInput').value = '';
+        refresh();
+        toast('캐릭터 ' + cleanPersonas.length + '명을 불러왔어요');
+      });
     };
     reader.onerror = () => toast('파일을 읽지 못했어요');
     reader.readAsText(file);
   });
 
   // ===== 시작 =====
+  // 1) 일단 화면을 한 번 그림 (이미지는 아직 없을 수 있음)
   refresh();
+  // 2) IndexedDB 준비 → 기존 localStorage 이미지 마이그레이션 → 캐시 로드
+  (function initStorage() {
+    idbOpen().then(() => {
+      // (a) 기존 데이터에 img(base64)가 박혀 있으면 IndexedDB 로 옮김
+      const migrations = [];
+      let migrated = false;
+      store.personas.forEach(p => {
+        if (p.img && typeof p.img === 'string' && p.img.indexOf('data:') === 0) {
+          migrated = true;
+          imgCache[p.id] = p.img;
+          migrations.push(idbSet(p.id, p.img).catch(() => {}));
+          p.hasImg = true;
+          delete p.img;
+        }
+      });
+      return Promise.all(migrations).then(() => {
+        if (migrated) save();   // 이미지 뺀 가벼운 버전으로 다시 저장
+        // (b) IndexedDB 에 있는 모든 이미지를 캐시에 로드
+        return idbAllKeys();
+      }).then(keys => {
+        const loads = keys.map(k =>
+          idbGet(k).then(v => { if (v) imgCache[k] = v; }).catch(() => {}));
+        return Promise.all(loads);
+      });
+    }).then(() => {
+      refresh();   // 이미지까지 갖춘 상태로 다시 그림
+    }).catch(() => {
+      // IndexedDB 가 아예 안 되는 환경 — 기존처럼 동작 (이미지는 그 세션만)
+    });
+  })();
 </script>
 </body>
 </html>
