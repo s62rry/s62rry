@@ -20,6 +20,7 @@
     --sky: #5cb3f5;
     --sky-l: #9fd4fb;
     --sky-soft: #e7f3fe;
+    --sky-rgb: 92,179,245;
     --pink: #ffb3ca;
     --pink-d: #ff96b6;
     --pink-soft: #ffe5ed;
@@ -102,8 +103,8 @@
   }
   .desk-icon:hover { background: rgba(255,255,255,0.35); }
   .desk-icon.sel {
-    background: rgba(109,180,240,0.25);
-    border-color: rgba(109,180,240,0.55);
+    background: rgba(var(--sky-rgb),0.25);
+    border-color: rgba(var(--sky-rgb),0.55);
   }
   .desk-icon .di-art {
     width: 50px; height: 50px;
@@ -170,15 +171,15 @@
   .task-item {
     display: flex; align-items: center; gap: 7px;
     height: 30px; padding: 0 12px;
-    background: rgba(109,180,240,0.16);
-    border: 1px solid rgba(109,180,240,0.3);
+    background: rgba(var(--sky-rgb),0.16);
+    border: 1px solid rgba(var(--sky-rgb),0.3);
     border-radius: 8px;
     font-size: 12px; color: var(--ink);
     cursor: pointer;
     max-width: 200px;
     transition: background 0.14s ease;
   }
-  .task-item:hover { background: rgba(109,180,240,0.28); }
+  .task-item:hover { background: rgba(var(--sky-rgb),0.28); }
   .task-item.minimized { opacity: 0.6; }
   .task-item .ti-dot {
     width: 7px; height: 7px; border-radius: 50%;
@@ -605,9 +606,9 @@
   .icon-grid .file:nth-child(5) { animation-delay: 0.28s; }
   .file:hover {
     background: var(--sky-soft);
-    border-color: #d3e8fa;
+    border-color: var(--sky-l);
   }
-  .file:active { background: #d6e9fb; }
+  .file:active { background: var(--sky-soft); }
 
   /* 파일 아이콘 — 픽셀 스타일, 박스 없음 */
   .file-ic {
@@ -1074,7 +1075,7 @@
   #snapHint {
     position: fixed;
     z-index: 9;
-    background: rgba(109,180,240,0.22);
+    background: rgba(var(--sky-rgb),0.22);
     border: 2px solid var(--sky);
     border-radius: 14px;
     pointer-events: none;
@@ -5669,6 +5670,9 @@
     root.setProperty('--sky-l', mixWhite(theme.blue, 0.42));
     root.setProperty('--sky-soft',
       dark ? mixBlack(theme.blue, 0.6) : mixWhite(theme.blue, 0.86));
+    // 보조 색 RGB (투명도 조절용 — 선택·호버 하이라이트)
+    const sc = hexToRgb(theme.blue);
+    root.setProperty('--sky-rgb', sc.r + ',' + sc.g + ',' + sc.b);
     // ----- 창·배경·글자 (모드에 따라) -----
     if (dark) {
       root.setProperty('--win', '#262430');
