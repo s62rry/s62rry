@@ -864,9 +864,25 @@
     }
   } catch {}
   function save() {
-    if (!storageOK) { toast('브라우저 저장이 막혀 있어요'); return; }
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
-    catch { toast('저장 공간이 부족해요 (이미지가 너무 클 수 있어요)'); }
+    if (!storageOK) { toast('브라우저 저장이 막혀 있어요'); return false; }
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      return true;
+    } catch (err) {
+      // localStorage 용량 초과 (대개 이미지 때문)
+      toast('저장 공간이 가득 찼어요');
+      alert(
+        '브라우저의 저장 공간(약 5MB)이 가득 찼어요.\n\n'
+        + '거의 항상 캐릭터 이미지 때문이에요. 텍스트는 용량을 거의\n'
+        + '안 쓰지만, 사진은 한 장당 수백 KB라서 금방 차요.\n\n'
+        + '이렇게 해보세요:\n'
+        + '• 상단 저장(↓) 버튼으로 지금 데이터를 파일로 백업\n'
+        + '• 이미지가 없거나 작은 캐릭터로 정리\n'
+        + '• 일부 캐릭터의 이미지를 빼거나 더 작은 사진으로 교체\n\n'
+        + '※ 이번 변경 내용은 저장되지 않았어요.'
+      );
+      return false;
+    }
   }
   const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
@@ -912,6 +928,19 @@
   function countInCategory(id) {
     const ids = categoryWithDescendants(id);
     return store.personas.filter(p => ids.indexOf(p.catId) >= 0).length;
+  }
+  // 카테고리의 최상위(대분류)를 찾음 — parentId 를 따라 올라감
+  function topCategoryOf(id) {
+    let cat = store.categories.find(c => c.id === id);
+    if (!cat) return null;
+    const seen = new Set();
+    while (cat.parentId && !seen.has(cat.id)) {
+      seen.add(cat.id);
+      const parent = store.categories.find(c => c.id === cat.parentId);
+      if (!parent) break;
+      cat = parent;
+    }
+    return cat;
   }
   function renderCategories() {
     const wrap = $('catList');
@@ -1416,19 +1445,31 @@
     e.target.value = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) { toast('이미지 파일만 가능해요'); return; }
-    // 큰 이미지는 줄여서 저장 (용량 절약)
+    // 큰 이미지는 줄여서 저장 (localStorage 용량 절약)
     const reader = new FileReader();
     reader.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const maxW = 700;
+        // 카드용이라 가로 460px 이면 충분히 선명
+        const maxW = 460;
         let w = img.naturalWidth, h = img.naturalHeight;
         if (w > maxW) { h = Math.round(h * (maxW / w)); w = maxW; }
         const cv = document.createElement('canvas');
         cv.width = w; cv.height = h;
         cv.getContext('2d').drawImage(img, 0, 0, w, h);
-        try { setEditImg(cv.toDataURL('image/jpeg', 0.82)); }
-        catch { setEditImg(reader.result); }
+        // 품질을 낮춰가며 적당한 용량(약 350KB 이하)으로
+        let dataUrl = '';
+        let quality = 0.72;
+        try {
+          dataUrl = cv.toDataURL('image/jpeg', quality);
+          while (dataUrl.length > 480000 && quality > 0.4) {
+            quality -= 0.12;
+            dataUrl = cv.toDataURL('image/jpeg', quality);
+          }
+          setEditImg(dataUrl);
+        } catch {
+          setEditImg(reader.result);
+        }
       };
       img.onerror = () => setEditImg(reader.result);
       img.src = reader.result;
@@ -1527,11 +1568,11 @@
     else img.textContent = '👤';
     body.appendChild(img);
 
-    // 카테고리 — 이름 위
-    const cat = store.categories.find(c => c.id === p.catId);
+    // 카테고리 — 이름 위 (하위 카테고리여도 대분류로 표시)
+    const top = p.catId ? topCategoryOf(p.catId) : null;
     const catEl = document.createElement('div');
     catEl.className = 'detail-cat';
-    catEl.textContent = cat ? cat.name : '미분류';
+    catEl.textContent = top ? top.name : '미분류';
     body.appendChild(catEl);
 
     // 이름 + with (이름 옆에 붙임)
