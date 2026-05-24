@@ -2815,7 +2815,7 @@
   }
   // IDB 로 옮길 무거운 키 목록 (이미지가 들어가는 것들)
   const IDB_KEYS = ['chathub:photos', 'chathub:bg', 'chathub:profile',
-                    'chathub:trash'];
+                    'chathub:trash', 'chathub:stickers'];
   // 'kv' 의 메모리 미러 — 시작 시 IDB 에서 읽어 채움
   const idbMirror = {};
   // 무거운 키는 IDB(미러) 에서, 나머지는 localStorage 에서 읽음
@@ -5225,7 +5225,7 @@
   // stickers: [{ id, kind:'emoji'|'image', emoji?, src?, x, y, size, shadow }]
   let stickers = [];
   try {
-    const raw = localStorage.getItem(STICKER_KEY);
+    const raw = lsGet(STICKER_KEY);
     if (raw) stickers = JSON.parse(raw);
     if (!Array.isArray(stickers)) stickers = [];
   } catch { stickers = []; }
@@ -5238,9 +5238,9 @@
         x: s.x, y: s.y, size: s.size, shadow: s.shadow,
         rot: s.rot, outline: s.outline
       }));
-      localStorage.setItem(STICKER_KEY, JSON.stringify(data));
+      lsSet(STICKER_KEY, JSON.stringify(data));
     }
-    catch { toast('스티커 이미지가 너무 커서 저장하지 못했어요'); }
+    catch { toast('스티커를 저장하지 못했어요'); }
   }
   // 스티커 하나를 화면에 그림
   function spawnSticker(s) {
