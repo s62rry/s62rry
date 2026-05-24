@@ -547,7 +547,7 @@
     display: inline-flex; image-rendering: pixelated;
   }
   .side-item .side-ic-px svg { width: 16px; height: 16px; }
-  .side-item:hover { background: #fff; color: var(--ink); }
+  .side-item:hover { background: var(--win); color: var(--ink); }
   .side-item.active {
     background: var(--pink-soft);
     color: var(--ink); font-weight: 700;
@@ -692,7 +692,7 @@
   .modal-bar {
     height: 38px;
     display: flex; align-items: center; padding: 0 13px;
-    background: #ffeaf3;
+    background: var(--titlebar);
     border-bottom: 1px solid var(--line2);
   }
   .modal-bar .traffic i { width: 11px; height: 11px; }
@@ -1871,7 +1871,7 @@
     display: flex; gap: 4px;
     padding: 8px 14px 0;
     border-bottom: 1px solid var(--line);
-    background: var(--titlebar);
+    background: var(--side);
     flex-shrink: 0;
   }
   .deco-tab {
@@ -5640,6 +5640,21 @@
       + Math.round(c.g*(1-amt)) + ','
       + Math.round(c.b*(1-amt)) + ')';
   }
+  // 포인트색의 '기운'만 살짝 남긴 밝은 회색.
+  // sat=채도(0=완전 회색, 1=원색), light=흰색 쪽으로 당기는 정도(0~1)
+  function tintGray(hex, sat, light) {
+    const c = hexToRgb(hex);
+    // 1) 채도 낮추기 — 각 채널을 회색(평균 밝기) 쪽으로 당김
+    const gray = (c.r + c.g + c.b) / 3;
+    let r = gray + (c.r - gray) * sat;
+    let g = gray + (c.g - gray) * sat;
+    let b = gray + (c.b - gray) * sat;
+    // 2) 흰색 쪽으로 밝게
+    r = r + (255 - r) * light;
+    g = g + (255 - g) * light;
+    b = b + (255 - b) * light;
+    return 'rgb(' + Math.round(r) + ',' + Math.round(g) + ',' + Math.round(b) + ')';
+  }
   // 메인 색 2개 + 모드로 CSS 변수 전체를 계산해 적용
   function applyTheme() {
     const root = document.documentElement.style;
@@ -5673,18 +5688,21 @@
       root.setProperty('--shadow', '0 16px 44px rgba(0,0,0,0.5)');
     } else {
       root.setProperty('--win', '#ffffff');
-      root.setProperty('--side', mixWhite(theme.pink, 0.93));
-      root.setProperty('--line', mixWhite(theme.pink, 0.9));
-      root.setProperty('--line2', mixWhite(theme.pink, 0.84));
+      // 사이드 — 채도 낮춘 '핑크빛 회색'
+      root.setProperty('--side', tintGray(theme.pink, 0.3, 0.84));
+      // 분리선 — 회색기 있지만 또렷하게 보이도록 덜 밝게
+      root.setProperty('--line', tintGray(theme.pink, 0.4, 0.74));
+      root.setProperty('--line2', tintGray(theme.pink, 0.42, 0.64));
       root.setProperty('--ink', '#4a4651');
       root.setProperty('--ink-soft', '#948e9d');
       root.setProperty('--ink-faint', '#bdb8c5');
-      root.setProperty('--titlebar', mixWhite(theme.pink, 0.9));
+      // 타이틀바 — 포인트 색을 흰색에 섞은 밝은 톤 (원래 디자인 그대로)
+      root.setProperty('--titlebar', mixWhite(theme.pink, 0.8));
       root.setProperty('--desktop-bg', mixWhite(theme.blue, 0.84));
       root.setProperty('--label-bg', 'rgba(255,255,255,0.7)');
       root.setProperty('--note-bg', '#fffdf7');
       root.setProperty('--taskbar', 'rgba(255,255,255,0.82)');
-      root.setProperty('--win-border', mixWhite(theme.pink, 0.78));
+      root.setProperty('--win-border', tintGray(theme.pink, 0.25, 0.4));
       root.setProperty('--menu-bg', 'rgba(255,255,255,0.92)');
       root.setProperty('--shadow', '0 16px 44px rgba(140,130,140,0.22)');
     }
@@ -7634,7 +7652,8 @@
   $('adminMin').addEventListener('click', e => {
     e.stopPropagation();
     adminW.win.classList.remove('maximized');
-    adminW.win.classList.add('collapsed');
+    // 접혀 있으면 펴고, 펴져 있으면 접기 (토글)
+    adminW.win.classList.toggle('collapsed');
     adminW.clamp();
     updateTaskbar();
   });
