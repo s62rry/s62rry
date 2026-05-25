@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>페어틀 메이커</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect x='1' y='3' width='7' height='10' rx='1.4' fill='%23d56b9a'/><rect x='8' y='3' width='7' height='10' rx='1.4' fill='%235b9bf0'/><circle cx='4.5' cy='6.6' r='1.5' fill='%23ffffff'/><path d='M2.2 12a2.3 2.3 0 0 1 4.6 0z' fill='%23ffffff'/><circle cx='11.5' cy='6.6' r='1.5' fill='%23ffffff'/><path d='M9.2 12a2.3 2.3 0 0 1 4.6 0z' fill='%23ffffff'/></svg>">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  /* ===== 페이퍼로지체 (카드 전용 글꼴, OFL 무료 폰트) ===== */
+  @font-face { font-family:'Paperlogy'; src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-3Light.woff2') format('woff2'); font-weight:300; font-display:swap; }
+  @font-face { font-family:'Paperlogy'; src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
+  @font-face { font-family:'Paperlogy'; src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-5Medium.woff2') format('woff2'); font-weight:500; font-display:swap; }
+  @font-face { font-family:'Paperlogy'; src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2') format('woff2'); font-weight:600; font-display:swap; }
+  @font-face { font-family:'Paperlogy'; src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
+  @font-face { font-family:'Paperlogy'; src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2'); font-weight:800; font-display:swap; }
+  @font-face { font-family:'Paperlogy'; src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2') format('woff2'); font-weight:900; font-display:swap; }
+
+  :root {
+    --bg: #f2f4f7;
+    --panel: #ffffff;
+    --border: #dde2ea;
+    --text: #41454f;
+    --text-strong: #1a1d24;
+    --text-dim: #82869a;
+    --accent: #2f6df0;
+    --accent-soft: #e6eefe;
+    --field: #f9fafc;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05);
+    --ui: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg: #14161c;
+    --panel: #1c1f28;
+    --border: #2b2f3b;
+    --text: #c4c8d4;
+    --text-strong: #e6e8ee;
+    --text-dim: #858a99;
+    --accent: #5b9bf0;
+    --accent-soft: #1d2a44;
+    --field: #181a21;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+  ::-webkit-scrollbar-corner { background: transparent; }
+
+  body {
+    font-family: var(--ui);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  header {
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 9px;
+    font-weight: 600; font-size: 15px;
+    letter-spacing: -0.02em; color: var(--text-strong);
+  }
+  .brand .dot { width: 11px; height: 11px; border-radius: 3px; background: var(--accent); }
+  .brand small { color: var(--text-dim); font-weight: 400; font-size: 11px; }
+  header button:not(.primary):not(:hover) { color: var(--text-strong); }
+
+  button {
+    font-family: var(--ui);
+    font-size: 12px; font-weight: 500;
+    color: var(--text);
+    background: var(--field);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 11px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.13s ease;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:active { transform: translateY(1px); }
+  button svg { width: 13px; height: 13px; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { opacity: 0.88; color: #fff; }
+  button.icon { padding: 6px; }
+  .header-actions { display: flex; gap: 7px; }
+
+  main {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    height: calc(100vh - 56px);
+  }
+
+  /* ===== 편집 패널 ===== */
+  .editor {
+    overflow-y: auto;
+    padding: 14px;
+    border-right: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .section {
+    margin-bottom: 12px;
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .section:last-child { margin-bottom: 0; }
+  .section-title {
+    font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .section-title .st-tag {
+    font-size: 10px; font-weight: 700;
+    border-radius: 4px; padding: 2px 6px;
+    letter-spacing: 0; text-transform: none;
+  }
+  .st-tag.tag-a { background: rgba(37,99,235,0.14); color: #2563eb; }
+  .st-tag.tag-b { background: rgba(59,130,246,0.14); color: #3b82f6; }
+  [data-theme="dark"] .st-tag.tag-a { color: #93c5fd; }
+  [data-theme="dark"] .st-tag.tag-b { color: #60a5fa; }
+
+  label.field-label {
+    display: block;
+    font-size: 11.5px; font-weight: 500;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .row { display: flex; gap: 7px; margin-bottom: 9px; }
+  .row > * { flex: 1; }
+  .field-group { margin-bottom: 9px; }
+  .field-group:last-child { margin-bottom: 0; }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    font-family: var(--ui);
+    font-size: 12.5px;
+    color: var(--text);
+    background: var(--field);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    outline: none;
+    transition: border-color 0.13s ease;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 50px; line-height: 1.55; }
+  select { cursor: pointer; }
+
+  input[type="range"] {
+    width: 100%; height: 14px; cursor: pointer;
+    background: transparent;
+    -webkit-appearance: none; appearance: none;
+  }
+  input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--border); }
+  input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--border); }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 12px; height: 12px; margin-top: -4px;
+    border-radius: 50%; background: var(--accent); border: none;
+    transition: transform 0.1s ease;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); border: none;
+  }
+  input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.15); }
+  input[type="color"] {
+    width: 100%; height: 30px; padding: 0;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--field); cursor: pointer; overflow: hidden;
+    -webkit-appearance: none; appearance: none;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  input[type="color"]::-webkit-color-swatch { border: none; border-radius: 5px; }
+  input[type="color"]::-moz-color-swatch { border: none; border-radius: 5px; }
+  /* 테마 컬러 — 동그란 색 선택기 */
+  .chip-row { display: flex; gap: 10px; }
+  .chip-input {
+    width: 38px; height: 38px; padding: 0;
+    border: 2px solid var(--border); border-radius: 50%;
+    background: var(--field); cursor: pointer; overflow: hidden;
+    -webkit-appearance: none; appearance: none;
+    transition: transform 0.1s ease;
+  }
+  .chip-input:hover { transform: scale(1.08); }
+  .chip-input::-webkit-color-swatch-wrapper { padding: 0; }
+  .chip-input::-webkit-color-swatch { border: none; border-radius: 50%; }
+  .chip-input::-moz-color-swatch { border: none; border-radius: 50%; }
+  .slider-row { display: flex; align-items: center; gap: 10px; }
+  .slider-val {
+    font-size: 11.5px; color: var(--text-dim);
+    min-width: 50px; text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .hint { font-size: 10.5px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
+  .file-btn { display: block; width: 100%; text-align: center; justify-content: center; }
+
+  .seg {
+    display: flex; gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 6px; overflow: hidden;
+  }
+  .seg button {
+    flex: 1; border: 0; border-radius: 0; background: var(--field);
+    border-right: 1px solid var(--border);
+    justify-content: center; padding: 6px 8px;
+  }
+  .seg button:last-child { border-right: 0; }
+  .seg button.active { background: var(--accent); color: #fff; }
+  .seg button.active:hover { color: #fff; }
+  .seg button svg { width: 16px; height: 16px; }
+
+  .toggle-btn {
+    margin-left: auto;
+    padding: 3px 9px; font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.02em; border-radius: 11px; text-transform: none;
+  }
+  .toggle-btn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .toggle-btn.on:hover { color: #fff; opacity: 0.88; }
+
+  .mini-btn { margin-left: auto; padding: 3px 8px; font-size: 11px; font-weight: 500; border-radius: 6px; }
+
+  /* ===== 미리보기 ===== */
+  .preview {
+    overflow: auto;
+    display: flex; align-items: center; justify-content: center;
+    padding: 28px;
+    background:
+      repeating-conic-gradient(var(--border) 0% 25%, transparent 0% 50%)
+      0 0 / 22px 22px;
+  }
+  [data-theme="dark"] .preview {
+    background:
+      repeating-conic-gradient(#23262f 0% 25%, transparent 0% 50%)
+      0 0 / 22px 22px;
+  }
+  .preview-stack {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 14px;
+    width: 100%;
+  }
+
+  /*
+   * 핵심: 카드 전체가 16:9 로 고정되고,
+   * 안의 모든 크기를 cqw(카드 너비의 %) 로 잡는다.
+   * → 카드가 작아지면 글씨·패널·이미지가 전부 같은 비율로 줄어든다.
+   */
+  #card {
+    width: 100%;
+    max-width: 1000px;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    container-type: inline-size;
+    background: #ffffff;
+    /* 카드 글꼴은 페이퍼로지체로 고정 — 자간 -40 (= -0.04em) */
+    font-family: 'Paperlogy', sans-serif;
+    letter-spacing: -0.04em;
+  }
+  /* 장평 95% — 글자 요소를 가로로 0.95배 압축 */
+  .ip-eng, .ip-name, .ip-job, .ip-keywords,
+  .ip-stats, .ip-trait, .ip-animal {
+    transform: scaleX(0.95);
+  }
+  #panelA .ip-eng, #panelA .ip-name, #panelA .ip-job, #panelA .ip-keywords,
+  #panelA .ip-stats, #panelA .ip-trait, #panelA .ip-animal { transform-origin: left; }
+  #panelB .ip-eng, #panelB .ip-name, #panelB .ip-job, #panelB .ip-keywords,
+  #panelB .ip-stats, #panelB .ip-trait, #panelB .ip-animal { transform-origin: right; }
+  #cardBg {
+    position: absolute; inset: 0;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    background-size: cover;
+    pointer-events: none;
+  }
+
+  /* 페어명 + 대표문구 묶음 — 카드 가운데 큰 글씨 영역 */
+  #pairBlock {
+    position: absolute;
+    left: 0; right: 0;
+    top: 13cqw;
+    z-index: 1;
+    text-align: center;
+    pointer-events: none;
+    user-select: none;
+  }
+  /* 페어명 폭만큼 잡는 래퍼 — max-content 로 글자 폭 자동 추종. 장평 95% 통째로 */
+  #pairTitleWrap {
+    display: inline-block;
+    position: relative;
+    width: max-content;
+    transform: scaleX(0.95);
+  }
+  #pairTitle {
+    display: block;
+    text-align: center;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  /* 페어명 + 대표문구 통 — 이 박스가 곧 페어명 글자 폭, 대표문구 정렬 기준 */
+  #pairTitleText { position: relative; display: inline-block; }
+  #pairNameGlyph { display: inline-block; }
+  /* 페어 대표 문구 — pairTitleText(=페어명 글자 폭) 기준 배치 */
+  #pairMemo {
+    position: absolute;
+    bottom: 100%;
+    margin-bottom: -1.4cqw;
+    font-weight: 600;
+    opacity: 0.85;
+    white-space: nowrap;
+    line-height: 1;
+    letter-spacing: normal;
+  }
+  /* 정렬 3종 — 페어명 글자 폭 기준.
+     왼쪽 정렬은 absolute 좌표 어긋남(약 1글자)을 padding 으로 보정 */
+  #pairMemo.align-start  { left: 0;  right: auto; text-align: left; padding-left: 1em; }
+  #pairMemo.align-center { left: 0;  right: 0;    text-align: center; }
+  #pairMemo.align-end    { right: 0; left: auto;  text-align: right; }
+
+  /* ===== 가운데 무대 — SD 2칸 + 패널 ===== */
+  .stage {
+    position: absolute; inset: 0;
+    z-index: 3;
+  }
+
+  /* SD 이미지 슬롯 — 카드 가운데 좌우로 나란히, 고정. 패널보다 앞에 옴 */
+  .sd-slot {
+    position: absolute;
+    bottom: 0;
+    z-index: 2;
+    aspect-ratio: 3 / 4;
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    background-size: contain;
+  }
+  /* 이미지 없을 땐 안내칸 없이 그냥 비워둠 */
+  .sd-slot.empty { background-image: none; }
+
+  /* 정보 패널 — 좌/우 가장자리에 고정. SD 이미지보다 뒤에 옴.
+     그림자는 applyStyle()에서 cqw 단위로 적용 */
+  .info-panel {
+    position: absolute;
+    bottom: 6cqw;
+    z-index: 1;
+    background: rgba(255,255,255,0.92);
+    border-radius: 1.6cqw;
+    padding: 3cqw 5cqw;
+  }
+  #panelA { text-align: left; }
+  #panelB { text-align: right; }
+
+  .ip-eng { font-size: 1.05cqw; font-weight: 700; letter-spacing: 0.14em; }
+  .ip-name { font-size: 2.3cqw; font-weight: 700; line-height: 1.18; margin-top: 0.2cqw; word-break: keep-all; }
+  /* 직업·키워드 그룹 — 이름 그룹과 사이 벌림 */
+  .ip-job { font-size: 1.25cqw; font-weight: 500; margin-top: 0.7cqw; line-height: 1.2; word-break: keep-all; }
+  .ip-keywords { font-size: 1.25cqw; font-weight: 500; margin-top: 0.1cqw; line-height: 1.3; word-break: keep-all; }
+  /* 성별나이키·외형특징 그룹 — 직업 그룹보다 폰트 약간 크게, 그룹 사이 벌림 */
+  .ip-stats { font-size: 1.35cqw; font-weight: 500; margin-top: 1.5cqw; line-height: 1.15; }
+  .ip-trait { font-size: 1.35cqw; font-weight: 500; margin-top: 0.1cqw; line-height: 1.15; word-break: keep-all; }
+  /* 모에화 그룹 — 사이 벌림 */
+  .ip-animal { font-size: 1.25cqw; font-weight: 500; margin-top: 1.5cqw; line-height: 1.25; word-break: keep-all; }
+  .ip-animal .ia-label { opacity: 0.7; font-weight: 500; }
+  /* 테마 컬러 칩 — 정보 패널 바깥 위쪽에 띄움 (위치는 JS가 패널에 맞춰 지정) */
+  .ip-chips {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.6cqw;
+    line-height: 0;
+  }
+  #chipsB { justify-content: flex-end; }
+  .ip-chip {
+    width: 2.25cqw; height: 2.25cqw;
+    border-radius: 50%;
+    font-size: 1cqw;
+    box-shadow: inset 0 0 0 0.12em rgba(0,0,0,0.08);
+    display: block;
+    flex: 0 0 auto;
+  }
+
+  .scale-note {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap; justify-content: center;
+    padding: 8px 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    font-size: 11.5px; color: var(--text-dim);
+  }
+  .scale-note b { color: var(--text); font-weight: 700; }
+
+  .toast {
+    position: fixed; bottom: 22px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: var(--bg);
+    font-size: 12.5px; font-weight: 500;
+    padding: 10px 17px; border-radius: 8px;
+    opacity: 0; pointer-events: none;
+    transition: all 0.25s ease; z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; backdrop-filter: blur(2px);
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    box-shadow: var(--shadow);
+    width: 380px; max-width: calc(100vw - 32px);
+  }
+  .modal-head {
+    padding: 17px 19px 13px;
+    font-size: 14.5px; font-weight: 600;
+    color: var(--text-strong);
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-body { padding: 17px 19px; }
+  .modal-foot {
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding: 13px 19px 17px;
+  }
+
+  .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; }
+  .history-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 7px;
+    border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer;
+    transition: border-color 0.13s ease, background 0.13s ease;
+  }
+  .history-item:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .history-thumb {
+    width: 56px; height: 32px;
+    border-radius: 5px; flex-shrink: 0;
+    background-size: cover; background-position: center;
+    border: 1px solid var(--border);
+  }
+  .history-info { flex: 1; min-width: 0; }
+  .history-text {
+    font-size: 12px; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .history-meta { font-size: 10.5px; color: var(--text-dim); margin-top: 2px; }
+  .history-del {
+    flex-shrink: 0; width: 22px; height: 22px;
+    border: 0; border-radius: 50%;
+    background: transparent; color: var(--text-dim);
+    font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .history-del:hover { background: #e0556b; color: #fff; }
+  .history-empty { font-size: 11.5px; color: var(--text-dim); text-align: center; padding: 14px 0; }
+
+  @media (max-width: 860px) {
+    main { grid-template-columns: 1fr; height: auto; }
+    .editor { border-right: 0; border-bottom: 1px solid var(--border); }
+    .preview { padding: 16px; }
+    header { height: 50px; padding: 0 12px; }
+    .brand small { display: none; }
+  }
+  @media (max-width: 540px) {
+    #copyBtn span, #downloadBtn span { display: none; }
+    #copyBtn, #downloadBtn { padding: 7px; gap: 0; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js"></script>
+</head>
+<body data-theme="light">
+
+<header>
+  <div class="brand">
+    <span class="dot"></span>
+    페어틀 메이커
+    <small>pair card</small>
+  </div>
+  <div class="header-actions">
+    <button class="icon" id="resetBtn" title="전체 초기화">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 1 3 6.7L3 16"/><polyline points="3 21 3 16 8 16"/>
+      </svg>
+    </button>
+    <button class="icon" id="themeBtn" title="테마 전환">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+    </button>
+    <button id="copyBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="9" width="13" height="13" rx="2"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      <span>이미지 복사</span>
+    </button>
+    <button class="primary" id="downloadBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span>이미지 저장</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="editor">
+
+    <div class="section">
+      <div class="section-title">페어 정보</div>
+      <div class="field-group">
+        <label class="field-label">페어명</label>
+        <input type="text" id="pairName" maxlength="40" value="">
+      </div>
+      <div class="field-group">
+        <label class="field-label">페어 캐치프레이즈</label>
+        <textarea id="pairMemoInput"></textarea>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">SD 일러스트 (2명)</div>
+      <div class="row">
+        <div>
+          <label class="field-label"><span style="color:#2563eb;font-weight:700;">A</span> 왼쪽</label>
+          <button class="file-btn" id="sdABtn">이미지</button>
+          <button class="file-btn" id="sdAClearBtn" style="margin-top:6px;">제거</button>
+        </div>
+        <div>
+          <label class="field-label"><span style="color:#3b82f6;font-weight:700;">B</span> 오른쪽</label>
+          <button class="file-btn" id="sdBBtn">이미지</button>
+          <button class="file-btn" id="sdBClearBtn" style="margin-top:6px;">제거</button>
+        </div>
+      </div>
+      <input type="file" id="sdAFile" accept="image/*" style="display:none">
+      <input type="file" id="sdBFile" accept="image/*" style="display:none">
+      <div class="field-group" style="margin-top:11px;">
+        <label class="field-label">이미지 크기</label>
+        <div class="slider-row">
+          <input type="range" id="sdSizeRange" min="22" max="66" value="44" step="0.5">
+          <span class="slider-val" id="sdSizeVal">44%</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">두 이미지 간격</label>
+        <div class="slider-row">
+          <input type="range" id="sdGapRange" min="-45" max="5" value="-20" step="0.5">
+          <span class="slider-val" id="sdGapVal">-20%</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">바닥 위치 (높낮이)</label>
+        <div class="slider-row">
+          <input type="range" id="sdBottomRange" min="-13" max="16" value="1.5" step="0.5">
+          <span class="slider-val" id="sdBottomVal">1.5%</span>
+        </div>
+      </div>
+      <div class="hint">투명 배경 PNG를 쓰면 카드에 자연스럽게 얹혀요.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="st-tag tag-a">A</span> 왼쪽 캐릭터</div>
+      <div class="field-group">
+        <label class="field-label">영문명</label>
+        <input type="text" id="aEng" maxlength="30" value="" placeholder="NAME">
+      </div>
+      <div class="field-group">
+        <label class="field-label">이름</label>
+        <input type="text" id="aName" maxlength="30" value="" placeholder="이름">
+      </div>
+      <div class="field-group">
+        <label class="field-label">직업 / 신분</label>
+        <input type="text" id="aJob" maxlength="60" value="" placeholder="직업">
+      </div>
+      <div class="field-group">
+        <label class="field-label">키워드 (#성격·특징)</label>
+        <input type="text" id="aKeywords" maxlength="80" value="" placeholder="#키워드 #키워드">
+      </div>
+      <div class="row">
+        <div>
+          <label class="field-label">성별</label>
+          <input type="text" id="aGender" maxlength="10" value="" placeholder="성별">
+        </div>
+        <div>
+          <label class="field-label">나이</label>
+          <input type="text" id="aAge" maxlength="20" value="" placeholder="나이">
+        </div>
+        <div>
+          <label class="field-label">키</label>
+          <input type="text" id="aHeight" maxlength="20" value="" placeholder="키">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">외형 특징</label>
+        <input type="text" id="aTrait" maxlength="60" value="" placeholder="외형 특징">
+      </div>
+      <div class="field-group">
+        <label class="field-label">모에화</label>
+        <input type="text" id="aAnimal" maxlength="40" value="" placeholder="동물">
+      </div>
+      <div class="field-group">
+        <label class="field-label">테마 컬러</label>
+        <div class="chip-row">
+          <input type="color" class="chip-input" id="aChip1" value="#2563eb">
+          <input type="color" class="chip-input" id="aChip2" value="#93c5fd">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="st-tag tag-b">B</span> 오른쪽 캐릭터</div>
+      <div class="field-group">
+        <label class="field-label">영문명</label>
+        <input type="text" id="bEng" maxlength="30" value="" placeholder="NAME">
+      </div>
+      <div class="field-group">
+        <label class="field-label">이름</label>
+        <input type="text" id="bName" maxlength="30" value="" placeholder="이름">
+      </div>
+      <div class="field-group">
+        <label class="field-label">직업 / 신분</label>
+        <input type="text" id="bJob" maxlength="60" value="" placeholder="직업">
+      </div>
+      <div class="field-group">
+        <label class="field-label">키워드 (#성격·특징)</label>
+        <input type="text" id="bKeywords" maxlength="80" value="" placeholder="#키워드 #키워드">
+      </div>
+      <div class="row">
+        <div>
+          <label class="field-label">성별</label>
+          <input type="text" id="bGender" maxlength="10" value="" placeholder="성별">
+        </div>
+        <div>
+          <label class="field-label">나이</label>
+          <input type="text" id="bAge" maxlength="20" value="" placeholder="나이">
+        </div>
+        <div>
+          <label class="field-label">키</label>
+          <input type="text" id="bHeight" maxlength="20" value="" placeholder="키">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">외형 특징</label>
+        <input type="text" id="bTrait" maxlength="60" value="" placeholder="외형 특징">
+      </div>
+      <div class="field-group">
+        <label class="field-label">모에화</label>
+        <input type="text" id="bAnimal" maxlength="40" value="" placeholder="동물">
+      </div>
+      <div class="field-group">
+        <label class="field-label">테마 컬러</label>
+        <div class="chip-row">
+          <input type="color" class="chip-input" id="bChip1" value="#3b82f6">
+          <input type="color" class="chip-input" id="bChip2" value="#bfdbfe">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">정보 패널</div>
+      <div class="field-group">
+        <label class="field-label">패널 크기</label>
+        <div class="slider-row">
+          <input type="range" id="panelSizeRange" min="16" max="38" value="27" step="0.5">
+          <span class="slider-val" id="panelSizeVal">27%</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">가장자리 여백</label>
+        <div class="slider-row">
+          <input type="range" id="panelEdgeRange" min="0" max="19" value="9.5" step="0.5">
+          <span class="slider-val" id="panelEdgeVal">9.5%</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">바닥 위치</label>
+        <div class="slider-row">
+          <input type="range" id="panelBottomRange" min="0" max="14" value="7" step="0.5">
+          <span class="slider-val" id="panelBottomVal">7%</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">투명도</label>
+        <div class="slider-row">
+          <input type="range" id="panelOpacRange" min="60" max="100" value="80">
+          <span class="slider-val" id="panelOpacVal">80%</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">모서리 둥글기</label>
+        <div class="slider-row">
+          <input type="range" id="panelRadiusRange" min="0" max="6" value="3" step="0.1">
+          <span class="slider-val" id="panelRadiusVal">3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        페어명 글씨
+        <button class="toggle-btn on" id="pairTitleToggle" title="배경 페어명 표시 여부">표시</button>
+      </div>
+      <div class="field-group">
+        <label class="field-label">크기</label>
+        <div class="slider-row">
+          <input type="range" id="pairSizeRange" min="8" max="28" value="18" step="0.5">
+          <span class="slider-val" id="pairSizeVal">18%</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">세로 위치</label>
+        <div class="slider-row">
+          <input type="range" id="pairTopRange" min="0" max="15" value="7.5" step="0.5">
+          <span class="slider-val" id="pairTopVal">7.5%</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">자간</label>
+        <div class="slider-row">
+          <input type="range" id="pairTrackRange" min="-12" max="4" value="-4" step="0.5">
+          <span class="slider-val" id="pairTrackVal">-4</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">불투명도</label>
+        <div class="slider-row">
+          <input type="range" id="pairOpacRange" min="40" max="100" value="70">
+          <span class="slider-val" id="pairOpacVal">70%</span>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label class="field-label">글자 색</label>
+          <input type="color" id="pairColor" value="#bae6fd">
+        </div>
+        <div>
+          <label class="field-label">스타일</label>
+          <div class="seg" id="pairStyleSeg">
+            <button data-style="fill" class="active">채움</button>
+            <button data-style="outline">테두리</button>
+          </div>
+        </div>
+      </div>
+      <div class="field-group" style="margin-top:9px;">
+        <label class="field-label">페어 대표 문구 정렬</label>
+        <div class="seg" id="memoAlignSeg">
+          <button data-align="start" class="active" title="앞 머리">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="13" y2="12"/><line x1="4" y1="17" x2="16" y2="17"/>
+            </svg>
+          </button>
+          <button data-align="center" title="중앙">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="4" y1="7" x2="20" y2="7"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="6" y1="17" x2="18" y2="17"/>
+            </svg>
+          </button>
+          <button data-align="end" title="끝 오른쪽">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="4" y1="7" x2="20" y2="7"/><line x1="11" y1="12" x2="20" y2="12"/><line x1="8" y1="17" x2="20" y2="17"/>
+            </svg>
+          </button>
+        </div>
+        <div class="slider-row" style="margin-top:8px;">
+          <input type="range" id="memoShiftRange" min="-8" max="8" value="0" step="0.2">
+          <span class="slider-val" id="memoShiftVal">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">색</div>
+      <div class="row">
+        <div>
+          <label class="field-label">카드 배경 색</label>
+          <input type="color" id="bgColor" value="#ffffff">
+        </div>
+        <div>
+          <label class="field-label">패널 배경 색</label>
+          <input type="color" id="panelBgColor" value="#ffffff">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label class="field-label">패널 글자 색</label>
+          <input type="color" id="panelTextColor" value="#33363f">
+        </div>
+        <div>
+          <label class="field-label">대표 문구 글자 색</label>
+          <input type="color" id="memoColor" value="#8a8088">
+        </div>
+      </div>
+      <div class="row" style="margin-top:4px;">
+        <div>
+          <label class="field-label"><span style="color:#2563eb;font-weight:700;">A</span> 강조 색</label>
+          <input type="color" id="aAccentColor" value="#2563eb">
+        </div>
+        <div>
+          <label class="field-label"><span style="color:#3b82f6;font-weight:700;">B</span> 강조 색</label>
+          <input type="color" id="bAccentColor" value="#3b82f6">
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        히스토리
+        <button class="mini-btn" id="historyClear" title="히스토리 전체 삭제">전체 삭제</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
+      <div class="hint">이미지를 저장·복사하면 그때의 페어 정보·설정이 자동 기록돼요.</div>
+    </div>
+
+  </div>
+
+  <div class="preview">
+    <div class="preview-stack">
+      <div id="card">
+        <div id="cardBg"></div>
+        <div id="pairBlock">
+          <div id="pairTitleWrap">
+            <span id="pairTitle"><span id="pairTitleText"><span id="pairNameGlyph">PAIR</span><span id="pairMemo" class="align-start"></span></span></span>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="sd-slot empty" id="sdSlotA"></div>
+          <div class="sd-slot empty" id="sdSlotB"></div>
+          <div class="info-panel" id="panelA">
+            <div class="ip-eng" data-f="eng">EUNJAE</div>
+            <div class="ip-name" data-f="name">주은재</div>
+            <div class="ip-job" data-f="job">고등학생 ▶ 항공사 부기장</div>
+            <div class="ip-keywords" data-f="keywords">#키워드</div>
+            <div class="ip-stats" data-f="stats">M 19▶28 188cm</div>
+            <div class="ip-trait" data-f="trait">짙은눈썹 올라간눈매</div>
+            <div class="ip-animal" data-f="animal"><span class="ia-label">모에화: </span><span data-f="animalText">흑표범 or 고양이</span></div>
+          </div>
+          <div class="ip-chips" id="chipsA"><span class="ip-chip"></span><span class="ip-chip"></span></div>
+          <div class="info-panel" id="panelB">
+            <div class="ip-eng" data-f="eng">HAEDAM</div>
+            <div class="ip-name" data-f="name">문해담</div>
+            <div class="ip-job" data-f="job">고등학생 ▶ 스튜어디스</div>
+            <div class="ip-keywords" data-f="keywords">#키워드</div>
+            <div class="ip-stats" data-f="stats">F 19▶28 148cm</div>
+            <div class="ip-trait" data-f="trait">똥머리 둥근눈 큰안광</div>
+            <div class="ip-animal" data-f="animal"><span class="ia-label">모에화: </span><span data-f="animalText">오목눈이 or 롭이어토끼</span></div>
+          </div>
+          <div class="ip-chips" id="chipsB"><span class="ip-chip"></span><span class="ip-chip"></span></div>
+        </div>
+      </div>
+      <div class="scale-note">
+        화면 크기가 바뀌어도 카드 안 모든 요소는 <b>비율 그대로</b> 같이 줄어들어요.
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="overlay" id="resetOverlay">
+  <div class="modal">
+    <div class="modal-head">초기화</div>
+    <div class="modal-body">
+      <p style="font-size:12.5px; line-height:1.6; color:var(--text);">어떻게 초기화할까요?</p>
+      <p style="font-size:11px; line-height:1.6; color:var(--text-dim); margin-top:8px;">
+        · <b>설정만 초기화</b> — 입력 내용과 스타일을 처음 상태로 되돌립니다.<br>
+        · <b>전체 초기화</b> — 히스토리까지 모두 삭제합니다.
+      </p>
+    </div>
+    <div class="modal-foot">
+      <button id="resetCancel">취소</button>
+      <button id="resetSoft">설정만 초기화</button>
+      <button id="resetHard" style="background:#e0556b; border-color:#e0556b; color:#fff;">전체 초기화</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const STORE_KEY = 'pairmaker:data';
+  const HISTORY_KEY = 'pairmaker:history';
+  const THEME_KEY = 'pairmaker:theme';
+
+  let storageOK = true;
+  try { localStorage.setItem('__t__','1'); localStorage.removeItem('__t__'); }
+  catch { storageOK = false; }
+
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  const state = {
+    sdAData: '',
+    sdBData: '',
+    pairStyle: 'fill',
+    pairTitleShow: true,
+    memoAlign: 'start'
+  };
+
+  const TEXT_FIELDS = [
+    'pairName','pairMemoInput',
+    'aEng','aName','aJob','aKeywords','aGender','aAge','aHeight','aTrait','aAnimal',
+    'bEng','bName','bJob','bKeywords','bGender','bAge','bHeight','bTrait','bAnimal'
+  ];
+  const SLIDER_FIELDS = [
+    'sdSizeRange','sdGapRange','sdBottomRange',
+    'panelSizeRange','panelEdgeRange','panelBottomRange','panelOpacRange','panelRadiusRange',
+    'pairSizeRange','pairTopRange','pairOpacRange','pairTrackRange','memoShiftRange'
+  ];
+  const COLOR_FIELDS = [
+    'pairColor','memoColor','panelBgColor','bgColor','panelTextColor',
+    'aAccentColor','bAccentColor',
+    'aChip1','aChip2','bChip1','bChip2'
+  ];
+
+  function hexToRgba(hex, a) {
+    const h = hex.replace('#','');
+    return 'rgba(' + parseInt(h.slice(0,2),16) + ','
+      + parseInt(h.slice(2,4),16) + ','
+      + parseInt(h.slice(4,6),16) + ',' + a + ')';
+  }
+
+  const card = $('card'), cardBg = $('cardBg');
+  function val(id) { return ($(id).value || '').trim(); }
+
+  // 미리보기 패널에서 입력이 비었을 때 대신 보여줄 기본 텍스트
+  // (job/gender/age/height 는 비면 표시 안 함 → placeholder 불필요)
+  const PANEL_PLACEHOLDER = {
+    eng: 'NAME', name: '이름', keywords: '#키워드 #키워드',
+    trait: '외형 특징', animal: '동물'
+  };
+  function fillPanel(panelId, prefix) {
+    const panel = $(panelId);
+    const eng = val(prefix + 'Eng');
+    const name = val(prefix + 'Name');
+    const job = val(prefix + 'Job');
+    const kw = val(prefix + 'Keywords');
+    const g = val(prefix + 'Gender');
+    const age = val(prefix + 'Age');
+    const h = val(prefix + 'Height');
+    const trait = val(prefix + 'Trait');
+    const animal = val(prefix + 'Animal');
+
+    // 입력이 비면 기본 텍스트를 대신 표시 (페어명이 비어도 PAIR가 뜨는 것과 동일)
+    panel.querySelector('[data-f="eng"]').textContent = eng || PANEL_PLACEHOLDER.eng;
+    panel.querySelector('[data-f="name"]').textContent = name || PANEL_PLACEHOLDER.name;
+    panel.querySelector('[data-f="keywords"]').textContent = kw || PANEL_PLACEHOLDER.keywords;
+    panel.querySelector('[data-f="trait"]').textContent = trait || PANEL_PLACEHOLDER.trait;
+    panel.querySelector('[data-f="animalText"]').textContent = animal || PANEL_PLACEHOLDER.animal;
+
+    // 직업 — 비면 줄 숨김
+    const jobEl = panel.querySelector('[data-f="job"]');
+    jobEl.textContent = job;
+    jobEl.style.display = job ? '' : 'none';
+
+    // 성별·나이·키 — 입력한 것만 표시, 셋 다 비면 줄 숨김
+    const stats = [g, age, h].filter(Boolean).join(' ');
+    const statsEl = panel.querySelector('[data-f="stats"]');
+    statsEl.textContent = stats;
+    statsEl.style.display = stats ? '' : 'none';
+  }
+
+  function renderCard() {
+    $('pairNameGlyph').textContent = val('pairName') || 'PAIR';
+    $('pairBlock').style.display = state.pairTitleShow ? '' : 'none';
+    $('pairMemo').textContent = val('pairMemoInput') || '페어 대표문구';
+    fillPanel('panelA', 'a');
+    fillPanel('panelB', 'b');
+  }
+
+  function applyStyle() {
+    const sdSize = +$('sdSizeRange').value;
+    const sdGap = +$('sdGapRange').value;
+    const sdBottom = +$('sdBottomRange').value;
+
+    const sdA = $('sdSlotA'), sdB = $('sdSlotB');
+    [sdA, sdB].forEach(el => {
+      el.style.width = sdSize + 'cqw';
+      el.style.bottom = sdBottom + 'cqw';
+    });
+    sdA.style.left = (50 - sdGap / 2 - sdSize) + 'cqw';
+    sdA.style.right = 'auto';
+    sdB.style.left = (50 + sdGap / 2) + 'cqw';
+    sdB.style.right = 'auto';
+
+    [['sdSlotA', state.sdAData], ['sdSlotB', state.sdBData]].forEach(([id, data]) => {
+      const el = $(id);
+      if (data) {
+        el.classList.remove('empty');
+        el.style.backgroundImage = 'url(' + data + ')';
+      } else {
+        el.classList.add('empty');
+        el.style.backgroundImage = 'none';
+      }
+    });
+
+    const psize = +$('panelSizeRange').value;
+    const pedge = +$('panelEdgeRange').value;
+    const pbottom = +$('panelBottomRange').value;
+    const popac = +$('panelOpacRange').value / 100;
+    const pradius = +$('panelRadiusRange').value;
+    const panelBg = $('panelBgColor').value;
+    const textCol = $('panelTextColor').value;
+    const colA = { accent: $('aAccentColor').value, chips: [$('aChip1').value, $('aChip2').value] };
+    const colB = { accent: $('bAccentColor').value, chips: [$('bChip1').value, $('bChip2').value] };
+    [['panelA', 'left', colA, 'chipsA'], ['panelB', 'right', colB, 'chipsB']].forEach(([pid, side, col, chipsId]) => {
+      const p = $(pid);
+      p.style.width = psize + 'cqw';
+      p.style.bottom = pbottom + 'cqw';
+      p.style.borderRadius = pradius + 'cqw';
+      p.style.background = hexToRgba(panelBg, popac);
+      p.style.boxShadow = '0 0.8cqw 2.5cqw rgba(0,0,0,0.16)';
+      if (side === 'left') { p.style.left = pedge + 'cqw'; p.style.right = 'auto'; }
+      else { p.style.right = pedge + 'cqw'; p.style.left = 'auto'; }
+      p.querySelectorAll('.ip-name, .ip-job, .ip-keywords, .ip-stats, .ip-trait, .ip-animal')
+        .forEach(el => el.style.color = textCol);
+      p.querySelector('.ip-eng').style.color = col.accent;
+      const chips = $(chipsId);
+      const chipEls = chips.querySelectorAll('.ip-chip');
+      chipEls.forEach((c, i) => c.style.background = col.chips[i]);
+      // 칩을 패널 내용 시작점에 맞춤 (패널 좌우 padding 5cqw 안쪽)
+      chips.style.width = (psize - 10) + 'cqw';
+      if (side === 'left') { chips.style.left = (pedge + 5) + 'cqw'; chips.style.right = 'auto'; }
+      else { chips.style.right = (pedge + 5) + 'cqw'; chips.style.left = 'auto'; }
+    });
+    // 패널 실제 높이를 재서 칩을 패널 상단 경계선에 정중앙으로 걸침
+    requestAnimationFrame(() => {
+      const cardW = card.getBoundingClientRect().width || 1;
+      // 칩 높이는 CSS 고정값(2.25cqw) → 측정 오차 없이 절반값 확정
+      const chipHalfCqw = 2.25 / 2;
+      [['panelA', 'chipsA'], ['panelB', 'chipsB']].forEach(([pid, chipsId]) => {
+        const ph = $(pid).getBoundingClientRect().height;
+        const phCqw = ph / cardW * 100;
+        // 칩 중심 = 패널 위끝 → 칩 컨테이너 아래끝 = 패널위끝 - 칩높이절반
+        $(chipsId).style.bottom = (pbottom + phCqw - chipHalfCqw) + 'cqw';
+      });
+    });
+
+    // 페어명 크기 (대표문구 크기 계산에도 쓰임)
+    const pairSize = +$('pairSizeRange').value;
+
+    // 페어 대표 문구 — 크기는 페어명 대비 9% 고정 → 페어명에 비례
+    const memoEl = $('pairMemo');
+    memoEl.style.color = $('memoColor').value;
+    memoEl.style.fontSize = (pairSize * 0.09) + 'cqw';
+    memoEl.className = 'align-' + state.memoAlign;
+    // 가로 위치 미세조정 (cqw 단위 — 카드 크기 비례)
+    // 왼쪽 정렬은 기본 오프셋 -0.4cqw → 슬라이더 0 이 그 위치가 되도록
+    const memoBaseShift = state.memoAlign === 'start' ? -0.4 : 0;
+    const memoShift = memoBaseShift + (+$('memoShiftRange').value);
+    memoEl.style.transform = 'translateX(' + memoShift + 'cqw)';
+    $('memoShiftVal').textContent = $('memoShiftRange').value;
+
+    // 페어명
+    const block = $('pairBlock');
+    const pt = $('pairTitle');
+    block.style.top = (+$('pairTopRange').value) + 'cqw';
+    block.style.opacity = (+$('pairOpacRange').value / 100);
+    pt.style.fontSize = pairSize + 'cqw';
+    // 자간은 페어명 글자에만 — 대표문구는 영향 없음
+    $('pairNameGlyph').style.letterSpacing = (+$('pairTrackRange').value / 100) + 'em';
+    const pcol = $('pairColor').value;
+    if (state.pairStyle === 'outline') {
+      pt.style.color = 'transparent';
+      pt.style.webkitTextStroke = '0.2cqw ' + pcol;
+      pt.style.textStroke = '0.2cqw ' + pcol;
+    } else {
+      pt.style.color = pcol;
+      pt.style.webkitTextStroke = '0';
+      pt.style.textStroke = '0';
+    }
+
+    $('sdSizeVal').textContent = sdSize + '%';
+    $('sdGapVal').textContent = sdGap + '%';
+    $('sdBottomVal').textContent = sdBottom + '%';
+    $('panelSizeVal').textContent = psize + '%';
+    $('panelEdgeVal').textContent = pedge + '%';
+    $('panelBottomVal').textContent = pbottom + '%';
+    $('panelOpacVal').textContent = $('panelOpacRange').value + '%';
+    $('panelRadiusVal').textContent = pradius;
+    $('pairSizeVal').textContent = $('pairSizeRange').value + '%';
+    $('pairTopVal').textContent = $('pairTopRange').value + '%';
+    $('pairOpacVal').textContent = $('pairOpacRange').value + '%';
+    $('pairTrackVal').textContent = $('pairTrackRange').value;
+  }
+
+  function applyBackground() {
+    cardBg.style.backgroundImage = 'none';
+    cardBg.style.backgroundColor = $('bgColor').value;
+  }
+
+  function applyAll() {
+    renderCard();
+    applyStyle();
+    applyBackground();
+  }
+
+  TEXT_FIELDS.forEach(id => $(id).addEventListener('input', () => { applyAll(); saveData(); }));
+  SLIDER_FIELDS.forEach(id => $(id).addEventListener('input', () => { applyAll(); saveData(); }));
+  COLOR_FIELDS.forEach(id => $(id).addEventListener('input', () => {
+    applyAll(); saveData();
+  }));
+
+  document.querySelectorAll('#pairStyleSeg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#pairStyleSeg button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.pairStyle = btn.dataset.style;
+      applyStyle();
+      saveData();
+    });
+  });
+
+  document.querySelectorAll('#memoAlignSeg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#memoAlignSeg button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.memoAlign = btn.dataset.align;
+      applyStyle();
+      saveData();
+    });
+  });
+
+  $('pairTitleToggle').addEventListener('click', () => {
+    state.pairTitleShow = !state.pairTitleShow;
+    $('pairTitleToggle').classList.toggle('on', state.pairTitleShow);
+    renderCard();
+    saveData();
+  });
+
+  function bindSdUpload(btnId, fileId, clearId, key, label) {
+    $(btnId).addEventListener('click', () => $(fileId).click());
+    $(fileId).addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        state[key] = ev.target.result;
+        applyStyle();
+        saveData();
+        toast('SD 이미지 ' + label + '를 적용했습니다');
+      };
+      reader.readAsDataURL(file);
+    });
+    $(clearId).addEventListener('click', () => {
+      state[key] = '';
+      $(fileId).value = '';
+      applyStyle();
+      saveData();
+      toast('SD 이미지 ' + label + '를 제거했습니다');
+    });
+  }
+  bindSdUpload('sdABtn', 'sdAFile', 'sdAClearBtn', 'sdAData', 'A');
+  bindSdUpload('sdBBtn', 'sdBFile', 'sdBClearBtn', 'sdBData', 'B');
+
+  function snapshot() {
+    const data = { texts: {}, sliders: {}, colors: {}, state: {} };
+    TEXT_FIELDS.forEach(id => data.texts[id] = $(id).value);
+    SLIDER_FIELDS.forEach(id => data.sliders[id] = $(id).value);
+    COLOR_FIELDS.forEach(id => data.colors[id] = $(id).value);
+    data.state = {
+      sdAData: state.sdAData, sdBData: state.sdBData,
+      pairStyle: state.pairStyle,
+      pairTitleShow: state.pairTitleShow,
+      memoAlign: state.memoAlign
+    };
+    return data;
+  }
+  function saveData() {
+    if (!storageOK) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(snapshot())); } catch {}
+  }
+  function applySnapshot(data) {
+    if (data.texts) TEXT_FIELDS.forEach(id => { if (data.texts[id] != null) $(id).value = data.texts[id]; });
+    if (data.sliders) SLIDER_FIELDS.forEach(id => { if (data.sliders[id] != null) $(id).value = data.sliders[id]; });
+    if (data.colors) COLOR_FIELDS.forEach(id => { if (data.colors[id] != null) $(id).value = data.colors[id]; });
+    if (data.state) {
+      const s = data.state;
+      state.sdAData = s.sdAData || '';
+      state.sdBData = s.sdBData || '';
+      state.pairStyle = s.pairStyle || 'fill';
+      state.pairTitleShow = s.pairTitleShow !== false;
+      state.memoAlign = s.memoAlign || 'start';
+    }
+    document.querySelectorAll('#pairStyleSeg button').forEach(b =>
+      b.classList.toggle('active', b.dataset.style === state.pairStyle));
+    document.querySelectorAll('#memoAlignSeg button').forEach(b =>
+      b.classList.toggle('active', b.dataset.align === state.memoAlign));
+    $('pairTitleToggle').classList.toggle('on', state.pairTitleShow);
+  }
+  function loadData() {
+    let raw;
+    try { raw = localStorage.getItem(STORE_KEY); } catch { return; }
+    if (!raw) return;
+    try { applySnapshot(JSON.parse(raw)); } catch {}
+  }
+
+  function renderCardCanvas() {
+    const shownW = card.getBoundingClientRect().width || 1000;
+    let pixelRatio = 1700 / shownW;
+    pixelRatio = Math.max(1.5, Math.min(3, pixelRatio));
+
+    const rect = card.getBoundingClientRect();
+
+    // 캡처는 html-to-image로 일원화.
+    // (box-shadow / cqw 단위를 정확히 캡처하기 위함)
+    if (!window.htmlToImage || typeof window.htmlToImage.toCanvas !== 'function') {
+      return Promise.reject(new Error('html-to-image 라이브러리를 불러오지 못했습니다'));
+    }
+
+    return window.htmlToImage.toCanvas(card, {
+      pixelRatio: pixelRatio,
+      cacheBust: true,
+      backgroundColor: null,
+      width: rect.width,
+      height: rect.height,
+      canvasWidth: rect.width * pixelRatio,
+      canvasHeight: rect.height * pixelRatio,
+      style: {
+        transform: 'none',
+        transformOrigin: 'top left'
+      }
+    });
+  }
+  function saveImage() {
+    toast('이미지 생성 중...');
+    renderCardCanvas().then(canvas => {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = 'pair-card.png';
+      a.click();
+      toast('이미지를 저장했습니다');
+      addHistory(canvas);
+    }).catch(() => toast('이미지 생성에 실패했습니다'));
+  }
+  function copyImage() {
+    if (!navigator.clipboard || !window.ClipboardItem) {
+      toast('이 브라우저는 이미지 복사를 지원하지 않습니다');
+      return;
+    }
+    toast('이미지 생성 중...');
+    renderCardCanvas().then(canvas => {
+      addHistory(canvas);
+      canvas.toBlob(blob => {
+        if (!blob) { toast('이미지 생성에 실패했습니다'); return; }
+        navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+          .then(() => toast('이미지를 클립보드에 복사했습니다'))
+          .catch(() => toast('이미지 복사에 실패했습니다'));
+      }, 'image/png');
+    }).catch(() => toast('이미지 생성에 실패했습니다'));
+  }
+  $('downloadBtn').addEventListener('click', saveImage);
+  $('copyBtn').addEventListener('click', copyImage);
+  card.addEventListener('contextmenu', e => { e.preventDefault(); copyImage(); });
+
+  const HISTORY_MAX = 16;
+  let history = [];
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (raw) history = JSON.parse(raw);
+    if (!Array.isArray(history)) history = [];
+  } catch { history = []; }
+
+  function saveHistory() {
+    function trySave() {
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); return true; }
+      catch { return false; }
+    }
+    if (trySave()) return;
+    while (history.length > 1) {
+      history.pop();
+      if (trySave()) { renderHistory(); return; }
+    }
+    history.forEach(h => h.thumb = '');
+    trySave();
+    renderHistory();
+  }
+  function addHistory(canvas) {
+    const now = new Date();
+    const stamp = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 '
+      + String(now.getHours()).padStart(2, '0') + ':'
+      + String(now.getMinutes()).padStart(2, '0');
+    let thumb = '';
+    try {
+      const tw = 140;
+      const th = Math.round(canvas.height * (tw / canvas.width));
+      const tc = document.createElement('canvas');
+      tc.width = tw; tc.height = th;
+      tc.getContext('2d').drawImage(canvas, 0, 0, tw, th);
+      thumb = tc.toDataURL('image/jpeg', 0.6);
+    } catch {}
+    const label = (val('aName') || 'A') + ' × ' + (val('bName') || 'B');
+    history.unshift({ id: Date.now(), label, stamp, thumb, data: snapshot() });
+    if (history.length > HISTORY_MAX) history = history.slice(0, HISTORY_MAX);
+    saveHistory();
+    renderHistory();
+  }
+  function restoreHistory(h) {
+    applySnapshot(h.data);
+    applyAll();
+    saveData();
+    toast('이 기록을 불러왔어요');
+  }
+  function renderHistory() {
+    const wrap = $('historyList');
+    wrap.innerHTML = '';
+    if (history.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'history-empty';
+      e.textContent = '아직 기록이 없어요';
+      wrap.appendChild(e);
+      return;
+    }
+    history.forEach(h => {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      const thumb = document.createElement('div');
+      thumb.className = 'history-thumb';
+      if (h.thumb) thumb.style.backgroundImage = 'url(' + h.thumb + ')';
+      const info = document.createElement('div');
+      info.className = 'history-info';
+      const txt = document.createElement('div');
+      txt.className = 'history-text';
+      txt.textContent = h.label;
+      const meta = document.createElement('div');
+      meta.className = 'history-meta';
+      meta.textContent = h.stamp;
+      info.appendChild(txt); info.appendChild(meta);
+      const del = document.createElement('button');
+      del.className = 'history-del';
+      del.textContent = '×';
+      del.title = '기록 삭제';
+      del.addEventListener('click', e => {
+        e.stopPropagation();
+        history = history.filter(x => x.id !== h.id);
+        saveHistory();
+        renderHistory();
+      });
+      item.addEventListener('click', () => restoreHistory(h));
+      item.appendChild(thumb);
+      item.appendChild(info);
+      item.appendChild(del);
+      wrap.appendChild(item);
+    });
+  }
+  $('historyClear').addEventListener('click', () => {
+    if (history.length === 0) return;
+    history = [];
+    saveHistory();
+    renderHistory();
+    toast('히스토리를 모두 지웠어요');
+  });
+
+  const resetOverlay = $('resetOverlay');
+  $('resetBtn').addEventListener('click', () => resetOverlay.classList.add('show'));
+  $('resetCancel').addEventListener('click', () => resetOverlay.classList.remove('show'));
+  resetOverlay.addEventListener('click', e => {
+    if (e.target === resetOverlay) resetOverlay.classList.remove('show');
+  });
+  const TEXT_DEFAULTS = {
+    pairName: '', pairMemoInput: '',
+    aEng: '', aName: '', aJob: '', aKeywords: '',
+    aGender: '', aAge: '', aHeight: '', aTrait: '', aAnimal: '',
+    bEng: '', bName: '', bJob: '', bKeywords: '',
+    bGender: '', bAge: '', bHeight: '', bTrait: '', bAnimal: ''
+  };
+  function resetSettings() {
+    TEXT_FIELDS.forEach(id => $(id).value = TEXT_DEFAULTS[id] || '');
+    const sliderDefaults = {
+      sdSizeRange: 44, sdGapRange: -20, sdBottomRange: 1.5,
+      panelSizeRange: 27, panelEdgeRange: 9.5, panelBottomRange: 7,
+      panelOpacRange: 80, panelRadiusRange: 3,
+      pairSizeRange: 18, pairTopRange: 7.5, pairOpacRange: 70,
+      pairTrackRange: -4, memoShiftRange: 0
+    };
+    Object.keys(sliderDefaults).forEach(id => $(id).value = sliderDefaults[id]);
+    const colorDefaults = {
+      pairColor: '#bae6fd', memoColor: '#8a8088',
+      panelBgColor: '#ffffff', bgColor: '#ffffff', panelTextColor: '#33363f',
+      aAccentColor: '#2563eb', bAccentColor: '#3b82f6',
+      aChip1: '#2563eb', aChip2: '#93c5fd',
+      bChip1: '#3b82f6', bChip2: '#bfdbfe'
+    };
+    Object.keys(colorDefaults).forEach(id => $(id).value = colorDefaults[id]);
+    state.sdAData = '';
+    state.sdBData = '';
+    state.pairStyle = 'fill';
+    state.pairTitleShow = true;
+    state.memoAlign = 'start';
+    document.querySelectorAll('#pairStyleSeg button').forEach(b =>
+      b.classList.toggle('active', b.dataset.style === 'fill'));
+    document.querySelectorAll('#memoAlignSeg button').forEach(b =>
+      b.classList.toggle('active', b.dataset.align === 'start'));
+    $('pairTitleToggle').classList.add('on');
+    applyAll();
+    saveData();
+  }
+  $('resetSoft').addEventListener('click', () => {
+    resetSettings();
+    resetOverlay.classList.remove('show');
+    toast('설정을 초기화했습니다');
+  });
+  $('resetHard').addEventListener('click', () => {
+    resetSettings();
+    history = [];
+    try { localStorage.removeItem(HISTORY_KEY); } catch {}
+    renderHistory();
+    resetOverlay.classList.remove('show');
+    toast('전체 데이터를 초기화했습니다');
+  });
+
+  const themeIcon = $('themeIcon');
+  const sun = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  const moon = '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>';
+  function applyTheme(t) {
+    document.body.dataset.theme = t;
+    themeIcon.innerHTML = t === 'dark' ? moon : sun;
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+  $('themeBtn').addEventListener('click', () => {
+    const next = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem(THEME_KEY, next); } catch {}
+  });
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') resetOverlay.classList.remove('show');
+  });
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(applyStyle, 120);
+  });
+
+  loadData();
+  renderHistory();
+  applyAll();
+</script>
+</body>
+</html>
