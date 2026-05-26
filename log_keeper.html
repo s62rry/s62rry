@@ -1,0 +1,2612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>로그 보관함</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect x='1' y='1' width='14' height='14' rx='3' fill='%232f6df0'/><path d='M4 4h8v1.6H4zM4 7.2h8v1.6H4zM4 10.4h5v1.6H4z' fill='%23ffffff'/></svg>">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  :root {
+    --bg: #f1f3f7;
+    --panel: #ffffff;
+    --border: #dde2ea;
+    --text: #41454f;
+    --text-strong: #1a1d24;
+    --text-dim: #858a99;
+    --accent: #2f6df0;
+    --accent-deep: #2258cc;
+    --accent-soft: #e6eefe;
+    --field: #f8f9fc;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 10px 30px rgba(0,0,0,0.06);
+    --ui: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
+    --narration: #5a5f6e;
+    --dialogue-bg: #eef3fe;
+    --dialogue-text: #1f3f7a;
+    --dialogue-bar: #2f6df0;
+    --user-text: #6f4bd6;
+    --user-narration: #9aa0ad;
+    --status-bg: #f4f7fd;
+    --status-head: #e9f0fd;
+    --section-color: #b67d1f;
+    --code-bg: #f4f5f8;
+  }
+  [data-theme="dark"] {
+    --bg: #15161c;
+    --panel: #1d1e26;
+    --border: #2c2e3a;
+    --text: #c5c8d2;
+    --text-strong: #e7e9ef;
+    --text-dim: #888c9c;
+    --accent: #5b9bf0;
+    --accent-deep: #7db2f5;
+    --accent-soft: #1d2a44;
+    --field: #191a21;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.28);
+    --narration: #a3a8b6;
+    --dialogue-bg: #1c2740;
+    --dialogue-text: #aecbf6;
+    --dialogue-bar: #5b9bf0;
+    --user-text: #b9a3f0;
+    --user-narration: #6e7280;
+    --status-bg: #1a1c26;
+    --status-head: #20283c;
+    --section-color: #e0b061;
+    --code-bg: #161720;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+  ::selection { background: var(--accent-soft); color: var(--accent-deep); }
+  /* 채팅 본문 영역의 드래그 색은 채팅방 색을 따라간다 */
+  .content ::selection {
+    background: var(--c-select, var(--accent-soft));
+    color: var(--c-accent-deep, var(--accent-deep));
+  }
+  body {
+    font-family: var(--ui);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  button { font-family: var(--ui); }
+  header {
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 9px;
+    font-weight: 600; font-size: 15px;
+    letter-spacing: -0.02em; color: var(--text-strong);
+    cursor: pointer; user-select: none;
+    border-radius: 8px; padding: 3px 6px; margin: -3px -6px;
+    transition: background 0.12s;
+  }
+  .brand:hover { background: var(--field); }
+  .brand .mark {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: linear-gradient(135deg, #6fb0f5, #3f6fd8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #fff;
+  }
+  .brand small { color: var(--text-dim); font-weight: 400; font-size: 11px; }
+  .header-actions { display: flex; gap: 7px; align-items: center; }
+  button {
+    font-size: 12px; font-weight: 500;
+    color: var(--text); background: var(--field);
+    border: 1px solid var(--border); border-radius: 7px;
+    padding: 7px 12px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.13s ease;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent-deep); }
+  button:active { transform: translateY(1px); }
+  button svg { width: 14px; height: 14px; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { opacity: 0.9; color: #fff; }
+  button.icon { padding: 7px; }
+  button.danger:hover { border-color: #e0556b; color: #e0556b; }
+  /* 케이브덕 로그 추출 — 헤더에서 눈에 띄는 강조 버튼 */
+  .cd-btn {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+    font-weight: 600; font-size: 12px;
+    padding: 7px 13px;
+    box-shadow: 0 2px 8px rgba(47,109,240,0.28);
+  }
+  .cd-btn:hover { color: #fff; opacity: 0.92; border-color: var(--accent); }
+  .cd-btn svg { width: 15px; height: 15px; }
+  @media (max-width: 760px) {
+    .cd-btn span { display: none; }
+    .cd-btn { padding: 7px; }
+  }
+  main { display: flex; min-height: calc(100vh - 56px); }
+  .sidebar {
+    width: 244px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    background: var(--panel);
+    display: flex; flex-direction: column;
+    position: sticky; top: 56px; height: calc(100vh - 56px);
+  }
+  .side-top { padding: 14px 12px 8px; display: flex; flex-direction: column; gap: 7px; }
+  .side-top button { justify-content: center; }
+  .side-search {
+    position: relative; padding: 4px 12px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .side-search input {
+    width: 100%; font-family: var(--ui); font-size: 12.5px;
+    color: var(--text); background: var(--field);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px 8px 30px; outline: none;
+    transition: border-color 0.13s ease;
+  }
+  .side-search input:focus { border-color: var(--accent); }
+  .side-search svg {
+    position: absolute; left: 21px; top: 13px;
+    width: 14px; height: 14px; color: var(--text-dim);
+  }
+  /* 로그 내용 검색 바 — 처음엔 로그 맨 위, 스크롤하면 영역 상단에 붙음 */
+  .log-search {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 26px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    position: sticky;
+    top: 0;
+    z-index: 38;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  }
+  .ls-box {
+    position: relative; flex: 1; display: flex; align-items: center;
+  }
+  .ls-box > svg {
+    position: absolute; left: 11px;
+    width: 15px; height: 15px; color: var(--text-dim);
+    pointer-events: none;
+  }
+  .ls-box input {
+    width: 100%; font-family: var(--ui); font-size: 13px;
+    color: var(--text); background: var(--field);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 32px 9px 33px; outline: none;
+    transition: border-color 0.13s ease;
+  }
+  .ls-box input:focus { border-color: var(--accent); }
+  .ls-clear {
+    position: absolute; right: 7px; top: 50%;
+    transform: translateY(-50%);
+    border: 0; background: transparent; cursor: pointer;
+    color: var(--text-dim); font-size: 12px; line-height: 1;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .ls-clear:hover { background: var(--border); color: var(--text-strong); }
+  .ls-count {
+    font-size: 12px; color: var(--text-dim);
+    white-space: nowrap; min-width: 44px; text-align: center;
+  }
+  .ls-nav { display: flex; gap: 2px; }
+  .ls-navbtn {
+    border: 1px solid var(--border); background: var(--field);
+    color: var(--text-dim); cursor: pointer;
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.12s;
+  }
+  .ls-navbtn svg { width: 16px; height: 16px; }
+  .ls-navbtn:hover { color: var(--accent); border-color: var(--accent); }
+  .ls-navbtn:disabled { opacity: 0.35; cursor: default; }
+  .ls-navbtn:disabled:hover { color: var(--text-dim); border-color: var(--border); }
+  .ls-close {
+    border: 0; background: transparent; cursor: pointer;
+    color: var(--text-dim); font-size: 15px;
+    width: 26px; height: 26px; border-radius: 6px;
+  }
+  .ls-close:hover { background: var(--border); color: var(--text-strong); }
+  /* 검색어 하이라이트 */
+  mark.log-hit {
+    background: #ffe169; color: #1a1a1a;
+    border-radius: 3px; padding: 0 1px;
+  }
+  [data-theme="dark"] mark.log-hit {
+    background: #d8b73a; color: #15161c;
+  }
+  /* 현재 보고 있는 일치 항목 — 더 진하게 */
+  mark.log-hit.current {
+    background: #ff9800; color: #fff;
+    box-shadow: 0 0 0 2px rgba(255,152,0,0.35);
+  }
+  [data-theme="dark"] mark.log-hit.current {
+    background: #ff9f3a; color: #15161c;
+    box-shadow: 0 0 0 2px rgba(255,159,58,0.4);
+  }
+  .side-title {
+    font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--text-dim); padding: 13px 16px 7px;
+  }
+  .chat-list { flex: 1; overflow-y: auto; padding: 0 8px 14px; }
+  .chat-item {
+    position: relative;
+    padding: 10px 11px; border-radius: 9px; margin-bottom: 3px;
+    cursor: pointer; transition: background 0.12s ease;
+    border: 1px solid transparent;
+  }
+  .chat-item:hover { background: var(--field); }
+  .chat-item.active { background: var(--c-soft, var(--accent-soft)); border-color: var(--border); }
+  .chat-item.active::before {
+    content: ""; position: absolute; left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 56%; border-radius: 3px;
+    background: var(--c-accent, var(--accent));
+  }
+  .ci-title {
+    font-size: 13px; font-weight: 600; color: var(--text-strong);
+    display: flex; align-items: center; gap: 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .chat-item.active .ci-title { color: var(--c-accent-deep, var(--accent-deep)); }
+  .ci-emoji { font-size: 14px; flex-shrink: 0; }
+  .ci-meta {
+    font-size: 11px; color: var(--text-dim);
+    margin-top: 3px; display: flex; gap: 7px;
+  }
+  .empty-list {
+    padding: 26px 16px; text-align: center;
+    color: var(--text-dim); font-size: 12px; line-height: 1.8;
+  }
+  .side-foot {
+    padding: 10px 14px; border-top: 1px solid var(--border);
+    font-size: 10.5px; color: var(--text-dim); text-align: center;
+  }
+  .content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  .content-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 26px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    flex-shrink: 0;
+  }
+  .ch-title {
+    flex: 1; min-width: 0;
+    font-size: 16px; font-weight: 700;
+    color: var(--text-strong); letter-spacing: -0.02em;
+  }
+  .ch-title .ct-edit {
+    cursor: text; border-radius: 6px;
+    padding: 2px 6px; margin: -2px -6px;
+    transition: background 0.12s;
+  }
+  .ch-title .ct-edit:hover { background: var(--field); }
+  .ch-sub {
+    font-size: 11.5px; font-weight: 400;
+    color: var(--text-dim); margin-top: 3px;
+  }
+  .ch-placeholder { color: var(--text-dim); font-weight: 500; font-size: 14px; }
+  .scroll-area { flex: 1; min-height: 0; overflow-y: auto; position: relative; scroll-behavior: smooth; }
+  .scroll-inner { max-width: 780px; margin: 0 auto; padding: 26px 26px 24px; box-sizing: border-box; }
+  /* 턴이 있을 때 — 입력창이 로그 바로 뒤에 붙고 빈 공간을 차지하지 않음 */
+  /* 턴이 없을 때(welcome) — 영역을 꽉 채워서 입력창이 화면 안에 들어오게 */
+  body:not(.has-turns) .scroll-inner { min-height: 100%; display: flex; flex-direction: column; }
+  body:not(.has-turns) .scroll-inner .welcome { flex: 1; }
+  /* 맨 위로 / 맨 아래로 — 화면 우하단 고정 */
+  .nav-fab {
+    position: fixed;
+    right: 24px; bottom: 24px;
+    z-index: 50;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .fab-btn {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--panel); color: var(--text-dim);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12), 0 6px 20px rgba(0,0,0,0.14);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.14s;
+  }
+  .fab-btn:hover {
+    color: #fff;
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .fab-btn:active { transform: scale(0.92); }
+  .welcome {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 40px 30px;
+    color: var(--text-dim);
+    box-sizing: border-box;
+  }
+  .welcome .big {
+    width: 64px; height: 64px; border-radius: 18px;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; margin-bottom: 16px;
+  }
+  .welcome h2 {
+    font-size: 18px; color: var(--text-strong);
+    margin-bottom: 8px; font-weight: 700;
+  }
+  .welcome p { font-size: 13px; max-width: 400px; line-height: 1.9; }
+  .welcome .hint {
+    margin-top: 20px; font-size: 11.5px;
+    background: var(--field); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; max-width: 430px;
+    line-height: 1.8;
+  }
+  .turn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px; margin-bottom: 16px;
+    box-shadow: var(--shadow); overflow: hidden;
+    animation: rise 0.34s ease backwards;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .turn-head {
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 15px;
+    background: var(--field);
+    border-bottom: 1px solid var(--border);
+  }
+  .turn-num {
+    background: var(--c-accent, var(--accent)); color: #fff;
+    border-radius: 20px; padding: 2px 11px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em;
+  }
+  button.turn-num-edit {
+    border: 0; cursor: pointer;
+    font-family: inherit;
+    transition: filter 0.12s, transform 0.12s;
+  }
+  button.turn-num-edit:hover { filter: brightness(1.12); }
+  button.turn-num-edit:active { transform: scale(0.96); }
+  .turn-head .spacer { flex: 1; }
+  .turn-tool {
+    opacity: 0; background: transparent; border: 0;
+    color: var(--text-dim); font-size: 13px;
+    padding: 3px 6px; border-radius: 6px;
+    cursor: pointer; transition: 0.12s;
+    display: inline-flex; align-items: center;
+  }
+  .turn:hover .turn-tool { opacity: 1; }
+  .turn-tool:hover { background: var(--border); color: var(--text-strong); }
+  .turn-tool.del:hover { background: #4a2230; color: #ff9ab0; }
+  [data-theme="light"] .turn-tool.del:hover { background: #fdeaee; color: #e0556b; }
+  .turn-body { padding: 4.83em; font-size: 14.5px; }
+  .prose p {
+    margin-bottom: 22px;
+    text-align: justify;
+    text-justify: inter-character;
+    word-break: break-all;
+    line-height: 1.72;
+    letter-spacing: -0.012em;
+  }
+  .prose p:last-child { margin-bottom: 0; }
+  /* 연속된 대괄호 메시지(카톡 등) — 줄 사이를 좁게 붙인다 */
+  .prose p.msg-tight { margin-bottom: 4px; }
+  .prose .narration { color: var(--narration); font-style: italic; }
+  .prose .plain { color: var(--text-strong); }
+  .dialogue {
+    color: var(--dialogue-text);
+    font-style: normal;
+  }
+  /* 유저(나)가 보낸 대화 — 박스 없이 글씨색만 구분 */
+  .user-block { margin: 0 0 22px; }
+  .user-block p:last-child { margin-bottom: 0; }
+  .user-block .dialogue { color: var(--c-userdia, var(--user-text)); }
+  .user-block .narration { color: var(--c-usernar, var(--user-narration)); }
+  .prose q {
+    color: var(--dialogue-text);
+    font-style: normal;
+    quotes: none;
+  }
+  .status-card {
+    margin: 30px 0 8px;
+    border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    background: var(--c-statbg, var(--status-bg));
+  }
+  /* 크리에이터 HTML 상태창 — 원본 스타일을 그대로 보존, 컨테이너만 여백·넘침 관리 */
+  .html-status {
+    margin: 30px 0 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    /* 안의 HTML이 깨져 있어도 바깥 레이아웃 계산이 폭발하지 않도록 격리 */
+    contain: layout style;
+    max-height: 1200px;
+    overflow-y: auto;
+  }
+  .html-status + .html-status,
+  .html-status + .status-card,
+  .status-card + .html-status { margin-top: 8px; }
+  .html-status details > summary { cursor: pointer; }
+  /* 상태창 바로 뒤에 또 상태창이 오면 간격 좁게 */
+  .status-card + .status-card { margin-top: 8px; }
+  .status-card > summary {
+    list-style: none; cursor: pointer;
+    padding: 11px 15px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; font-weight: 700;
+    color: var(--c-accent-deep, var(--accent-deep));
+    background: var(--c-stathead, var(--status-head));
+    user-select: none;
+  }
+  .status-card > summary::-webkit-details-marker { display: none; }
+  .status-card > summary .chev {
+    margin-left: auto; font-size: 10px;
+    color: var(--text-dim); transition: transform 0.2s;
+  }
+  .status-card[open] > summary .chev { transform: rotate(180deg); }
+  .status-body { padding: 13px 15px 15px; }
+  .stat-line {
+    display: flex; gap: 10px; padding: 7px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 12.5px; line-height: 1.65;
+  }
+  .stat-line:last-child { border-bottom: none; }
+  .stat-key {
+    color: var(--c-accent-deep, var(--accent-deep)); font-weight: 700;
+    flex-shrink: 0; min-width: 124px;
+    word-break: keep-all;
+  }
+  .stat-val {
+    color: var(--text); flex: 1;
+    word-break: break-all; text-align: justify;
+    letter-spacing: -0.012em; line-height: 1.72;
+  }
+  .stat-section {
+    margin-top: 14px; font-size: 11px;
+    font-weight: 700; letter-spacing: 0.05em;
+    color: var(--section-color); text-transform: uppercase;
+    padding-bottom: 5px; border-bottom: 1px solid var(--border);
+  }
+  .stat-section.first { margin-top: 2px; }
+  .stat-list { margin: 5px 0 4px; padding-left: 2px; list-style: none; }
+  .stat-list li {
+    font-size: 12.5px; color: var(--text);
+    padding: 4px 0 4px 16px; position: relative;
+    line-height: 1.72; text-align: justify; word-break: break-all;
+    letter-spacing: -0.012em;
+  }
+  .stat-list li::before {
+    content: "\2022"; position: absolute; left: 3px;
+    color: var(--c-accent, var(--accent));
+  }
+  .stat-raw {
+    font-size: 12.5px; color: var(--text);
+    line-height: 1.72; padding: 4px 0;
+    text-align: justify; word-break: break-all;
+    letter-spacing: -0.012em;
+  }
+  .codeblock {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    margin: 12px 0; font-size: 12.5px;
+    font-family: 'D2Coding', 'Consolas', monospace;
+    color: var(--text); white-space: pre-wrap;
+    word-break: break-word; line-height: 1.65;
+  }
+  .composer {
+    border-top: 1px solid var(--border);
+    background: var(--panel);
+    padding: 13px 26px 16px;
+    flex-shrink: 0;
+  }
+  .composer-inner { max-width: 780px; margin: 0 auto; }
+  .composer-tabs { display: flex; gap: 5px; margin-bottom: 9px; align-items: center; }
+  .ctab {
+    font-size: 11.5px; font-weight: 600;
+    padding: 6px 12px; border-radius: 7px;
+    background: transparent; border: 1px solid transparent;
+    color: var(--text-dim); cursor: pointer;
+    transition: 0.12s;
+  }
+  .ctab:hover { color: var(--accent-deep); background: var(--field); }
+  .ctab.active {
+    background: var(--c-accent, var(--accent));
+    border-color: var(--c-accent, var(--accent)); color: #fff;
+  }
+  .ctab.active:hover { color: #fff; }
+  /* 입력창 접기/펴기 토글 */
+  .composer-toggle {
+    margin-left: auto;
+    width: 28px; height: 28px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--field);
+    color: var(--text-dim); cursor: pointer;
+    font-size: 13px; line-height: 1;
+    transition: 0.14s;
+  }
+  .composer-toggle:hover { color: var(--accent); border-color: var(--accent); }
+  .composer-collapsible { overflow: hidden; transition: none; }
+  .composer.collapsed .composer-collapsible { display: none; }
+  .composer.collapsed .composer-tabs { margin-bottom: 0; }
+  .composer.collapsed .ctab { opacity: 0.5; pointer-events: none; }
+  .composer.collapsed .composer-toggle { transform: rotate(180deg); }
+  .composer textarea {
+    width: 100%; min-height: 92px; max-height: 280px; resize: vertical;
+    font-family: var(--ui);
+    background: var(--field); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    color: var(--text); font-size: 13px; line-height: 1.7;
+    outline: none; transition: border-color 0.13s ease;
+  }
+  .composer textarea:focus { border-color: var(--c-accent, var(--accent)); }
+  .composer-foot {
+    display: flex; align-items: center; gap: 10px; margin-top: 9px;
+  }
+  .composer-foot .hint { font-size: 11px; color: var(--text-dim); flex: 1; }
+  /* 전체 붙여넣기 — 순서대로 번호매기기 옵션 */
+  .seq-opt {
+    display: flex; align-items: center; gap: 7px;
+    margin-top: 9px; cursor: pointer;
+    font-size: 11.5px; color: var(--text-dim);
+    user-select: none;
+  }
+  .seq-opt input { width: 14px; height: 14px; cursor: pointer; accent-color: var(--accent); }
+  .seq-opt:hover { color: var(--text-strong); }
+  /* 추가하기 버튼 — 채팅방 색을 따라간다 */
+  #addLogBtn {
+    background: var(--c-accent, var(--accent));
+    border-color: var(--c-accent, var(--accent));
+  }
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(10,12,18,0.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px; backdrop-filter: blur(2px);
+  }
+  .overlay.show { display: flex; }
+  .modal {
+    background: var(--panel); border-radius: 16px;
+    box-shadow: var(--shadow);
+    width: 440px; max-width: 100%; max-height: 90vh; overflow-y: auto;
+    animation: pop 0.2s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px; border-bottom: 1px solid var(--border);
+  }
+  .modal-head h2 { font-size: 14.5px; font-weight: 700; color: var(--text-strong); }
+  .modal-close {
+    border: 0; background: transparent; color: var(--text-dim);
+    font-size: 20px; cursor: pointer; padding: 0 4px; line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 18px; }
+  .modal-body p.desc {
+    font-size: 12.5px; color: var(--text-dim);
+    margin-bottom: 14px; line-height: 1.7;
+    white-space: pre-line;
+  }
+  .field { margin-bottom: 14px; }
+  .field:last-of-type { margin-bottom: 0; }
+  .field label {
+    display: block; font-size: 11.5px; font-weight: 600;
+    color: var(--text-dim); margin-bottom: 5px;
+  }
+  .field input[type="text"], .field textarea {
+    width: 100%; font-family: var(--ui); font-size: 12.5px;
+    color: var(--text); background: var(--field);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 11px; outline: none;
+    transition: border-color 0.13s ease;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 60px; line-height: 1.6; }
+  .field-row { display: flex; gap: 10px; }
+  .field-row .field-emoji { width: 78px; flex-shrink: 0; }
+  .field-row .field-grow { flex: 1; }
+  .modal-foot {
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding: 14px 18px; border-top: 1px solid var(--border);
+  }
+  /* 케이브덕 추출 모달 */
+  .bm-block {
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+  .bm-block:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
+  .bm-step {
+    font-size: 12px; font-weight: 700; color: var(--text-strong);
+    margin-bottom: 6px;
+  }
+  .bm-hint {
+    font-size: 11.5px; color: var(--text-dim);
+    line-height: 1.65; margin-bottom: 9px;
+  }
+  .bm-drag-wrap { display: flex; }
+  a.bm-drag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent); color: #fff;
+    font-family: var(--ui); font-size: 13px; font-weight: 700;
+    text-decoration: none; cursor: grab;
+    padding: 10px 16px; border-radius: 9px;
+    box-shadow: 0 2px 8px rgba(47,109,240,0.3);
+    user-select: none;
+  }
+  a.bm-drag:active { cursor: grabbing; }
+  textarea.bm-code {
+    width: 100%; font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 10.5px; line-height: 1.5;
+    color: var(--text); background: var(--field);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 11px; outline: none; resize: vertical;
+    word-break: break-all;
+  }
+  textarea.bm-code:focus { border-color: var(--accent); }
+  /* 대사 색상 모달 */
+  .sw-grid {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    gap: 8px; margin-bottom: 16px;
+  }
+  .sw {
+    aspect-ratio: 1; padding: 0; border-radius: 8px;
+    border: 2px solid var(--border); cursor: pointer;
+  }
+  .sw:hover { transform: scale(1.08); border-color: var(--text-dim); }
+  .sw.on {
+    border-color: var(--text-strong);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+  .sw-custom {
+    display: flex; align-items: center; gap: 9px;
+    margin-bottom: 4px;
+  }
+  .sw-custom label {
+    font-size: 11.5px; font-weight: 600; color: var(--text-dim);
+    margin: 0;
+  }
+  .sw-custom input[type="color"] {
+    width: 44px; height: 34px; padding: 3px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--field); cursor: pointer;
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  }
+  .sw-custom input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  .sw-custom input[type="color"]::-webkit-color-swatch {
+    border: none; border-radius: 5px;
+  }
+  .sw-custom input[type="color"]::-moz-color-swatch {
+    border: none; border-radius: 5px;
+  }
+  .sw-clear {
+    margin-left: auto; font-size: 11.5px;
+    padding: 7px 11px;
+  }
+  .sw-divider {
+    height: 1px; background: var(--border);
+    margin: 14px 0 12px;
+  }
+  .sw-check {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px; color: var(--text);
+    margin: 14px 0 0; cursor: pointer;
+  }
+  .sw-check input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+  .sp-preview-label {
+    font-size: 11px; font-weight: 600; color: var(--text-dim);
+    margin: 16px 0 6px; letter-spacing: 0.04em;
+  }
+  .sp-preview {
+    background: var(--field); border: 1px solid var(--border);
+    border-radius: 9px; padding: 13px 14px;
+  }
+  .pv-badge {
+    display: inline-block; color: #fff;
+    font-size: 10.5px; font-weight: 700;
+    border-radius: 20px; padding: 2px 11px; margin-bottom: 9px;
+  }
+  .pv-stat {
+    border: 1px solid; border-radius: 9px;
+    padding: 8px 11px; font-size: 12px; margin-bottom: 9px;
+  }
+  .pv-line { font-size: 13px; line-height: 1.7; }
+  .toast {
+    position: fixed; bottom: 22px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text-strong); color: var(--bg);
+    font-size: 12.5px; font-weight: 500;
+    padding: 10px 17px; border-radius: 8px;
+    opacity: 0; pointer-events: none;
+    transition: all 0.25s ease; z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .menu-toggle { display: none; }
+  .sb-backdrop { display: none; }
+  @media (max-width: 760px) {
+    header { padding: 0 12px; }
+    .brand small { display: none; }
+    .sidebar {
+      position: fixed; left: 0; top: 56px;
+      height: calc(100vh - 56px); z-index: 60;
+      transform: translateX(-100%); transition: transform 0.24s ease;
+    }
+    .sidebar.open { transform: translateX(0); box-shadow: var(--shadow); }
+    .menu-toggle { display: inline-flex; }
+    .sb-backdrop {
+      position: fixed; inset: 56px 0 0 0;
+      background: rgba(0,0,0,0.4); z-index: 55;
+    }
+    .sb-backdrop.show { display: block; }
+    .scroll-inner { padding: 18px 14px 30px; }
+    .content-head { padding: 13px 14px; }
+    .composer { padding: 11px 14px 14px; }
+    .turn-body { padding: 1.6em 1.5em; }
+    .stat-key { min-width: 88px; }
+    .nav-fab { right: 14px; bottom: 16px; }
+    .fab-btn { width: 40px; height: 40px; }
+    .log-search { padding: 10px 14px; }
+  }
+
+  /* ===== 오른쪽 채팅로그 검색바 고정 최종 수정 =====
+     왼쪽 채팅목록 검색이 아니라, 오른쪽 돋보기로 여는 "이 채팅의 로그 내용 검색…" 전용 */
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    flex: 0 0 56px;
+    position: relative;
+    top: auto;
+  }
+
+  main {
+    height: calc(100vh - 56px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    height: calc(100vh - 56px);
+    top: 0;
+  }
+
+  .content {
+    height: calc(100vh - 56px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .content-head {
+    flex: 0 0 auto;
+    transition: opacity .18s ease, transform .18s ease, max-height .22s ease,
+                padding .22s ease, border-color .22s ease;
+    overflow: hidden;
+  }
+
+  /* 로그를 스크롤하면 제목줄만 접힘 */
+  .content.log-search-fixed .content-head {
+    opacity: 0;
+    transform: translateY(-8px);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-bottom-color: transparent;
+    pointer-events: none;
+  }
+
+  /* 검색바는 scroll-area 밖에 있으므로 로그 스크롤과 함께 움직이지 않음 */
+  .content > .log-search {
+    flex: 0 0 auto;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: 45;
+    background: rgba(255,255,255,.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: none;
+  }
+
+  [data-theme="dark"] .content > .log-search {
+    background: rgba(29,30,38,.94);
+  }
+
+  .content.log-search-fixed > .log-search {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+  }
+
+  .scroll-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .composer {
+    flex: 0 0 auto;
+  }
+
+  @media (max-width: 760px) {
+    .sidebar {
+      top: 56px;
+      height: calc(100vh - 56px);
+    }
+    .content {
+      height: calc(100vh - 56px);
+    }
+  }
+
+
+  /* 턴 붙여넣기 입력창은 고정하지 않고 로그 맨 아래에 놓기 */
+  .scroll-area > .composer {
+    flex: none;
+    position: relative;
+    width: 100%;
+    margin-top: 0;
+  }
+  .scroll-area > .composer .composer-inner {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+
+  /* 검색 결과 위/아래 이동 버튼 아이콘 표시 보강 */
+  .ls-navbtn {
+    padding: 0 !important;
+    min-width: 28px;
+    flex: 0 0 28px;
+    color: var(--text-dim) !important;
+  }
+  .ls-navbtn .ls-arrow-icon {
+    width: 15px !important;
+    height: 15px !important;
+    display: block !important;
+    fill: currentColor !important;
+    stroke: none !important;
+    opacity: 1 !important;
+  }
+  .ls-navbtn:hover .ls-arrow-icon {
+    fill: var(--accent) !important;
+  }
+  .ls-navbtn:disabled .ls-arrow-icon {
+    opacity: .45 !important;
+  }
+
+
+  /* 검색하지 않을 때도: 로그를 아래로 내리면 제목줄 숨김, 살짝 올리면 다시 표시 */
+  .content.title-auto-hidden .content-head {
+    opacity: 0;
+    transform: translateY(-8px);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-bottom-color: transparent;
+    pointer-events: none;
+  }
+
+
+  /* 검색창 닫기 X 버튼 정렬 보정 */
+  .ls-close {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    flex: 0 0 28px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    font-size: 15px !important;
+    text-align: center !important;
+    gap: 0 !important;
+  }
+
+</style>
+</head>
+<body data-theme="light">
+<header>
+  <div class="brand" id="brandHome" title="메인 화면으로">
+    <span class="mark">&#9636;</span>
+    로그 보관함
+    <small>log keeper</small>
+  </div>
+  <div class="header-actions">
+    <button class="icon menu-toggle" id="menuToggle" title="메뉴">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <button class="cd-btn" id="caveduckBtn" title="케이브덕 채팅 로그를 한 번에 추출">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/>
+        <path d="M17.8 11.8 19 13"/><path d="M15 9h.01"/><path d="M17.8 6.2 19 5"/>
+        <path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/>
+      </svg>
+      <span>로그 추출</span>
+    </button>
+    <button class="icon" id="exportBtn" title="저장 (백업 파일로 내보내기)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/>
+      </svg>
+    </button>
+    <button class="icon" id="importBtn" title="불러오기 (백업 파일에서)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 8a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
+      </svg>
+    </button>
+    <input type="file" id="fileInput" accept="application/json,.json" style="display:none">
+    <button class="icon" id="themeBtn" title="테마 전환">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+    </button>
+  </div>
+</header>
+<main>
+  <aside class="sidebar" id="sidebar">
+    <div class="side-top">
+      <button class="primary" id="newChatBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        <span>새 채팅 만들기</span>
+      </button>
+    </div>
+    <div class="side-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="채팅 제목 검색…">
+    </div>
+    <div class="side-title">내 채팅 <span id="chatCount"></span></div>
+    <div class="chat-list" id="chatList"></div>
+    <div class="side-foot">데이터는 이 브라우저에만 저장돼요</div>
+  </aside>
+  <div class="sb-backdrop" id="sbBackdrop"></div>
+  <section class="content">
+    <div class="content-head" id="contentHead">
+      <div class="ch-title" id="chTitle">
+        <span class="ch-placeholder">채팅을 선택하세요</span>
+      </div>
+      <button class="icon" id="speakerBtn" title="채팅방 색상">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/>
+          <circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/>
+          <path d="M12 22a10 10 0 1 1 0-20 8 8 0 0 1 8 8 4 4 0 0 1-4 4h-2a2 2 0 0 0-2 2 2 2 0 0 1-2 2z"/>
+        </svg>
+      </button>
+      <button class="icon" id="logSearchBtn" title="로그 내용 검색">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
+      <button class="icon" id="sortBtn" title="정렬 순서 바꾸기">
+        <svg id="sortIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+      </button>
+      <button class="icon" id="copyAllBtn" title="전체 로그 복사">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+      </button>
+      <button class="icon danger" id="delChatBtn" title="이 채팅 삭제">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+      </button>
+    </div>
+<div class="log-search" id="logSearchBar" style="display:none">
+        <div class="ls-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="logSearchInput" placeholder="이 채팅의 로그 내용 검색…">
+          <button class="ls-clear" id="logSearchClear" title="지우기" style="display:none">✕</button>
+        </div>
+        <span class="ls-count" id="logSearchCount"></span>
+        <div class="ls-nav">
+          <button class="ls-navbtn" id="logSearchPrev" title="이전 (Shift+Enter)" aria-label="이전 검색 결과">
+            <svg class="ls-arrow-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 7.2 5.8 14.1c-.45.5-.1 1.3.58 1.3h11.24c.68 0 1.03-.8.58-1.3L12 7.2z"/>
+            </svg>
+          </button>
+          <button class="ls-navbtn" id="logSearchNext" title="다음 (Enter)" aria-label="다음 검색 결과">
+            <svg class="ls-arrow-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 16.8 5.8 9.9c-.45-.5-.1-1.3.58-1.3h11.24c.68 0 1.03.8.58 1.3L12 16.8z"/>
+            </svg>
+          </button>
+        </div>
+        <button class="ls-close" id="logSearchClose" title="검색 닫기">✕</button>
+      </div>
+
+    <div class="scroll-area" id="scrollArea">
+      <div class="scroll-inner" id="scrollInner"></div>
+      <div class="composer" id="composer" style="display:none">
+        <div class="composer-inner">
+          <div class="composer-tabs">
+            <button class="ctab active" data-mode="turn">턴 하나 추가</button>
+            <button class="ctab" data-mode="bulk">전체 통째로 붙여넣기</button>
+            <button class="composer-toggle" id="composerToggle" title="입력창 접기/펴기">▾</button>
+          </div>
+          <div class="composer-collapsible" id="composerBody">
+            <textarea id="logInput" placeholder='여기에 로그를 붙여넣으세요.
+*서술*, "대사", <details> 상태창을 자동으로 인식해요.'></textarea>
+            <label class="seq-opt" id="seqOpt" style="display:none">
+              <input type="checkbox" id="seqNumber">
+              <span>턴 번호를 무시하고 0부터 순서대로 매기기</span>
+            </label>
+            <div class="composer-foot">
+              <span class="hint" id="composerHint">붙여넣은 내용 하나가 한 턴으로 추가돼요. (Ctrl+Enter)</span>
+              <button class="primary" id="addLogBtn">추가하기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-fab" id="navFab">
+      <button class="fab-btn" id="fabTop" title="맨 위로">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+      </button>
+      <button class="fab-btn" id="fabBottom" title="맨 아래로">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+  </section>
+</main>
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBox"></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+const STORE_KEY = "logKeeper.v1";
+const THEME_KEY = "logKeeper.theme";
+const $ = id => document.getElementById(id);
+const $$ = s => [...document.querySelectorAll(s)];
+let state = { chats: [] };
+let activeId = null;
+let composerMode = "turn";
+let sortMode = "input"; // input | turnAsc | turnDesc
+let logQuery = ""; // 로그 내용 검색어 (빈 문자열이면 검색 안 함)
+let logHitIdx = -1; // 현재 보고 있는 일치 항목 인덱스
+
+// ===== IndexedDB 저장소 =====
+// localStorage는 약 5MB 한계라 로그가 쌓이면 저장이 통째로 실패한다.
+// IndexedDB는 용량이 훨씬 커서 대용량 로그도 안전하게 저장된다.
+const IDB_NAME = "logKeeperDB";
+const IDB_STORE = "appState";
+const IDB_KEY = "state";
+let _idb = null;
+
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE))
+        db.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function idbGet(key) {
+  return new Promise((resolve, reject) => {
+    const tx = _idb.transaction(IDB_STORE, "readonly");
+    const req = tx.objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function idbSet(key, val) {
+  return new Promise((resolve, reject) => {
+    const tx = _idb.transaction(IDB_STORE, "readwrite");
+    tx.objectStore(IDB_STORE).put(val, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function load() {
+  try {
+    _idb = await openIDB();
+    let data = await idbGet(IDB_KEY);
+    // IndexedDB에 없으면 — 예전 localStorage 데이터를 옮겨온다 (1회 마이그레이션)
+    if (!data) {
+      try {
+        const old = localStorage.getItem(STORE_KEY);
+        if (old) {
+          data = JSON.parse(old);
+          await idbSet(IDB_KEY, data);
+          localStorage.removeItem(STORE_KEY); // 옮겼으니 정리
+        }
+      } catch (e) { console.warn("migration failed", e); }
+    }
+    if (data) state = data;
+  } catch (e) {
+    console.warn("IndexedDB load failed, falling back to localStorage", e);
+    // IndexedDB를 못 쓰는 환경 — localStorage로 폴백
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) state = JSON.parse(raw);
+    } catch (e2) {}
+  }
+  if (!state.chats) state.chats = [];
+}
+
+let _saveTimer = null;
+function save() {
+  // 연속 저장 시 마지막 것만 — 0.3초 디바운스
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(doSave, 300);
+}
+async function doSave() {
+  try {
+    if (_idb) {
+      await idbSet(IDB_KEY, state);
+    } else {
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    }
+  } catch (e) {
+    console.warn("save failed", e);
+    // IndexedDB 실패 시 localStorage라도 시도
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+    catch (e2) { toast("저장 공간이 부족해요"); }
+  }
+}
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const now = () => Date.now();
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+const sunIcon = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+const moonIcon = '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>';
+function applyTheme(t) {
+  document.body.dataset.theme = t;
+  $("themeIcon").innerHTML = t === "dark" ? moonIcon : sunIcon;
+}
+
+/* 정렬 아이콘 — 모드별로 다른 그림 */
+const SORT_ICONS = {
+  // 입력순: 평범한 목록
+  input: '<path d="M3 6h13M3 12h13M3 18h13"/><circle cx="20" cy="6" r="1"/><circle cx="20" cy="12" r="1"/><circle cx="20" cy="18" r="1"/>',
+  // 턴 오름차순: 짧은→긴 막대 + 위 화살표
+  turnAsc: '<path d="M3 6h4M3 12h8M3 18h12"/><path d="M18 9l3-3 3 3M21 6v13"/>',
+  // 턴 내림차순: 긴→짧은 막대 + 아래 화살표
+  turnDesc: '<path d="M3 6h12M3 12h8M3 18h4"/><path d="M18 16l3 3 3-3M21 19V6"/>'
+};
+function updateSortIcon() {
+  const el = document.getElementById("sortIcon");
+  if (el) el.innerHTML = SORT_ICONS[sortMode] || SORT_ICONS.input;
+}
+
+function parseLog(raw) {
+  const blocks = [];
+  let text = raw.replace(/\r\n/g, "\n");
+  // 1단계: HTML 상태창을 먼저 떼어낸다 (코드펜스 제거 전에)
+  //  (a) [[HTML]]...[[/HTML]] 마커  (b) ```html ... ``` 코드펜스 (닫는 ``` 없으면 끝까지)
+  const htmlRe = /\[\[HTML\]\]([\s\S]*?)\[\[\/HTML\]\]|```html[ \t]*\n?([\s\S]*?)(?:\n?```|$)/gi;
+  const topSegs = [];
+  let li = 0, hm;
+  while ((hm = htmlRe.exec(text)) !== null) {
+    if (hm.index > li) topSegs.push({ type: "plain", body: text.slice(li, hm.index) });
+    // hm[1] = [[HTML]] 안쪽, hm[2] = ```html 안쪽
+    topSegs.push({ type: "html", body: (hm[1] != null ? hm[1] : hm[2]) || "" });
+    li = hm.index + hm[0].length;
+  }
+  if (li < text.length) topSegs.push({ type: "plain", body: text.slice(li) });
+
+  for (const topSeg of topSegs) {
+    if (topSeg.type === "html") {
+      if (!topSeg.body.trim()) continue;
+      // [[HTML]] 안이 사실은 일반 <details> 상태창인 경우 — 일반 상태창으로 되돌린다
+      const plainDetails = extractPlainStatusDetails(topSeg.body);
+      if (plainDetails) {
+        for (const dHtml of plainDetails)
+          blocks.push({ kind: "status", data: parseDetails(dHtml) });
+      } else {
+        blocks.push({ kind: "htmlstatus", html: topSeg.body });
+      }
+      continue;
+    }
+    // 2단계: 일반 텍스트 — 남은 코드펜스 제거 후 <details> 분리
+    let t = stripCodeFences(topSeg.body);
+    const detailsRe = /<details[\s\S]*?<\/details>/gi;
+    let lastIndex = 0, m;
+    const segments = [];
+    while ((m = detailsRe.exec(t)) !== null) {
+      if (m.index > lastIndex)
+        segments.push({ type: "text", body: t.slice(lastIndex, m.index) });
+      segments.push({ type: "details", body: m[0] });
+      lastIndex = m.index + m[0].length;
+    }
+    if (lastIndex < t.length)
+      segments.push({ type: "text", body: t.slice(lastIndex) });
+    for (const seg of segments) {
+      if (seg.type === "details") {
+        blocks.push({ kind: "status", data: parseDetails(seg.body) });
+      } else {
+        if (seg.body.trim()) splitUserProse(seg.body, blocks);
+      }
+    }
+  }
+  return dedupeStatusBlocks(blocks);
+}
+// 같은 내용의 상태창이 두 번 들어간 경우 하나만 남긴다.
+// (케이브덕에서 대괄호 텍스트 + <details> 형태로 중복 추출될 때 대비)
+function dedupeStatusBlocks(blocks) {
+  // 상태창의 모든 텍스트(summary + 항목)를 비교용으로 정규화.
+  // 공백·괄호·콜론·구두점 등을 모두 제거해 형태 차이를 흡수한다.
+  const statusText = b => {
+    if (b.kind !== "status" || !b.data) return null;
+    let parts = [];
+    // 기본 summary "상태창"은 의미 없는 값이라 비교에서 제외
+    if (b.data.summary && b.data.summary !== "상태창") parts.push(b.data.summary);
+    for (const it of b.data.items)
+      parts.push(it.type === "kv" ? it.key + it.val : (it.text || ""));
+    return parts.join("")
+      .replace(/[\s\[\]():：·.,/|]+/g, "")
+      .toLowerCase();
+  };
+  const seenTexts = [];
+  const result = [];
+  for (const b of blocks) {
+    const txt = statusText(b);
+    if (txt && txt.length > 12) {
+      const dup = seenTexts.some(prev =>
+        prev === txt || prev.includes(txt) || txt.includes(prev)
+      );
+      if (dup) continue;
+      seenTexts.push(txt);
+    }
+    result.push(b);
+  }
+  return result;
+}
+// [[HTML]] 블록이 사실은 일반 <details> 상태창인지 판별.
+// 크리에이터 UI(검은 배경/코드에디터 풍 스타일)가 없고 <details>만 있으면
+// 그 <details> HTML 배열을 반환, 아니면 null.
+function extractPlainStatusDetails(html) {
+  if (!/<details[\s\S]*?<\/details>/i.test(html)) return null;
+  // 크리에이터 UI 특유의 흔적: 어두운 배경색, letter-spacing, 코드폰트 등
+  const creatorSign = /background\s*:\s*#0|letter-spacing\s*:\s*normal|ui-monospace|monospace/i;
+  // <details> 바깥(껍데기)에 크리에이터 스타일이 있으면 일반 상태창이 아님
+  const shell = html.replace(/<details[\s\S]*?<\/details>/gi, "");
+  if (creatorSign.test(shell)) return null;
+  // <details> 들을 모두 모은다
+  const list = [];
+  const re = /<details[\s\S]*?<\/details>/gi;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    // 각 details 자체에 크리에이터 UI 흔적이 짙으면 일반 상태창 아님
+    if (creatorSign.test(m[0])) return null;
+    list.push(m[0]);
+  }
+  return list.length ? list : null;
+}
+// 텍스트에서 [유저] 표식을 찾아 user 블록과 prose 블록으로 나눈다
+function splitUserProse(body, blocks) {
+  const lines = body.split("\n");
+  let buf = [];
+  let mode = "prose"; // prose | user
+  const flush = () => {
+    const t = buf.join("\n").trim();
+    if (t) blocks.push({ kind: mode === "user" ? "user" : "prose", text: t });
+    buf = [];
+  };
+  for (const line of lines) {
+    if (/^\[유저\]\s*$/.test(line.trim())) {
+      flush();
+      mode = "user";
+      continue;
+    }
+    if (/^\[(캐릭터|character|ai|봇)\]\s*$/i.test(line.trim())) {
+      flush();
+      mode = "prose";
+      continue;
+    }
+    // 대괄호 묶음 상태창 줄 — 별도 status 블록으로 떼어낸다
+    if (isBracketStatusLine(line)) {
+      flush();
+      blocks.push({ kind: "status", data: parseBracketStatus(line) });
+      continue;
+    }
+    // 상태창이 아닌데 ][ 로 붙은 대괄호 묶음 (예: 한 줄로 들어온 카톡 메시지)
+    // — 각 [ ] 사이를 줄바꿈으로 되돌려 본래 모양대로 보여준다
+    if (/\]\s*\[/.test(line) && /^\s*\[/.test(line) && /\]\s*$/.test(line.trim())) {
+      const groups = splitTopBrackets(line.trim());
+      let rest = line.trim();
+      for (const g of groups) rest = rest.replace(g, "");
+      if (groups.length >= 2 && rest.trim().length <= 3) {
+        for (const g of groups) buf.push(g);
+        continue;
+      }
+    }
+    buf.push(line);
+  }
+  flush();
+}
+// 줄에서 최상위 [ ... ] 묶음들만 분리 (안쪽 중첩 대괄호는 묶음 안에 포함)
+function splitTopBrackets(t) {
+  const groups = [];
+  let depth = 0, start = -1;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (c === "[") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (c === "]") {
+      depth--;
+      if (depth === 0 && start >= 0) { groups.push(t.slice(start, i + 1)); start = -1; }
+      if (depth < 0) depth = 0;
+    }
+  }
+  return groups;
+}
+// 한 줄이 [ ... ][ ... ][ ... ] 형태의 대괄호 묶음 상태창인지 판별.
+// 케이브덕에서 접히지 않는(일반 텍스트) 상태창이 이렇게 나온다.
+// 상태창 특유의 키워드 — 이게 들어있어야 진짜 상태창으로 본다.
+// (카톡/문자 메시지를 표현한 대괄호와 구분하기 위함)
+const STATUS_KEYWORDS = [
+  "호감도", "관계", "다음 일정", "다음일정", "일정", "턴", "NPC", "PC의",
+  "AI 한마디", "AI한마디", "상황", "복장", "장소", "공간", "시각", "시간",
+  "속마음", "가이드", "폭주", "수치", "약속", "능력", "스탯", "상태"
+];
+function hasStatusKeyword(t) {
+  return STATUS_KEYWORDS.some(k => t.includes(k));
+}
+function isBracketStatusLine(line) {
+  const t = line.trim();
+  if (!/^\[/.test(t) || !/\]\s*$/.test(t)) return false;
+  const groups = splitTopBrackets(t);
+  if (groups.length < 2) return false;
+  // 묶음들을 다 빼고 남는 게 거의 없어야 함 (= 줄 전체가 대괄호)
+  let rest = t;
+  for (const g of groups) rest = rest.replace(g, "");
+  if (rest.trim().length > 3) return false;
+  // 상태창 키워드가 있어야 진짜 상태창 — 없으면 문자 메시지 등으로 보고 대사 처리
+  return hasStatusKeyword(t);
+}
+// 대괄호 묶음 줄을 상태창 데이터({summary, items})로 변환
+function parseBracketStatus(line) {
+  const groups = splitTopBrackets(line.trim());
+  const items = [];
+  for (const g of groups) {
+    const inner = g.slice(1, -1).trim();
+    if (!inner) continue;
+    // "키: 값" 형태면 kv 로, 아니면 통째로 raw 로
+    // 단, 키 부분에 / 가 있으면 (정보 나열이므로) 분리하지 않는다
+    const colonIdx = inner.indexOf(":");
+    if (colonIdx > 0 && colonIdx < 30) {
+      const key = inner.slice(0, colonIdx).trim();
+      const val = inner.slice(colonIdx + 1).trim();
+      if (key && val && !key.includes("/")) { items.push({ type: "kv", key, val }); continue; }
+    }
+    items.push({ type: "raw", text: inner });
+  }
+  return { summary: "상태창", items };
+}
+// ``` 코드펜스 마커 제거 — 펜스 안 내용은 살리고 ``` 줄만 없앤다
+function stripCodeFences(s) {
+  return s.replace(/^[ \t]*```[^\n]*\n?/gm, "").replace(/```/g, "");
+}
+// 로그 텍스트에서 턴 번호 추출 (예: "442턴", "[ 442턴 / ... ]")
+function extractTurnNo(raw) {
+  const m = raw.match(/(\d+)\s*턴/);
+  return m ? parseInt(m[1], 10) : null;
+}
+function parseDetails(html) {
+  let summary = "상태창";
+  const sm = html.match(/<summary[^>]*>([\s\S]*?)<\/summary>/i);
+  if (sm) summary = stripTags(sm[1]).trim() || "상태창";
+  let inner = html
+    .replace(/<summary[^>]*>[\s\S]*?<\/summary>/i, "")
+    .replace(/<\/?details[^>]*>/gi, "");
+  inner = stripTags(inner);
+  const lines = inner.split("\n").map(l => l.trimEnd());
+  const items = [];
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) continue;
+    const listM = t.match(/^(?:[-*\u2022]|\d+[.)])\s+(.*)$/);
+    if (listM) { items.push({ type: "li", text: listM[1].trim() }); continue; }
+    // 파이프(|) 기준 분리 — 상태창의 유일한 구분자 (콜론은 값 안에 그대로 둔다)
+    const pipeIdx = t.indexOf("|");
+    if (pipeIdx > 0 && pipeIdx < 80) {
+      const key = t.slice(0, pipeIdx).trim();
+      const val = t.slice(pipeIdx + 1).trim();
+      if (key && val) { items.push({ type: "kv", key, val }); continue; }
+    }
+    if (t.length <= 36 && (/^[\u{1F000}-\u{1FAFF}\u2600-\u27BF\u2190-\u21FF\u2B00-\u2BFF]/u.test(t) || /^\[.*\]$/.test(t))) {
+      items.push({ type: "section", text: t });
+      continue;
+    }
+    items.push({ type: "raw", text: t });
+  }
+  return { summary, items };
+}
+function stripTags(s) {
+  return s
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|tr)>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "- ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&").replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'").replace(/&nbsp;/g, " ");
+}
+function renderProse(text, isUser) {
+  const paras = text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+  let html = "";
+  const isMsgLine = l => /^\[[\s\S]*\]$/.test(l.trim());
+  for (const para of paras) {
+    const lines = para.split(/\n/).map(l => l.trim()).filter(Boolean);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const next = lines[i + 1];
+      // 이 줄이 대괄호 메시지이고 다음 줄도 대괄호 메시지면 — 사이 여백을 좁힌다
+      const tight = isMsgLine(line) && next && isMsgLine(next);
+      html += '<p' + (tight ? ' class="msg-tight"' : '') + '>' + inlineFormat(line, isUser) + "</p>";
+    }
+  }
+  return html || "<p>" + inlineFormat(text.trim(), isUser) + "</p>";
+}
+// 한 줄을 *서술* 조각과 대사 조각으로 쪼개 렌더링
+// 규칙: *...* 안은 서술, 그 바깥은 전부 대사 ("" 유무 무관)
+function inlineFormat(line, isUser) {
+  const raw = line;
+  let out = "";
+  let i = 0;
+  while (i < raw.length) {
+    if (raw[i] === "*") {
+      // 닫는 * 찾기
+      const close = raw.indexOf("*", i + 1);
+      if (close !== -1) {
+        const inner = raw.slice(i + 1, close);
+        out += '<span class="narration">' + escapeHtml(inner) + '</span>';
+        i = close + 1;
+        continue;
+      }
+      // 닫는 *가 없는 별표 — 그대로 출력하고 한 칸 넘어간다 (무한루프 방지)
+      out += escapeHtml("*");
+      i++;
+      continue;
+    }
+    // 다음 * 까지가 대사 조각
+    let next = raw.indexOf("*", i);
+    if (next === -1) next = raw.length;
+    const seg = raw.slice(i, next);
+    if (seg.trim()) {
+      // 유저 대사는 .user-block .dialogue CSS가 색을 맡으므로 인라인 색 생략
+      out += '<span class="dialogue"' + (isUser ? "" : dialogueColor()) + '>' + escapeHtml(seg) + '</span>';
+    } else {
+      out += escapeHtml(seg); // 공백만 있으면 그대로
+    }
+    i = next;
+  }
+  return out || escapeHtml(raw);
+}
+// 현재 채팅에 지정된 대사 색이 있으면 인라인 스타일로 반환
+function dialogueColor() {
+  const chat = getActive();
+  if (chat && chat.dialogueColor)
+    return ' style="color:' + chat.dialogueColor + '"';
+  return "";
+}
+// 유저 블록에 유저 대사색/서술색 CSS 변수를 인라인으로 주입
+function userColorStyle(chat) {
+  let s = "";
+  if (chat && chat.userDiaColor) s += "--c-userdia:" + chat.userDiaColor + ";";
+  if (chat && chat.userNarColor) s += "--c-usernar:" + chat.userNarColor + ";";
+  return s ? ' style="' + s + '"' : "";
+}
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+// 크리에이터 HTML 상태창을 안전하게 정화 — script/이벤트핸들러/위험태그 제거 후 그대로 렌더
+function sanitizeHtml(html) {
+  try {
+    const tpl = document.createElement("template");
+    tpl.innerHTML = html || "";
+    const BAD_TAGS = ["script", "iframe", "object", "embed", "link", "meta", "base", "form", "input", "textarea", "button", "style"];
+    tpl.content.querySelectorAll(BAD_TAGS.join(",")).forEach(el => el.remove());
+    const allEls = tpl.content.querySelectorAll("*");
+    // 모든 요소의 위험 속성 제거 (on*, javascript: 등)
+    allEls.forEach(el => {
+      [...el.attributes].forEach(attr => {
+        const name = attr.name.toLowerCase();
+        const val = (attr.value || "").toLowerCase();
+        if (name.startsWith("on")) el.removeAttribute(attr.name);
+        else if ((name === "src" || name === "href") && val.includes("javascript:"))
+          el.removeAttribute(attr.name);
+        else if (name === "style" && val.includes("javascript:"))
+          el.removeAttribute(attr.name);
+      });
+    });
+    return tpl.innerHTML;
+  } catch (e) {
+    // 깨진 HTML 등으로 처리 실패 — 태그를 다 벗겨 텍스트만 안전하게 반환
+    console.warn("sanitizeHtml failed", e);
+    return escapeHtml((html || "").replace(/<[^>]*>/g, " ").slice(0, 4000));
+  }
+}
+
+function getActive() { return state.chats.find(c => c.id === activeId); }
+
+// 렌더된 영역에서 검색어와 일치하는 텍스트를 <mark>로 강조. 일치 개수를 반환.
+function highlightHits(root, query) {
+  if (!query) return 0;
+  const q = query.toLowerCase();
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (!node.nodeValue || !node.nodeValue.toLowerCase().includes(q)) return NodeFilter.FILTER_REJECT;
+      const p = node.parentNode;
+      if (p && (p.nodeName === "SCRIPT" || p.nodeName === "STYLE" || p.nodeName === "MARK"))
+        return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const targets = [];
+  let n;
+  while ((n = walker.nextNode())) targets.push(n);
+  let count = 0;
+  for (const node of targets) {
+    const text = node.nodeValue;
+    const low = text.toLowerCase();
+    const frag = document.createDocumentFragment();
+    let idx = 0, hit;
+    while ((hit = low.indexOf(q, idx)) !== -1) {
+      if (hit > idx) frag.appendChild(document.createTextNode(text.slice(idx, hit)));
+      const mark = document.createElement("mark");
+      mark.className = "log-hit";
+      mark.dataset.hitIdx = count;
+      mark.textContent = text.slice(hit, hit + q.length);
+      frag.appendChild(mark);
+      idx = hit + q.length;
+      count++;
+    }
+    if (idx < text.length) frag.appendChild(document.createTextNode(text.slice(idx)));
+    node.parentNode.replaceChild(frag, node);
+  }
+  return count;
+}
+// 검색 UI(카운트, 화살표 활성화) 갱신
+function updateLogSearchUI(hitCount) {
+  const cntEl = $("logSearchCount");
+  const prev = $("logSearchPrev"), next = $("logSearchNext");
+  if (!logQuery) {
+    if (cntEl) cntEl.textContent = "";
+    if (prev) prev.disabled = true;
+    if (next) next.disabled = true;
+    logHitIdx = -1;
+    return;
+  }
+  if (hitCount === 0) {
+    if (cntEl) cntEl.textContent = "0개";
+    if (prev) prev.disabled = true;
+    if (next) next.disabled = true;
+    logHitIdx = -1;
+    return;
+  }
+  // 인덱스 범위 보정
+  if (logHitIdx < 0) logHitIdx = 0;
+  if (logHitIdx >= hitCount) logHitIdx = hitCount - 1;
+  if (cntEl) cntEl.textContent = (logHitIdx + 1) + " / " + hitCount;
+  if (prev) prev.disabled = false;
+  if (next) next.disabled = false;
+  markCurrentHit();
+}
+// 현재 인덱스의 일치 항목을 강조하고 화면에 보이게 스크롤
+function markCurrentHit(doScroll) {
+  const marks = $("scrollInner").querySelectorAll("mark.log-hit");
+  marks.forEach(m => m.classList.remove("current"));
+  if (logHitIdx < 0 || logHitIdx >= marks.length) return;
+  const cur = marks[logHitIdx];
+  cur.classList.add("current");
+  if (doScroll !== false)
+    cur.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+// 다음/이전 일치 항목으로 이동
+function moveLogHit(dir) {
+  const marks = $("scrollInner").querySelectorAll("mark.log-hit");
+  if (!marks.length) return;
+  logHitIdx = (logHitIdx + dir + marks.length) % marks.length;
+  const cntEl = $("logSearchCount");
+  if (cntEl) cntEl.textContent = (logHitIdx + 1) + " / " + marks.length;
+  markCurrentHit();
+}
+
+function renderSidebar() {
+  const list = $("chatList");
+  const q = $("searchInput").value.trim().toLowerCase();
+  let chats = [...state.chats].sort((a, b) => b.updatedAt - a.updatedAt);
+  if (q) chats = chats.filter(c => c.title.toLowerCase().includes(q));
+  $("chatCount").textContent = state.chats.length ? "(" + state.chats.length + ")" : "";
+  if (!chats.length) {
+    list.innerHTML = '<div class="empty-list">' +
+      (q ? "검색 결과가 없어요." : "아직 채팅이 없어요.<br>새 채팅 만들기로 시작해 보세요.") +
+      "</div>";
+    return;
+  }
+  list.innerHTML = chats.map(c => {
+    const d = new Date(c.updatedAt);
+    const dateStr = (d.getMonth() + 1) + "." + d.getDate();
+    return '<div class="chat-item ' + (c.id === activeId ? "active" : "") + '" data-id="' + c.id + '">' +
+      '<div class="ci-title"><span class="ci-emoji">' + (c.emoji || "💬") + '</span>' + escapeHtml(c.title) + '</div>' +
+      '<div class="ci-meta"><span>' + c.turns.length + ' 턴</span><span>·</span><span>' + dateStr + '</span></div>' +
+      '</div>';
+  }).join("");
+  $$(".chat-item").forEach(el => {
+    el.addEventListener("click", () => {
+      activeId = el.dataset.id;
+      closeSidebar();
+      // 채팅이 바뀌면 로그 검색 초기화
+      logQuery = "";
+      logHitIdx = -1;
+      if ($("logSearchInput")) $("logSearchInput").value = "";
+      if ($("logSearchBar")) $("logSearchBar").style.display = "none";
+      if ($("logSearchClear")) $("logSearchClear").style.display = "none";
+      document.querySelector(".content")?.classList.remove("log-search-fixed");
+      document.querySelector(".content")?.classList.remove("title-auto-hidden");
+      renderAll();
+      $("scrollArea").scrollTop = 0;
+      updateLogSearchStickyState();
+    });
+  });
+}
+
+function renderMain() {
+  const chat = getActive();
+  const inner = $("scrollInner");
+  const composer = $("composer");
+  if (!chat) {
+    composer.style.display = "none";
+    document.body.classList.remove("has-turns");
+    if ($("navFab")) $("navFab").style.display = "none";
+    $("chTitle").innerHTML = '<span class="ch-placeholder">채팅을 선택하세요</span>';
+    inner.innerHTML = welcomeHtml(
+      "&#9636;", "로그 보관함에 오신 걸 환영해요",
+      "AI 캐릭터 채팅 로그를 붙여넣기만 하면 서술·대사·상태창을 알아서 예쁘게 정리해 드려요.",
+      "왼쪽 위 <b>새 채팅 만들기</b>로 시작해 보세요.<br>턴 하나씩 쌓아도 되고, 전체를 한 번에 붙여넣어도 돼요."
+    );
+    return;
+  }
+  composer.style.display = "";
+  $("chTitle").innerHTML =
+    '<span class="ct-edit" id="titleEdit" title="클릭해서 제목 수정">' + (chat.emoji || "💬") + ' ' + escapeHtml(chat.title) + '</span>' +
+    '<div class="ch-sub">' + chat.turns.length + '개의 턴 · ' + new Date(chat.createdAt).toLocaleDateString("ko-KR") + ' 생성</div>';
+  $("titleEdit").addEventListener("click", openRenameModal);
+  if (!chat.turns.length) {
+    document.body.classList.remove("has-turns");
+    if ($("navFab")) $("navFab").style.display = "none";
+    inner.innerHTML = welcomeHtml(
+      "&#9998;", "첫 턴을 추가해 보세요",
+      "아래 입력창에 로그를 붙여넣으면 자동으로 정리돼요. 서술 *기울임*, 대사 \"따옴표\", 상태창을 인식해요.",
+      null
+    );
+    return;
+  }
+  document.body.classList.add("has-turns");
+  const turns = sortedTurns(chat);
+  // 큰 방은 한꺼번에 그리면 멈출 수 있어, 앞부분만 먼저 그리고 나머지는 이어서 그린다
+  const CHUNK = 60;
+  if (turns.length > CHUNK) {
+    inner.innerHTML = turns.slice(0, CHUNK).map((t, i) => renderTurn(t, i)).join("");
+    bindTurnEvents(chat);
+    let drawn = CHUNK;
+    const drawMore = () => {
+      if (drawn >= turns.length || getActive() !== chat) return;
+      const next = turns.slice(drawn, drawn + CHUNK);
+      inner.insertAdjacentHTML("beforeend",
+        next.map((t, i) => renderTurn(t, drawn + i)).join(""));
+      drawn += next.length;
+      bindTurnEvents(chat);
+      if (drawn < turns.length) requestAnimationFrame(drawMore);
+      else if (logQuery) { highlightHits(inner, logQuery); }
+    };
+    requestAnimationFrame(drawMore);
+  } else {
+    inner.innerHTML = turns.map((turn, i) => renderTurn(turn, i)).join("");
+    bindTurnEvents(chat);
+  }
+  if ($("navFab")) $("navFab").style.display = "flex";
+  // 로그 내용 검색 — 일치하는 글자를 하이라이트
+  if (logQuery && turns.length <= CHUNK) {
+    const hitCount = highlightHits(inner, logQuery);
+    updateLogSearchUI(hitCount);
+  } else if (!logQuery) {
+    updateLogSearchUI(0);
+  }
+}
+// 턴 카드의 복사/수정/삭제 버튼에 이벤트를 건다 (이미 건 턴은 건너뜀)
+function bindTurnEvents(chat) {
+  $$(".turn").forEach(el => {
+    if (el.dataset.bound === "1") return;
+    el.dataset.bound = "1";
+    const tid = el.dataset.tid;
+    el.querySelector(".tt-copy") && el.querySelector(".tt-copy").addEventListener("click", () => {
+      const t = chat.turns.find(x => x.id === tid);
+      copyText(t.raw);
+      toast("이 턴을 복사했어요");
+    });
+    el.querySelector(".tt-edit") && el.querySelector(".tt-edit").addEventListener("click", () => openEditTurnModal(tid));
+    el.querySelector(".turn-num-edit") && el.querySelector(".turn-num-edit").addEventListener("click", () => openTurnNoModal(tid));
+    el.querySelector(".tt-del") && el.querySelector(".tt-del").addEventListener("click", () => {
+      confirmModal("이 턴을 삭제할까요?", "삭제한 턴은 되돌릴 수 없어요.", () => {
+        chat.turns = chat.turns.filter(x => x.id !== tid);
+        chat.updatedAt = now();
+        save(); renderAll();
+        toast("턴을 삭제했어요");
+      }, null, "삭제하기");
+    });
+  });
+}
+
+function welcomeHtml(icon, title, body, hint) {
+  return '<div class="welcome">' +
+    '<div class="big">' + icon + '</div>' +
+    '<h2>' + title + '</h2>' +
+    '<p>' + body + '</p>' +
+    (hint ? '<div class="hint">' + hint + '</div>' : "") +
+    '</div>';
+}
+
+// 턴의 "실제 번호" — 지정된 turnNo가 있으면 그 값,
+// 없지만 입력순 첫 턴(도입부)이면 0, 그 외엔 null(번호 없음)
+function effectiveTurnNo(chat, turn) {
+  if (turn.turnNo != null) return turn.turnNo;
+  if (chat && chat.turns.indexOf(turn) === 0) return 0;
+  return null;
+}
+
+// 정렬 모드에 따라 턴 배열 반환 (원본은 건드리지 않음)
+function sortedTurns(chat) {
+  const arr = chat.turns.slice();
+  if (sortMode === "input") return arr;
+  // 턴 번호 기준 — 번호 없는 턴은 맨 뒤로 (도입부는 0으로 취급)
+  const key = t => {
+    const n = effectiveTurnNo(chat, t);
+    return n != null ? n : Infinity;
+  };
+  arr.sort((a, b) => {
+    const ka = key(a), kb = key(b);
+    if (ka === kb) return chat.turns.indexOf(a) - chat.turns.indexOf(b);
+    return sortMode === "turnAsc" ? ka - kb : kb - ka;
+  });
+  return arr;
+}
+
+function renderTurn(turn, idx) {
+  const chat = getActive();
+  let bodyHtml = "";
+  try {
+    const blocks = parseLog(turn.raw);
+    for (const b of blocks) {
+      try {
+        if (b.kind === "prose") bodyHtml += '<div class="prose">' + renderProse(b.text) + "</div>";
+        else if (b.kind === "user") bodyHtml += '<div class="prose user-block"' + userColorStyle(chat) + '>' + renderProse(b.text, true) + "</div>";
+        else if (b.kind === "code") bodyHtml += '<div class="codeblock">' + escapeHtml(b.text.trim()) + "</div>";
+        else if (b.kind === "status") bodyHtml += renderStatus(b.data);
+        else if (b.kind === "htmlstatus") bodyHtml += '<div class="html-status">' + sanitizeHtml(b.html) + "</div>";
+      } catch (e) {
+        // 블록 하나가 실패해도 — 원본 텍스트라도 보여준다
+        console.warn("block render failed", e);
+        bodyHtml += '<div class="prose"><p>' + escapeHtml((b.text || b.html || "").slice(0, 2000)) + "</p></div>";
+      }
+    }
+  } catch (e) {
+    // 파싱 자체가 실패하면 — 원본 전체를 그대로 보여준다
+    console.warn("parseLog failed", e);
+    bodyHtml = '<div class="prose"><p>' + escapeHtml(turn.raw || "") + "</p></div>";
+  }
+  // 라벨: 실제 번호(도입부=0 포함)가 있으면 TURN n, 없으면 입력순번
+  const origIdx = chat ? chat.turns.indexOf(turn) : idx;
+  const effNo = chat ? effectiveTurnNo(chat, turn) : (turn.turnNo != null ? turn.turnNo : null);
+  let label;
+  if (effNo != null) label = "TURN " + effNo;
+  else label = "#" + (origIdx + 1);
+  return '<div class="turn" data-tid="' + turn.id + '" style="animation-delay:' + (Math.min(idx, 8) * 0.04) + 's">' +
+    '<div class="turn-head">' +
+      '<button class="turn-num turn-num-edit" title="턴 번호 수정">' + label + '</button>' +
+      '<span class="spacer"></span>' +
+      '<button class="turn-tool tt-copy" title="복사">\u29C9</button>' +
+      '<button class="turn-tool tt-edit" title="수정">\u270E</button>' +
+      '<button class="turn-tool tt-del del" title="삭제">\uD83D\uDDD1</button>' +
+    '</div>' +
+    '<div class="turn-body">' + (bodyHtml || '<div class="prose"><p style="color:var(--text-dim)">(빈 턴)</p></div>') + '</div>' +
+    '</div>';
+}
+
+function renderStatus(data) {
+  let body = "";
+  let liBuffer = [];
+  let firstSection = true;
+  const flushLi = () => {
+    if (liBuffer.length) {
+      body += '<ul class="stat-list">' + liBuffer.join("") + "</ul>";
+      liBuffer = [];
+    }
+  };
+  for (const it of data.items) {
+    if (it.type === "li") {
+      liBuffer.push("<li>" + escapeHtml(it.text) + "</li>");
+      continue;
+    }
+    flushLi();
+    if (it.type === "section") {
+      body += '<div class="stat-section' + (firstSection ? " first" : "") + '">' +
+              escapeHtml(it.text) + "</div>";
+      firstSection = false;
+    } else if (it.type === "kv") {
+      body += '<div class="stat-line"><span class="stat-key">' + escapeHtml(it.key) +
+              '</span><span class="stat-val">' + escapeHtml(it.val) + "</span></div>";
+    } else {
+      body += '<div class="stat-raw">' + escapeHtml(it.text) + "</div>";
+    }
+  }
+  flushLi();
+  return '<details class="status-card">' +
+    '<summary>\uD83E\uDEAA ' + escapeHtml(data.summary) + '<span class="chev">\u25BE</span></summary>' +
+    '<div class="status-body">' + body + '</div>' +
+    '</details>';
+}
+
+function renderAll() { renderSidebar(); renderMain(); applyChatTheme(); updateLogSearchStickyState(); updateContentTitleAutoHide(); }
+
+function newChat() {
+  openModal("새 채팅 만들기",
+    '<p class="desc">백업할 캐릭터 채팅의 이름을 정해주세요.</p>' +
+    '<div class="field-row">' +
+      '<div class="field field-emoji"><label>이모지</label>' +
+      '<input type="text" id="m_emoji" maxlength="4" value="💬"></div>' +
+      '<div class="field field-grow"><label>채팅 제목</label>' +
+      '<input type="text" id="m_title" placeholder="채팅 이름을 입력하세요"></div>' +
+    '</div>',
+    [
+      { label: "취소", close: true },
+      { label: "만들기", primary: true, id: "m_create" }
+    ]);
+  setTimeout(() => { const e = $("m_title"); if (e) e.focus(); }, 50);
+  $("m_create").addEventListener("click", () => {
+    const title = $("m_title").value.trim() || "제목 없는 채팅";
+    const emoji = $("m_emoji").value.trim() || "💬";
+    const chat = { id: uid(), title, emoji, createdAt: now(), updatedAt: now(), turns: [] };
+    state.chats.push(chat);
+    activeId = chat.id;
+    save(); closeModal(); renderAll();
+    toast("새 채팅을 만들었어요");
+  });
+  $("m_title").addEventListener("keydown", e => { if (e.key === "Enter") $("m_create").click(); });
+}
+
+function openRenameModal() {
+  const chat = getActive();
+  if (!chat) return;
+  openModal("채팅 정보 수정",
+    '<p class="desc">제목과 이모지를 바꿀 수 있어요.</p>' +
+    '<div class="field-row">' +
+      '<div class="field field-emoji"><label>이모지</label>' +
+      '<input type="text" id="m_emoji" maxlength="4" value="' + escapeHtml(chat.emoji || "💬") + '"></div>' +
+      '<div class="field field-grow"><label>제목</label>' +
+      '<input type="text" id="m_title" value="' + escapeHtml(chat.title) + '"></div>' +
+    '</div>',
+    [
+      { label: "취소", close: true },
+      { label: "저장", primary: true, id: "m_save" }
+    ]);
+  $("m_save").addEventListener("click", () => {
+    chat.title = $("m_title").value.trim() || chat.title;
+    chat.emoji = $("m_emoji").value.trim() || "💬";
+    chat.updatedAt = now();
+    save(); closeModal(); renderAll();
+    toast("수정했어요");
+  });
+}
+
+function addLog() {
+  const chat = getActive();
+  if (!chat) return;
+  const txt = $("logInput").value.trim();
+  if (!txt) { toast("내용을 붙여넣어 주세요"); return; }
+  if (composerMode === "turn") {
+    chat.turns.push({ id: uid(), raw: txt, createdAt: now(), turnNo: extractTurnNo(txt) });
+  } else {
+    const chunks = splitBulk(txt);
+    const seq = $("seqNumber") && $("seqNumber").checked;
+    // 중복 판별 — 이미 있는 턴들의 내용을 정규화해 모아둔다 (공백 차이 무시)
+    const normKey = s => (s || "").replace(/\s+/g, " ").trim();
+    const existing = new Set(chat.turns.map(t => normKey(t.raw)));
+    let added = 0, skipped = 0;
+    let nextNo = chat.turns.length;
+    chunks.forEach(ch => {
+      if (!ch.trim()) return;
+      const raw = ch.trim();
+      // 이미 보관함에 있는 턴이면 건너뛴다
+      if (existing.has(normKey(raw))) { skipped++; return; }
+      existing.add(normKey(raw));
+      const turn = { id: uid(), raw: raw, createdAt: now() };
+      if (seq) {
+        turn.turnNo = nextNo++;
+        turn.turnNoManual = true; // 순서 번호 — 턴 내용 수정해도 유지
+      } else {
+        turn.turnNo = extractTurnNo(ch);
+      }
+      chat.turns.push(turn);
+      added++;
+    });
+    if (skipped > 0)
+      toast(added + "개 추가 · 중복 " + skipped + "개는 건너뛰었어요");
+    else
+      toast(added + "개의 턴으로 나눠 담았어요");
+  }
+  chat.updatedAt = now();
+  $("logInput").value = "";
+  save();
+  // 입력순 정렬 + 검색 안 하는 중이면 — 전체를 다시 그리지 않고 새 턴만 덧붙인다 (대용량에서 빠름)
+  if (sortMode === "input" && !logQuery && chat.turns.length > 1) {
+    appendNewTurns(chat);
+    renderSidebar();
+  } else {
+    renderAll();
+  }
+  setTimeout(() => { $("scrollArea").scrollTop = $("scrollArea").scrollHeight; }, 80);
+  if (composerMode === "turn") toast("턴을 추가했어요");
+}
+// 화면에 아직 안 그려진 턴들만 골라 뒤에 덧붙인다
+function appendNewTurns(chat) {
+  const inner = $("scrollInner");
+  const drawn = inner.querySelectorAll(".turn").length;
+  const all = sortedTurns(chat);
+  document.body.classList.add("has-turns");
+  if ($("navFab")) $("navFab").style.display = "flex";
+  // 새 턴을 10개씩 나눠 그린다 — 한꺼번에 그리면 큰 방에서 멈출 수 있음
+  const STEP = 10;
+  let cur = drawn;
+  const drawChunk = () => {
+    if (cur >= all.length || getActive() !== chat) return;
+    const end = Math.min(cur + STEP, all.length);
+    let frag = "";
+    for (let i = cur; i < end; i++) frag += renderTurn(all[i], i);
+    inner.insertAdjacentHTML("beforeend", frag);
+    cur = end;
+    bindTurnEvents(chat);
+    if (cur < all.length) requestAnimationFrame(drawChunk);
+  };
+  requestAnimationFrame(drawChunk);
+}
+
+function splitBulk(text) {
+  text = text.replace(/\r\n/g, "\n");
+  if (/\n\s*[-\u2014=]{3,}\s*\n/.test(text))
+    return safeSplit(text, /\n\s*[-\u2014=]{3,}\s*\n/);
+  if (/\[\s*\d+\s*턴/.test(text))
+    return safeSplit(text, /(?=\n[^\n]*\[\s*\d+\s*턴)/);
+  return [text];
+}
+function safeSplit(text, re) {
+  const guards = [];
+  const protectedText = text.replace(/<details[\s\S]*?<\/details>/gi, m => {
+    guards.push(m);
+    return "\u0000D" + (guards.length - 1) + "\u0000";
+  });
+  return protectedText.split(re)
+    .map(p => p.replace(/\u0000D(\d+)\u0000/g, (mm, i) => guards[+i]))
+    .filter(p => p.trim());
+}
+
+function openEditTurnModal(tid) {
+  const chat = getActive();
+  if (!chat) return;
+  const turn = chat.turns.find(t => t.id === tid);
+  if (!turn) return;
+  openModal("턴 수정",
+    '<p class="desc">원본 로그를 직접 고칠 수 있어요.</p>' +
+    '<div class="field"><textarea id="m_raw" style="min-height:220px">' + escapeHtml(turn.raw) + '</textarea></div>',
+    [
+      { label: "취소", close: true },
+      { label: "저장", primary: true, id: "m_save" }
+    ]);
+  $("m_save").addEventListener("click", () => {
+    turn.raw = $("m_raw").value;
+    // 사용자가 턴 번호를 수동 지정하지 않았을 때만 원본에서 자동 추출
+    if (!turn.turnNoManual) turn.turnNo = extractTurnNo(turn.raw);
+    chat.updatedAt = now();
+    save(); closeModal(); renderAll();
+    toast("턴을 수정했어요");
+  });
+}
+
+// 턴 번호 직접 수정 모달
+function openTurnNoModal(tid) {
+  const chat = getActive();
+  if (!chat) return;
+  const turn = chat.turns.find(t => t.id === tid);
+  if (!turn) return;
+  const cur = turn.turnNo != null ? turn.turnNo : "";
+  openModal("턴 번호 수정",
+    '<p class="desc">이 턴의 번호를 직접 정할 수 있어요.\n' +
+    '도입부는 0으로 두면 좋아요. 비워두면 번호 없이 입력순으로 표시돼요.</p>' +
+    '<div class="field"><input type="number" id="tn_no" value="' + cur + '" ' +
+    'placeholder="예: 0" style="width:100%;font-size:15px;padding:10px 12px"></div>',
+    [
+      { label: "번호 없애기", id: "tn_clear" },
+      { label: "취소", close: true },
+      { label: "저장", primary: true, id: "tn_save" }
+    ]);
+  $("tn_save").addEventListener("click", () => {
+    const v = $("tn_no").value.trim();
+    if (v === "") {
+      turn.turnNo = null;
+      turn.turnNoManual = false;
+    } else {
+      turn.turnNo = parseInt(v, 10);
+      turn.turnNoManual = true; // 수동 지정 — 턴 수정 시 자동 덮어쓰기 방지
+    }
+    chat.updatedAt = now();
+    save(); closeModal(); renderAll();
+    toast("턴 번호를 바꿨어요");
+  });
+  $("tn_clear").addEventListener("click", () => {
+    turn.turnNo = null;
+    turn.turnNoManual = false;
+    chat.updatedAt = now();
+    save(); closeModal(); renderAll();
+    toast("턴 번호를 없앴어요");
+  });
+}
+
+function delChat() {
+  const chat = getActive();
+  if (!chat) return;
+  confirmModal("채팅을 삭제할까요?",
+    '"' + chat.title + '" 채팅과 ' + chat.turns.length + '개의 턴이 모두 사라져요. 되돌릴 수 없어요.',
+    () => {
+      state.chats = state.chats.filter(c => c.id !== chat.id);
+      activeId = state.chats.length ? state.chats[0].id : null;
+      save(); renderAll();
+      toast("채팅을 삭제했어요");
+    }, null, "삭제하기");
+}
+
+/* ===== 채팅 테마 색 ===== */
+// hex → {r,g,b}
+function hexToRgb(hex) {
+  hex = hex.replace("#", "");
+  if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
+  return {
+    r: parseInt(hex.slice(0, 2), 16),
+    g: parseInt(hex.slice(2, 4), 16),
+    b: parseInt(hex.slice(4, 6), 16)
+  };
+}
+function rgbaStr(hex, a) {
+  const c = hexToRgb(hex);
+  return "rgba(" + c.r + "," + c.g + "," + c.b + "," + a + ")";
+}
+// 색을 흰/검 쪽으로 섞기 (amount 0~1)
+function mix(hex, target, amount) {
+  const c = hexToRgb(hex);
+  const t = target === "white" ? 255 : 0;
+  const m = ch => Math.round(ch + (t - ch) * amount);
+  return "rgb(" + m(c.r) + "," + m(c.g) + "," + m(c.b) + ")";
+}
+// 현재 채팅의 테마 색을 콘텐츠 영역에 CSS 변수로 주입
+function applyChatTheme() {
+  const chat = getActive();
+  const root = document.body;
+  const isDark = root.dataset.theme === "dark";
+  const vars = ["--c-accent", "--c-accent-deep", "--c-soft", "--c-statbg", "--c-stathead", "--c-select"];
+  if (!chat || !chat.themeColor) {
+    vars.forEach(v => root.style.removeProperty(v));
+    return;
+  }
+  const col = chat.themeColor;
+  root.style.setProperty("--c-accent", col);
+  root.style.setProperty("--c-accent-deep", isDark ? mix(col, "white", 0.25) : mix(col, "black", 0.18));
+  root.style.setProperty("--c-soft", rgbaStr(col, isDark ? 0.18 : 0.12));
+  root.style.setProperty("--c-statbg", rgbaStr(col, isDark ? 0.07 : 0.05));
+  root.style.setProperty("--c-stathead", rgbaStr(col, isDark ? 0.16 : 0.11));
+  root.style.setProperty("--c-select", isDark ? mix(col, "black", 0.45) : mix(col, "white", 0.68));
+}
+
+
+const COLOR_PRESETS = [
+  "#2f6df0", "#e0556b", "#1f9d6b", "#c77d1f",
+  "#8b5cf6", "#d6457f", "#0e9bb5", "#5a6270"
+];
+function openSpeakerModal() {
+  const chat = getActive();
+  if (!chat) { toast("채팅을 먼저 선택하세요"); return; }
+  const cur = chat.themeColor || "";
+  const swatches = COLOR_PRESETS.map(c =>
+    '<button class="sw' + (cur.toLowerCase() === c ? " on" : "") + '" data-c="' + c + '" ' +
+    'style="background:' + c + '"></button>'
+  ).join("");
+  openModal("채팅방 색상",
+    '<p class="desc">이 채팅방의 색을 정하면 턴 번호·상태창·대사가 모두 그 색에 맞춰져요.\n' +
+    '채팅마다 따로 저장돼요.</p>' +
+    '<div class="sw-grid">' + swatches + '</div>' +
+    '<div class="sw-custom">' +
+      '<label>직접 고르기</label>' +
+      '<input type="color" id="sp_custom" value="' + (cur || "#2f6df0") + '">' +
+      '<button class="sw-clear" id="sp_clear">기본 색으로</button>' +
+    '</div>' +
+    '<label class="sw-check"><input type="checkbox" id="sp_dia"' +
+      (chat.dialogueColorOff ? "" : " checked") +
+      '> 캐릭터 대사 글씨도 이 색으로</label>' +
+    '<div class="sw-divider"></div>' +
+    '<div class="sw-custom">' +
+      '<label>내 대사 글씨색</label>' +
+      '<input type="color" id="sp_user" value="' + (chat.userDiaColor || "#6f4bd6") + '">' +
+      '<button class="sw-clear" id="sp_user_clear">기본 색으로</button>' +
+    '</div>' +
+    '<p class="desc" style="margin-top:4px">유저(나)가 보낸 대사의 글씨색이에요. 서술은 캐릭터 서술보다 옅게 표시돼요.</p>' +
+    '<div class="sp-preview-label">미리보기</div>' +
+    '<div class="sp-preview" id="spPreview"></div>',
+    [
+      { label: "닫기", close: true },
+      { label: "저장", primary: true, id: "sp_save" }
+    ]);
+  let picked = cur;
+  let userPicked = chat.userDiaColor || "#6f4bd6";
+  const refreshPreview = () => {
+    const main = picked || (document.body.dataset.theme === "dark" ? "#5b9bf0" : "#2f6df0");
+    const diaOn = $("sp_dia").checked && picked;
+    const diaCol = diaOn ? picked : "var(--dialogue-text)";
+    $("spPreview").innerHTML =
+      '<div class="pv-badge" style="background:' + main + '">TURN 442</div>' +
+      '<div class="pv-stat" style="border-color:' + rgbaStr2(main, 0.4) +
+        ';background:' + rgbaStr2(main, 0.06) + '">' +
+        '<span style="color:' + main + ';font-weight:700">\uD83E\uDEAA 상태창</span></div>' +
+      '<div class="pv-line">' +
+        '<span style="color:var(--narration);font-style:italic">*그가 고개를 들었다.* </span>' +
+        '<span style="color:' + diaCol + '">이렇게 보일 거예요.</span></div>' +
+      '<div class="pv-line">' +
+        '<span style="color:var(--user-narration);font-style:italic">*내가 고개를 끄덕였다.* </span>' +
+        '<span style="color:' + userPicked + '">내 대사는 이런 색이에요.</span></div>';
+  };
+  const markActive = () => {
+    $$(".sw").forEach(b =>
+      b.classList.toggle("on", b.dataset.c.toLowerCase() === (picked || "").toLowerCase()));
+  };
+  refreshPreview();
+  $$(".sw").forEach(b => {
+    b.addEventListener("click", () => {
+      picked = b.dataset.c;
+      $("sp_custom").value = picked;
+      markActive(); refreshPreview();
+    });
+  });
+  $("sp_custom").addEventListener("input", () => {
+    picked = $("sp_custom").value;
+    markActive(); refreshPreview();
+  });
+  $("sp_clear").addEventListener("click", () => {
+    picked = "";
+    markActive(); refreshPreview();
+  });
+  $("sp_dia").addEventListener("change", refreshPreview);
+  $("sp_user").addEventListener("input", () => {
+    userPicked = $("sp_user").value;
+    refreshPreview();
+  });
+  $("sp_user_clear").addEventListener("click", () => {
+    userPicked = document.body.dataset.theme === "dark" ? "#b9a3f0" : "#6f4bd6";
+    $("sp_user").value = userPicked;
+    refreshPreview();
+  });
+  $("sp_save").addEventListener("click", () => {
+    chat.themeColor = picked || null;
+    chat.dialogueColorOff = !$("sp_dia").checked;
+    chat.dialogueColor = (picked && $("sp_dia").checked) ? picked : null;
+    const defUser = document.body.dataset.theme === "dark" ? "#b9a3f0" : "#6f4bd6";
+    chat.userDiaColor = (userPicked.toLowerCase() === defUser) ? null : userPicked;
+    chat.updatedAt = now();
+    save(); closeModal(); renderAll();
+    toast(picked ? "채팅방 색을 저장했어요" : "기본 색으로 되돌렸어요");
+  });
+}
+// 미리보기용 rgba — hex가 아니면 그대로 반환
+function rgbaStr2(hex, a) {
+  if (!hex || hex[0] !== "#") return hex;
+  return rgbaStr(hex, a);
+}
+
+
+function copyAll() {
+  const chat = getActive();
+  if (!chat || !chat.turns.length) { toast("복사할 로그가 없어요"); return; }
+  const text = chat.turns.map((t, i) => "[ TURN " + (i + 1) + " ]\n" + t.raw).join("\n\n\u2014\u2014\u2014\n\n");
+  copyText(text);
+  toast("전체 로그를 복사했어요");
+}
+
+function exportAll() {
+  if (!state.chats.length) { toast("내보낼 채팅이 없어요"); return; }
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const d = new Date();
+  a.href = url;
+  a.download = "로그보관함_" + d.getFullYear() + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0") + ".json";
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("백업 파일을 저장했어요");
+}
+function importFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data || !Array.isArray(data.chats)) throw new Error("형식 오류");
+      confirmModal("불러오기 방식 선택",
+        data.chats.length + "개의 채팅을 발견했어요.\n현재 채팅에 합칠지, 전부 교체할지 골라주세요.",
+        () => {
+          const existing = new Set(state.chats.map(c => c.id));
+          data.chats.forEach(c => { if (!existing.has(c.id)) state.chats.push(c); });
+          save(); renderAll();
+          toast("채팅을 합쳤어요");
+        },
+        () => {
+          state = data;
+          if (!state.chats) state.chats = [];
+          activeId = state.chats.length ? state.chats[0].id : null;
+          save(); renderAll();
+          toast("데이터를 교체했어요");
+        },
+        "합치기", "교체하기");
+    } catch (err) {
+      toast("불러올 수 없는 파일이에요");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  else fallbackCopy(text);
+}
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+function openModal(title, bodyHtml, buttons) {
+  const footHtml = (buttons || []).map(b =>
+    '<button class="' + (b.primary ? "primary" : "") + ' ' + (b.danger ? "danger" : "") + '" ' +
+    (b.id ? 'id="' + b.id + '"' : "") + ' ' + (b.close ? "data-close" : "") + '>' + escapeHtml(b.label) + '</button>'
+  ).join("");
+  $("modalBox").innerHTML =
+    '<div class="modal-head"><h2>' + escapeHtml(title) + '</h2>' +
+    '<button class="modal-close" data-close>&times;</button></div>' +
+    '<div class="modal-body">' + bodyHtml + '</div>' +
+    (footHtml ? '<div class="modal-foot">' + footHtml + '</div>' : "");
+  $("overlay").classList.add("show");
+  $$("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+}
+function closeModal() { $("overlay").classList.remove("show"); }
+
+function confirmModal(title, msg, onYes, onNo, yesLabel, noLabel) {
+  yesLabel = yesLabel || "확인";
+  noLabel = noLabel || "취소";
+  openModal(title, '<p class="desc">' + escapeHtml(msg) + '</p>', [
+    { label: noLabel, id: "c_no" },
+    { label: yesLabel, primary: true, danger: yesLabel.includes("삭제"), id: "c_yes" }
+  ]);
+  $("c_yes").addEventListener("click", () => { closeModal(); onYes && onYes(); });
+  $("c_no").addEventListener("click", () => { closeModal(); onNo && onNo(); });
+}
+
+function openSidebar() {
+  $("sidebar").classList.add("open");
+  $("sbBackdrop").classList.add("show");
+}
+function closeSidebar() {
+  $("sidebar").classList.remove("open");
+  $("sbBackdrop").classList.remove("show");
+}
+
+// 오른쪽 채팅로그 검색바/제목줄 상태 갱신
+function updateLogSearchStickyState() {
+  const content = document.querySelector(".content");
+  const bar = $("logSearchBar");
+  const area = $("scrollArea");
+  if (!content || !bar || !area) return;
+
+  const open = bar.style.display !== "none";
+  const scrolled = (area.scrollTop || 0) > 18;
+
+  content.classList.toggle("log-search-fixed", open && scrolled);
+}
+
+
+let lastLogScrollTopForTitle = 0;
+let lastTitleShownAt = 0;
+
+// 검색창이 닫혀 있을 때: 아래로 스크롤하면 제목줄 숨김 / 위로 조금 올리면 다시 표시
+function updateContentTitleAutoHide() {
+  const content = document.querySelector(".content");
+  const bar = $("logSearchBar");
+  const area = $("scrollArea");
+  if (!content || !area) return;
+
+  const y = area.scrollTop || 0;
+  const prev = lastLogScrollTopForTitle;
+  const diff = y - prev;
+  const searchOpen = bar && bar.style.display !== "none";
+
+  // 검색창이 열려 있을 때는 기존 검색 고정 로직이 제목줄을 관리하게 둠
+  if (searchOpen) {
+    content.classList.remove("title-auto-hidden");
+    lastLogScrollTopForTitle = y;
+    return;
+  }
+
+  // 맨 위 근처에서는 무조건 보이기
+  if (y < 40) {
+    content.classList.remove("title-auto-hidden");
+    lastTitleShownAt = y;
+    lastLogScrollTopForTitle = y;
+    return;
+  }
+
+  // 아래로 충분히 내리면 숨김
+  if (diff > 8 && y > 80) {
+    content.classList.add("title-auto-hidden");
+  }
+
+  // 위로 조금이라도 올리면 다시 표시
+  if (diff < -6) {
+    content.classList.remove("title-auto-hidden");
+    lastTitleShownAt = y;
+  }
+
+  lastLogScrollTopForTitle = y;
+}
+
+$("newChatBtn").addEventListener("click", newChat);
+$("exportBtn").addEventListener("click", exportAll);
+$("importBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", e => {
+  if (e.target.files[0]) importFile(e.target.files[0]);
+  e.target.value = "";
+});
+$("addLogBtn").addEventListener("click", addLog);
+$("composerToggle").addEventListener("click", () => {
+  $("composer").classList.toggle("collapsed");
+});
+$("copyAllBtn").addEventListener("click", copyAll);
+$("sortBtn").addEventListener("click", () => {
+  if (!getActive()) { toast("채팅을 먼저 선택하세요"); return; }
+  const order = ["input", "turnAsc", "turnDesc"];
+  const labels = { input: "입력한 순서", turnAsc: "턴 번호 오름차순", turnDesc: "턴 번호 내림차순" };
+  sortMode = order[(order.indexOf(sortMode) + 1) % order.length];
+  updateSortIcon();
+  renderMain();
+  toast("정렬: " + labels[sortMode]);
+});
+$("speakerBtn").addEventListener("click", openSpeakerModal);
+$("scrollArea").addEventListener("scroll", () => {
+  updateLogSearchStickyState();
+  updateContentTitleAutoHide();
+}, { passive: true });
+// 로그 내용 검색
+function closeLogSearch() {
+  $("logSearchBar").style.display = "none";
+  logQuery = "";
+  logHitIdx = -1;
+  $("logSearchInput").value = "";
+  $("logSearchClear").style.display = "none";
+  document.querySelector(".content")?.classList.remove("log-search-fixed");
+  document.querySelector(".content")?.classList.remove("title-auto-hidden");
+  renderMain();
+  updateLogSearchStickyState();
+}
+$("logSearchBtn").addEventListener("click", () => {
+  if (!getActive()) { toast("채팅을 먼저 선택하세요"); return; }
+  const bar = $("logSearchBar");
+  if (bar.style.display !== "none") {
+    closeLogSearch();
+  } else {
+    bar.style.display = "flex";
+    updateLogSearchStickyState();
+    $("logSearchInput").focus();
+  }
+});
+$("logSearchClose").addEventListener("click", closeLogSearch);
+// 타이핑 중에는 검색하지 않고, ✕ 버튼 표시만 갱신
+$("logSearchInput").addEventListener("input", () => {
+  const v = $("logSearchInput").value.trim();
+  $("logSearchClear").style.display = v ? "block" : "none";
+});
+// 실제 검색은 엔터를 눌렀을 때만 실행
+function runLogSearch() {
+  const v = $("logSearchInput").value.trim();
+  if (v === logQuery && v !== "") {
+    // 같은 검색어로 또 엔터 — 다음 일치로 이동
+    moveLogHit(1);
+    return;
+  }
+  logQuery = v;
+  logHitIdx = 0;
+  renderMain();
+}
+$("logSearchInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    if (e.shiftKey && logQuery) moveLogHit(-1); // Shift+Enter — 이전
+    else runLogSearch();
+  } else if (e.key === "Escape") {
+    e.preventDefault();
+    closeLogSearch();
+  }
+});
+$("logSearchClear").addEventListener("click", () => {
+  $("logSearchInput").value = "";
+  logQuery = "";
+  logHitIdx = -1;
+  $("logSearchClear").style.display = "none";
+  $("logSearchInput").focus();
+  renderMain();
+});
+$("logSearchPrev").addEventListener("click", () => moveLogHit(-1));
+$("logSearchNext").addEventListener("click", () => moveLogHit(1));
+$("fabTop").addEventListener("click", () => {
+  const sa = $("scrollArea");
+  const turns = sa.querySelectorAll(".turn");
+  if (turns.length) turns[0].scrollIntoView({ behavior: "smooth", block: "start" });
+  else sa.scrollTop = 0;
+});
+$("fabBottom").addEventListener("click", () => {
+  const sa = $("scrollArea");
+  const turns = sa.querySelectorAll(".turn");
+  if (turns.length) turns[turns.length - 1].scrollIntoView({ behavior: "smooth", block: "end" });
+  else sa.scrollTop = sa.scrollHeight;
+});
+$("delChatBtn").addEventListener("click", delChat);
+$("searchInput").addEventListener("input", renderSidebar);
+$("menuToggle").addEventListener("click", openSidebar);
+$("sbBackdrop").addEventListener("click", closeSidebar);
+$("overlay").addEventListener("click", e => { if (e.target.id === "overlay") closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+$("themeBtn").addEventListener("click", () => {
+  const next = document.body.dataset.theme === "dark" ? "light" : "dark";
+  applyTheme(next);
+  applyChatTheme();
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+});
+
+// 케이브덕 로그 추출 북마클릿 (base64로 보관 — HTML 안 따옴표 충돌 방지)
+const CAVEDUCK_BM_B64 = "amF2YXNjcmlwdDooYXN5bmMoKT0+e2NvbnN0IHM9bXM9Pm5ldyBQcm9taXNlKHI9PnNldFRpbWVvdXQocixtcykpO2NvbnN0IGNudD0oKT0+ZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgnW2lkXj0iY2hhdC1tZXNzYWdlLSJdJykubGVuZ3RoO2NvbnN0IGZpbmRCdG49KCk9PlsuLi5kb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCdidXR0b24nKV0uZmluZCh4PT54LnRleHRDb250ZW50LnRyaW0oKT09PSfrjZQg67O06riwJyYmeC5vZmZzZXRQYXJlbnQhPT1udWxsKTtjb25zdCB3YWl0QnRuPWFzeW5jKG1zKT0+e2xldCB3PTA7d2hpbGUodzxtcyl7Y29uc3QgYj1maW5kQnRuKCk7aWYoYilyZXR1cm4gYjthd2FpdCBzKDUwMCk7dys9NTAwO31yZXR1cm4gbnVsbDt9O2xldCBsb29wcz0wLGVuZFRyeT0wO3doaWxlKGxvb3BzPDgwMDApe2xldCBiPWZpbmRCdG4oKTtpZighYil7Y29uc3Qgc2M9ZG9jdW1lbnQuc2Nyb2xsaW5nRWxlbWVudHx8ZG9jdW1lbnQuZG9jdW1lbnRFbGVtZW50O3NjLnNjcm9sbFRvcD0wO2F3YWl0IHMoNzAwKTtiPWF3YWl0IHdhaXRCdG4oMjUwMDApO31pZighYil7ZW5kVHJ5Kys7aWYoZW5kVHJ5Pj0yKWJyZWFrO2F3YWl0IHMoMzAwMCk7Y29udGludWU7fWVuZFRyeT0wO2NvbnN0IGJlZm9yZT1jbnQoKTtiLnNjcm9sbEludG9WaWV3KHtibG9jazonY2VudGVyJ30pO2IuY2xpY2soKTtsb29wcysrO2xldCB3PTA7d2hpbGUodzw5MDAwMCl7YXdhaXQgcyg1MDApO3crPTUwMDtpZihjbnQoKT5iZWZvcmUpYnJlYWs7aWYoZmluZEJ0bigpJiZ3PjE1MDApYnJlYWs7fX1jb25zdCBtc2dzPWRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJ1tpZF49ImNoYXQtbWVzc2FnZS0iXScpO2NvbnN0IG91dD1bXTtjb25zdCB0eHRPZj1lbD0+e2NvbnN0IGNsPWVsLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdicicpLmZvckVhY2goYj0+Yi5yZXBsYWNlV2l0aCgnXG4nKSk7cmV0dXJuIGNsLnRleHRDb250ZW50LnJlcGxhY2UoL1x1MDBhMC9nLCcgJyk7fTtjb25zdCBzcD14PT57Y29uc3QgdD10eHRPZih4KTtpZighdC50cmltKCkpcmV0dXJuJ1xuJztyZXR1cm4geC5jbGFzc0xpc3QuY29udGFpbnMoJ2l0YWxpYycpPycqJyt0LnRyaW0oKSsnKic6dC50cmltKCk7fTtjb25zdCBkZXRUZXh0PWQ9Pntjb25zdCBjbD1kLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdicicpLmZvckVhY2goYj0+Yi5yZXBsYWNlV2l0aCgnXG4nKSk7Y2wucXVlcnlTZWxlY3RvckFsbCgncCxkaXYsbGksdHInKS5mb3JFYWNoKGU9PmUuYXBwZW5kKCdcbicpKTtyZXR1cm4gY2wudGV4dENvbnRlbnQucmVwbGFjZSgvXHUwMGEwL2csJyAnKS5yZXBsYWNlKC9bIFx0XStcbi9nLCdcbicpLnJlcGxhY2UoL1xuezMsfS9nLCdcblxuJyk7fTtjb25zdCBkZXRCbG9jaz1kPT57Y29uc3Qgc209ZC5xdWVyeVNlbGVjdG9yKCdzdW1tYXJ5Jyk7Y29uc3Qgc3U9c20/c20udGV4dENvbnRlbnQudHJpbSgpOicnO2NvbnN0IGNsPWQuY2xvbmVOb2RlKHRydWUpO2NvbnN0IHNtMj1jbC5xdWVyeVNlbGVjdG9yKCdzdW1tYXJ5Jyk7aWYoc20yKXNtMi5yZW1vdmUoKTtsZXQgYmQ9ZGV0VGV4dChjbCk7cmV0dXJuICdcbjxkZXRhaWxzPlxuPHN1bW1hcnk+JytzdSsnPC9zdW1tYXJ5PlxuJytiZC50cmltKCkrJ1xuPC9kZXRhaWxzPic7fTtjb25zdCBncmFiQm9keT0oem9uZSx0Zyk9Pnt6b25lLnF1ZXJ5U2VsZWN0b3JBbGwoJ3NwYW4sLm1hcmtkb3duLWJvZHksZGV0YWlscycpLmZvckVhY2goZWw9PntpZihlbC5jbG9zZXN0KCdidXR0b24nKXx8ZWwuY2xvc2VzdCgnc3VtbWFyeScpKXJldHVybjtpZihlbC50YWdOYW1lLnRvTG93ZXJDYXNlKCk9PT0nZGV0YWlscycpe2lmKGVsLmNsb3Nlc3QoJy5tYXJrZG93bi1ib2R5JykpcmV0dXJuO3RnLnB1c2goZGV0QmxvY2soZWwpKTtyZXR1cm47fWlmKGVsLmNsb3Nlc3QoJ2RldGFpbHMnKSlyZXR1cm47aWYoZWwucXVlcnlTZWxlY3RvciYmZWwucXVlcnlTZWxlY3RvcignZGV0YWlscycpKXJldHVybjtpZihlbC5jbGFzc0xpc3QuY29udGFpbnMoJ21hcmtkb3duLWJvZHknKSl7Y29uc3QgY2w9ZWwuY2xvbmVOb2RlKHRydWUpO2NsLnF1ZXJ5U2VsZWN0b3JBbGwoJ3NjcmlwdCcpLmZvckVhY2gocz0+cy5yZW1vdmUoKSk7dGcucHVzaCgnXG5bW0hUTUxdXVxuJytjbC5pbm5lckhUTUwudHJpbSgpKydcbltbL0hUTUxdXScpO3JldHVybjt9aWYoZWwuY2xvc2VzdCgnLm1hcmtkb3duLWJvZHknKSlyZXR1cm47dGcucHVzaChzcChlbCkpO30pO307bXNncy5mb3JFYWNoKG09PntsZXQgdT1bXSxhPVtdO20ucXVlcnlTZWxlY3RvckFsbCgnOnNjb3BlID4gZGl2JykuZm9yRWFjaCh6PT57aWYoei5xdWVyeVNlbGVjdG9yKCdidXR0b24nKSYmIXoucXVlcnlTZWxlY3Rvcignc3BhbicpJiYhei5xdWVyeVNlbGVjdG9yKCdkZXRhaWxzJykmJiF6LmNsYXNzTmFtZS5pbmNsdWRlcygnbXQtMicpKXJldHVybjtpZih6LmNsYXNzTmFtZS5pbmNsdWRlcygnbWluLWgtJykpcmV0dXJuO2NvbnN0IGlzVT16LmNsYXNzTGlzdC5jb250YWlucygnbWItNCcpO2lmKHouY2xhc3NOYW1lLmluY2x1ZGVzKCdtdC0yJykpe3oucXVlcnlTZWxlY3RvckFsbCgnOnNjb3BlID4gZGl2JykuZm9yRWFjaChpbm5lcj0+e2NvbnN0IHN0PWlubmVyLmdldEF0dHJpYnV0ZSgnc3R5bGUnKXx8Jyc7aWYoc3QuaW5jbHVkZXMoJ2xldHRlci1zcGFjaW5nJykpe2NvbnN0IGNsPWlubmVyLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdzY3JpcHQnKS5mb3JFYWNoKHM9PnMucmVtb3ZlKCkpO2EucHVzaCgnXG5bW0hUTUxdXVxuJytjbC5pbm5lckhUTUwudHJpbSgpKydcbltbL0hUTUxdXScpO319KTt6LnF1ZXJ5U2VsZWN0b3JBbGwoJy5zcGFjZS15LTMgZGV0YWlscycpLmZvckVhY2goZD0+e2EucHVzaChkZXRCbG9jayhkKSk7fSk7cmV0dXJuO31ncmFiQm9keSh6LGlzVT91OmEpO30pO2xldCBiaz0nJztjb25zdCB1dD11LmpvaW4oJ1xuJykucmVwbGFjZSgvXG57Myx9L2csJ1xuXG4nKS50cmltKCk7Y29uc3QgYXQ9YS5qb2luKCdcbicpLnJlcGxhY2UoL1xuezMsfS9nLCdcblxuJykudHJpbSgpO2lmKHV0KWJrKz0nW+ycoOyggF1cbicrdXQrJ1xuXG4nO2lmKGF0KWJrKz0odXQ/J1vsupDrpq3thLBdXG4nOicnKSthdDtpZihiay50cmltKCkpb3V0LnB1c2goYmsudHJpbSgpKTt9KTtjb25zdCByPW91dC5qb2luKCdcblxuLS0tXG5cbicpO2NvbnN0IHdyYXA9ZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgnZGl2Jyk7d3JhcC5zdHlsZS5jc3NUZXh0PSdwb3NpdGlvbjpmaXhlZDt0b3A6MDtsZWZ0OjA7d2lkdGg6MTAwJTtoZWlnaHQ6MTAwJTt6LWluZGV4Ojk5OTk5OTtiYWNrZ3JvdW5kOnJnYmEoMCwwLDAsMC40KTtkaXNwbGF5OmZsZXg7ZmxleC1kaXJlY3Rpb246Y29sdW1uO2FsaWduLWl0ZW1zOmNlbnRlcjtqdXN0aWZ5LWNvbnRlbnQ6Y2VudGVyOyc7Y29uc3QgYmFyPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2RpdicpO2Jhci5zdHlsZS5jc3NUZXh0PSd3aWR0aDo5MCU7ZGlzcGxheTpmbGV4O2p1c3RpZnktY29udGVudDpzcGFjZS1iZXR3ZWVuO2FsaWduLWl0ZW1zOmNlbnRlcjttYXJnaW4tYm90dG9tOjhweDsnO2NvbnN0IGluZm89ZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgnc3BhbicpO2luZm8udGV4dENvbnRlbnQ9J+y2lOy2nCDsmYTro4whIEN0cmwrQSDihpIgQ3RybCtDIOuhnCDrs7XsgqztlZjshLjsmpQgKCcrb3V0Lmxlbmd0aCsn6rCcIO2EtCAvIOuplOyLnOyngCAnK21zZ3MubGVuZ3RoKyfqsJwpJztpbmZvLnN0eWxlLmNzc1RleHQ9J2NvbG9yOiNmZmY7Zm9udC1zaXplOjE0cHg7Zm9udC13ZWlnaHQ6NjAwOyc7Y29uc3QgY2xvc2U9ZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgnYnV0dG9uJyk7Y2xvc2UudGV4dENvbnRlbnQ9J1gg64ur6riwJztjbG9zZS5zdHlsZS5jc3NUZXh0PSdiYWNrZ3JvdW5kOiNmZmY7Y29sb3I6IzJmNmRmMDtib3JkZXI6bm9uZTtib3JkZXItcmFkaXVzOjZweDtwYWRkaW5nOjhweCAxNnB4O2ZvbnQtc2l6ZToxNHB4O2ZvbnQtd2VpZ2h0OjcwMDtjdXJzb3I6cG9pbnRlcjsnO2Nsb3NlLm9uY2xpY2s9KCk9PndyYXAucmVtb3ZlKCk7YmFyLmFwcGVuZENoaWxkKGluZm8pO2Jhci5hcHBlbmRDaGlsZChjbG9zZSk7Y29uc3QgYng9ZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgndGV4dGFyZWEnKTtieC52YWx1ZT1yO2J4LnN0eWxlLmNzc1RleHQ9J3dpZHRoOjkwJTtoZWlnaHQ6ODAlO2ZvbnQtc2l6ZToxM3B4O3BhZGRpbmc6MTJweDtib3JkZXI6M3B4IHNvbGlkICMyZjZkZjA7Ym9yZGVyLXJhZGl1czo4cHg7YmFja2dyb3VuZDojZmZmO2NvbG9yOiMwMDA7Jzt3cmFwLmFwcGVuZENoaWxkKGJhcik7d3JhcC5hcHBlbmRDaGlsZChieCk7ZG9jdW1lbnQuYm9keS5hcHBlbmRDaGlsZCh3cmFwKTtieC5mb2N1cygpO2J4LnNlbGVjdCgpO30pKCk7";
+function caveduckBookmarklet() {
+  try { return decodeURIComponent(escape(atob(CAVEDUCK_BM_B64))); }
+  catch (e) { return atob(CAVEDUCK_BM_B64); }
+}
+function openCaveduckModal() {
+  const code = caveduckBookmarklet();
+  const a = document.createElement("a");
+  a.href = code;
+  a.textContent = "🦆 케이브덕 로그 추출";
+  a.className = "bm-drag";
+  a.draggable = true;
+  a.addEventListener("click", e => e.preventDefault());
+  openModal("케이브덕 로그 추출 도구", '' +
+    '<p class="desc">케이브덕 채팅 페이지에서 로그를 한 번에 추출하는 도구예요. ' +
+    '브라우저 보안 때문에 버튼만으로 즐겨찾기에 자동 등록은 불가능해서, 아래 두 가지 방법 중 하나로 한 번만 등록해 두면 돼요.</p>' +
+    '<div class="bm-block">' +
+      '<div class="bm-step">방법 1 · 드래그해서 등록 (가장 쉬움)</div>' +
+      '<p class="bm-hint">아래 파란 버튼을 브라우저 <b>북마크 바</b>로 끌어다 놓으세요. 그러면 즐겨찾기에 등록돼요.</p>' +
+      '<div class="bm-drag-wrap" id="bmDragWrap"></div>' +
+    '</div>' +
+    '<div class="bm-block">' +
+      '<div class="bm-step">방법 2 · 코드 복사해서 등록</div>' +
+      '<p class="bm-hint">아무 페이지나 즐겨찾기에 추가한 뒤, 그 즐겨찾기를 <b>수정</b>해서 URL 칸에 복사한 코드를 붙여넣으세요.</p>' +
+      '<textarea class="bm-code" id="bmCode" readonly rows="4"></textarea>' +
+    '</div>' +
+    '<div class="bm-block">' +
+      '<div class="bm-step">사용법</div>' +
+      '<p class="bm-hint">케이브덕 채팅 페이지를 연 상태에서 등록한 즐겨찾기를 누르면, "더 보기"가 자동으로 끝까지 눌리고 로그가 추출돼요. ' +
+      '뜬 창에서 Ctrl+A → Ctrl+C로 복사한 다음, 여기 로그 보관함에 붙여넣으면 돼요.</p>' +
+    '</div>',
+    [{ label: "코드 복사", id: "bmCopyBtn", primary: true }, { label: "닫기", close: true }]
+  );
+  $("bmDragWrap").appendChild(a);
+  $("bmCode").value = code;
+  $("bmCopyBtn").addEventListener("click", () => {
+    const ta = $("bmCode");
+    ta.select();
+    copyText(code);
+    toast("추출 코드를 복사했어요");
+  });
+}
+$("caveduckBtn").addEventListener("click", openCaveduckModal);
+// 헤더의 "로그 보관함" 로고 클릭 — 메인(환영) 화면으로 돌아간다
+$("brandHome").addEventListener("click", () => {
+  if (typeof closeLogSearch === "function" &&
+      $("logSearchBar") && $("logSearchBar").style.display !== "none") {
+    closeLogSearch();
+  }
+  activeId = null;
+  renderAll();
+  if ($("scrollArea")) $("scrollArea").scrollTop = 0;
+});
+
+$$(".ctab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    $$(".ctab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    composerMode = tab.dataset.mode;
+    $("composerHint").textContent = composerMode === "turn"
+      ? "붙여넣은 내용 하나가 한 턴으로 추가돼요. (Ctrl+Enter)"
+      : "가로줄(---)이나 [n턴] 표시를 기준으로 자동 분할해요.";
+    $("logInput").placeholder = composerMode === "turn"
+      ? '여기에 로그를 붙여넣으세요.\n*서술*, "대사", <details> 상태창을 자동으로 인식해요.'
+      : '여러 턴을 한 번에 붙여넣으세요.\n턴 사이를 --- 가로줄로 구분하면 깔끔하게 나뉘어요.';
+    // 순서대로 번호매기기 옵션은 전체 붙여넣기에서만 표시
+    if ($("seqOpt")) $("seqOpt").style.display = composerMode === "bulk" ? "flex" : "none";
+  });
+});
+
+$("logInput").addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    e.preventDefault();
+    addLog();
+  }
+});
+
+applyTheme(localStorage.getItem(THEME_KEY) || "light");
+updateSortIcon();
+// IndexedDB 로드는 비동기 — 끝난 뒤에 화면을 그린다
+// 접속하면 특정 채팅이 아니라 메인 화면을 보여준다 (activeId는 null 유지)
+load().then(() => {
+  renderAll();
+  updateLogSearchStickyState();
+  updateContentTitleAutoHide();
+});
+// 페이지를 닫거나 숨길 때 — 디바운스 대기 중인 저장을 즉시 반영
+window.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden" && _saveTimer) {
+    clearTimeout(_saveTimer);
+    doSave();
+  }
+});
+</script>
+</body>
+</html>
