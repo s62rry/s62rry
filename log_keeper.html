@@ -135,8 +135,10 @@
     display: flex; flex-direction: column;
     position: sticky; top: 56px; height: calc(100vh - 56px);
   }
-  .side-top { padding: 14px 12px 8px; display: flex; flex-direction: column; gap: 7px; }
+  .side-top { padding: 14px 12px 8px; display: flex; flex-direction: row; gap: 7px; }
   .side-top button { justify-content: center; }
+  .side-top .primary { flex: 1; }
+  .side-top .icon { flex-shrink: 0; }
   .side-search {
     position: relative; padding: 4px 12px 10px;
     border-bottom: 1px solid var(--border);
@@ -264,6 +266,145 @@
     padding: 26px 16px; text-align: center;
     color: var(--text-dim); font-size: 12px; line-height: 1.8;
   }
+  /* 채팅방 폴더 */
+  .folder-group {
+    margin-bottom: 6px; border-radius: 11px;
+    border: 1px solid var(--border);
+    background: var(--field);
+    overflow: hidden;
+  }
+  .folder-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 11px; cursor: pointer;
+    font-size: 12.5px; font-weight: 700;
+    user-select: none;
+  }
+  .folder-head:hover { background: var(--border); }
+  .folder-arrow {
+    font-size: 10px; transition: transform 0.15s;
+    flex-shrink: 0; width: 9px; text-align: center;
+    color: var(--text-dim);
+  }
+  .folder-group.collapsed .folder-arrow { transform: rotate(-90deg); }
+  .folder-group.collapsed .folder-body { display: none; }
+  .folder-ic {
+    width: 17px; height: 17px; flex-shrink: 0;
+    color: var(--fc, #9aa3b2);
+  }
+  .folder-name {
+    flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--text-strong);
+  }
+  .folder-count {
+    font-size: 11px; color: #fff; font-weight: 700;
+    background: var(--fc, #9aa3b2); border-radius: 9px;
+    padding: 1px 8px; min-width: 20px; text-align: center;
+    flex-shrink: 0;
+  }
+  /* 폴더 설정 버튼 — 이름 옆에 항상 보이는 점 세 개 */
+  .folder-menu {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-dim); padding: 3px 2px;
+    border-radius: 6px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0.4; transition: background 0.12s, opacity 0.12s;
+  }
+  .folder-menu svg { width: 15px; height: 15px; pointer-events: none; }
+  .folder-menu:hover { background: var(--border); opacity: 1; }
+  /* 펼친 폴더 본문 — 안쪽임이 보이게 들여쓰기 + 배경 구분 */
+  .folder-body {
+    padding: 4px 7px 6px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+  }
+  .folder-body .chat-item { margin-bottom: 2px; }
+  .folder-group.drop-into { outline: 2px dashed var(--accent); outline-offset: -1px; }
+  .nofolder-zone.drop-into {
+    outline: 2px dashed var(--accent); outline-offset: -2px;
+    border-radius: 8px;
+  }
+  /* 폴더 밖 채팅 영역 — 폴더 본문 스타일은 빼고, 위에 여백을 둔다 */
+  .nofolder-zone {
+    padding: 0; background: none; border-top: none;
+  }
+  .nofolder-zone.has-gap { margin-top: 12px; }
+  /* 채팅 항목 — 수정 버튼 */
+  .chat-item { display: flex; align-items: center; gap: 4px; }
+  .ci-main { flex: 1; min-width: 0; }
+  .ci-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ci-edit {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-dim); font-size: 12px; padding: 3px 5px;
+    border-radius: 6px; opacity: 0; transition: opacity 0.12s; flex-shrink: 0;
+  }
+  .chat-item:hover .ci-edit { opacity: 1; }
+  .ci-edit:hover { background: var(--border); color: var(--text-strong); }
+  /* 드래그 중 */
+  .chat-item.dragging, .folder-group.dragging { opacity: 0.4; }
+  .chat-item.drag-over { box-shadow: inset 0 2px 0 var(--accent); }
+  .folder-group.drag-over > .folder-head { box-shadow: inset 0 2px 0 var(--accent); }
+  /* 폴더 색 팔레트 (모달) */
+  .fc-palette { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .fc-swatch {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid transparent; cursor: pointer; padding: 0;
+    transition: transform 0.1s;
+  }
+  .fc-swatch:hover { transform: scale(1.15); }
+  .fc-swatch.sel { border-color: var(--text-strong); }
+  /* 사용자 지정 색 버튼 — 무지개 원 */
+  .fc-custom {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--border); cursor: pointer;
+    position: relative; overflow: hidden; transition: transform 0.1s;
+    background:
+      conic-gradient(
+        hsl(0,90%,60%), hsl(40,90%,58%), hsl(75,80%,52%),
+        hsl(140,70%,50%), hsl(180,75%,52%), hsl(210,90%,60%),
+        hsl(260,80%,62%), hsl(300,80%,62%), hsl(330,85%,62%),
+        hsl(360,90%,60%));
+  }
+  .fc-custom:hover { transform: scale(1.12); }
+  .fc-custom.sel { border-color: var(--text-strong); }
+  /* color input은 원 전체를 덮되 완전히 안 보이게 */
+  .fc-custom input[type="color"] {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; border: none; padding: 0; margin: 0;
+    appearance: none; -webkit-appearance: none;
+  }
+  .fc-custom input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  .fc-custom input[type="color"]::-webkit-color-swatch { border: none; }
+  .fc-custom input[type="color"]::-moz-color-swatch { border: none; }
+  /* 고른 색 미리보기 — 무지개 위에 동그란 점으로 */
+  .fc-custom.picked::after {
+    content: ""; position: absolute;
+    left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--picked, #2f6df0);
+    border: 2.5px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.15);
+    pointer-events: none;
+  }
+  /* 폴더 선택 칩 (채팅 정보 수정 모달) */
+  .folder-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .folder-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 11px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--field);
+    color: var(--text); font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: all 0.12s;
+  }
+  .folder-chip:hover { border-color: var(--fc, var(--accent)); }
+  .folder-chip.sel {
+    background: var(--fc, var(--accent)); color: #fff;
+    border-color: var(--fc, var(--accent));
+  }
+  .fchip-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--fc, #9aa3b2); flex-shrink: 0;
+  }
+  .folder-chip.sel .fchip-dot { background: #fff; }
+  .fchip-ic { font-size: 12px; }
   .side-foot {
     padding: 10px 14px; border-top: 1px solid var(--border);
     font-size: 10.5px; color: var(--text-dim); text-align: center;
@@ -388,6 +529,38 @@
   .turn-tool.del:hover { background: #4a2230; color: #ff9ab0; }
   [data-theme="light"] .turn-tool.del:hover { background: #fdeaee; color: #e0556b; }
   .turn-body { padding: 4.83em; font-size: 14.5px; }
+  /* 형광펜 — 칠한 텍스트 */
+  mark.hl {
+    border-radius: 3px; padding: 0.05em 0.12em;
+    background: #fff3a8; color: inherit;
+  }
+  mark.hl.hl-yellow { background: #fff3a8; }
+  mark.hl.hl-green  { background: #b6f0c4; }
+  mark.hl.hl-pink   { background: #ffc4dd; }
+  mark.hl.hl-blue   { background: #bcdcff; }
+  [data-theme="dark"] mark.hl.hl-yellow { background: #6b5d1a; color: #fff; }
+  [data-theme="dark"] mark.hl.hl-green  { background: #1f5a36; color: #fff; }
+  [data-theme="dark"] mark.hl.hl-pink   { background: #6e2348; color: #fff; }
+  [data-theme="dark"] mark.hl.hl-blue   { background: #1f456e; color: #fff; }
+  /* 형광펜 색 고르는 팔레트 */
+  .hl-palette {
+    position: absolute; z-index: 900;
+    display: flex; gap: 5px; align-items: center;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 6px 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.22);
+  }
+  .hl-swatch {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1.5px solid rgba(0,0,0,0.15); cursor: pointer;
+    padding: 0; transition: transform 0.1s;
+  }
+  .hl-swatch:hover { transform: scale(1.18); }
+  .hl-swatch.erase {
+    background: var(--field); color: var(--text-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; border-style: dashed;
+  }
   .prose p {
     margin-bottom: 22px;
     text-align: justify;
@@ -972,6 +1145,12 @@
         </svg>
         <span>새 채팅 만들기</span>
       </button>
+      <button class="icon" id="newFolderBtn" title="새 폴더 만들기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
+          <line x1="12" y1="10" x2="12" y2="16"/><line x1="9" y1="13" x2="15" y2="13"/>
+        </svg>
+      </button>
     </div>
     <div class="side-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -1154,6 +1333,7 @@ async function load() {
     } catch (e2) {}
   }
   if (!state.chats) state.chats = [];
+  if (!state.folders) state.folders = []; // 채팅방 폴더 [{id, name}]
 }
 
 let _saveTimer = null;
@@ -1645,33 +1825,91 @@ function moveLogHit(dir) {
   markCurrentHit();
 }
 
+// 펼친 폴더 id 기억 (기본은 접힘 — 펼친 것만 기록)
+const expandedFolders = new Set();
+// 폴더 색 팔레트
+const FOLDER_COLORS = {
+  gray:   "#9aa3b2", red: "#e0556b", orange: "#e8893b",
+  yellow: "#d9a92e", green: "#3fa463", blue: "#2f6df0",
+  purple: "#8b5cf6", pink: "#d6539e"
+};
+function folderColorHex(c) {
+  if (!c) return FOLDER_COLORS.gray;
+  if (c[0] === "#") return c;          // 사용자 지정 색 (hex)
+  return FOLDER_COLORS[c] || FOLDER_COLORS.gray;
+}
+
 function renderSidebar() {
   const list = $("chatList");
   const q = $("searchInput").value.trim().toLowerCase();
-  let chats = [...state.chats].sort((a, b) => b.updatedAt - a.updatedAt);
-  if (q) chats = chats.filter(c => c.title.toLowerCase().includes(q));
   $("chatCount").textContent = state.chats.length ? "(" + state.chats.length + ")" : "";
-  if (!chats.length) {
-    list.innerHTML = '<div class="empty-list">' +
-      (q ? "검색 결과가 없어요." : "아직 채팅이 없어요.<br>새 채팅 만들기로 시작해 보세요.") +
-      "</div>";
+  // 정렬: order 값이 있으면 그 순서, 없으면 최근 수정순
+  const byOrder = arr => [...arr].sort((a, b) => {
+    const ao = a.order, bo = b.order;
+    if (ao != null && bo != null) return ao - bo;
+    if (ao != null) return -1;
+    if (bo != null) return 1;
+    return b.updatedAt - a.updatedAt;
+  });
+  let allChats = byOrder(state.chats);
+  const matches = c => !q || c.title.toLowerCase().includes(q);
+  if (!state.chats.length) {
+    list.innerHTML = '<div class="empty-list">아직 채팅이 없어요.<br>새 채팅 만들기로 시작해 보세요.</div>';
     return;
   }
-  list.innerHTML = chats.map(c => {
+  const chatItemHtml = c => {
     const d = new Date(c.updatedAt);
     const dateStr = (d.getMonth() + 1) + "." + d.getDate();
-    return '<div class="chat-item ' + (c.id === activeId ? "active" : "") + '" data-id="' + c.id + '">' +
-      '<div class="ci-title"><span class="ci-emoji">' + (c.emoji || "💬") + '</span>' + escapeHtml(c.title) + '</div>' +
-      '<div class="ci-meta"><span>' + c.turns.length + ' 턴</span><span>·</span><span>' + dateStr + '</span></div>' +
-      '</div>';
-  }).join("");
+    return '<div class="chat-item ' + (c.id === activeId ? "active" : "") + '" data-id="' + c.id + '" draggable="true">' +
+      '<div class="ci-main">' +
+        '<div class="ci-title"><span class="ci-emoji">' + (c.emoji || "💬") + '</span>' +
+          '<span class="ci-name">' + escapeHtml(c.title) + '</span></div>' +
+        '<div class="ci-meta"><span>' + c.turns.length + ' 턴</span><span>·</span><span>' + dateStr + '</span></div>' +
+      '</div>' +
+      '<button class="ci-edit" title="채팅 정보 수정">⚙</button>' +
+    '</div>';
+  };
+  let html = "";
+  // 1) 폴더 — 항상 맨 위
+  const folders = byOrder(state.folders);
+  for (const folder of folders) {
+    const inFolder = allChats.filter(c => c.folderId === folder.id && matches(c));
+    if (q && !inFolder.length) continue;
+    const expanded = expandedFolders.has(folder.id);
+    const hex = folderColorHex(folder.color);
+    html += '<div class="folder-group ' + (expanded ? "" : "collapsed") + '" data-fid="' + folder.id + '" draggable="true" style="--fc:' + hex + '">' +
+      '<div class="folder-head">' +
+        '<span class="folder-arrow">▾</span>' +
+        '<svg class="folder-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 6.5A2 2 0 0 1 5.5 4.5h4.2a2 2 0 0 1 1.5.7l.9 1.1h6.4a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2z"/></svg>' +
+        '<span class="folder-name">' + escapeHtml(folder.name) + '</span>' +
+        '<span class="folder-count">' + inFolder.length + '</span>' +
+        '<button class="folder-menu" title="폴더 설정">' +
+          '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' +
+        '</button>' +
+      '</div>' +
+      '<div class="folder-body" data-fid="' + folder.id + '">' +
+        (inFolder.length ? inFolder.map(chatItemHtml).join("")
+          : '<div class="empty-list" style="padding:10px">여기로 채팅을 끌어다 놓으세요</div>') +
+      '</div>' +
+    '</div>';
+  }
+  // 2) 폴더 없는 채팅 — 폴더 박스 아래에 그대로 이어진다
+  const noFolder = allChats.filter(c => (!c.folderId || !state.folders.some(f => f.id === c.folderId)) && matches(c));
+  const gap = state.folders.length ? " has-gap" : "";
+  html += '<div class="nofolder-zone' + gap + '" data-fid="">' +
+    (noFolder.length ? noFolder.map(chatItemHtml).join("")
+      : '<div class="empty-list" style="padding:10px">' + (q ? "검색 결과가 없어요." : "폴더 밖 채팅이 없어요.") + '</div>') +
+    '</div>';
+  list.innerHTML = html;
+  bindSidebarEvents();
+}
+function bindSidebarEvents() {
+  // 채팅 클릭 → 열기
   $$(".chat-item").forEach(el => {
-    el.addEventListener("click", () => {
+    el.querySelector(".ci-main").addEventListener("click", () => {
       activeId = el.dataset.id;
       closeSidebar();
-      // 채팅이 바뀌면 로그 검색 초기화
-      logQuery = "";
-      logHitIdx = -1;
+      logQuery = ""; logHitIdx = -1;
       if ($("logSearchInput")) $("logSearchInput").value = "";
       if ($("logSearchBar")) $("logSearchBar").style.display = "none";
       if ($("logSearchClear")) $("logSearchClear").style.display = "none";
@@ -1681,7 +1919,171 @@ function renderSidebar() {
       $("scrollArea").scrollTop = 0;
       updateLogSearchStickyState();
     });
+    // 채팅 수정 버튼
+    const editBtn = el.querySelector(".ci-edit");
+    if (editBtn) editBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      openChatEditModal(el.dataset.id);
+    });
   });
+  // 폴더 접기/펴기 + 설정
+  $$(".folder-head").forEach(head => {
+    const group = head.closest(".folder-group");
+    const fid = group.dataset.fid;
+    const menuBtn = head.querySelector(".folder-menu");
+    // 설정 버튼 — 접기/펴기와 섞이지 않게 완전히 가로챈다
+    if (menuBtn) {
+      menuBtn.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        openFolderEditModal(fid);
+      });
+    }
+    head.addEventListener("click", e => {
+      // 설정 버튼(그 안 SVG 포함)을 누른 경우엔 접기/펴기 안 함
+      if (e.target.closest(".folder-menu")) return;
+      if (expandedFolders.has(fid)) expandedFolders.delete(fid);
+      else expandedFolders.add(fid);
+      group.classList.toggle("collapsed");
+    });
+  });
+  bindDragDrop();
+}
+// ===== 사이드바 드래그 앤 드롭 =====
+// 채팅을 끌어서 순서를 바꾸거나 폴더 안/밖으로 옮긴다. 폴더끼리도 순서 변경.
+let _dragKind = null;   // "chat" | "folder"
+let _dragId = null;
+function bindDragDrop() {
+  $$(".chat-item").forEach(el => {
+    el.addEventListener("dragstart", e => {
+      _dragKind = "chat"; _dragId = el.dataset.id;
+      el.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.stopPropagation();
+    });
+    el.addEventListener("dragend", () => {
+      el.classList.remove("dragging");
+      $$(".drag-over, .drop-into").forEach(x => x.classList.remove("drag-over", "drop-into"));
+      _dragKind = null; _dragId = null;
+    });
+    el.addEventListener("dragover", e => {
+      if (_dragKind !== "chat") return;
+      e.preventDefault();
+      el.classList.add("drag-over");
+    });
+    el.addEventListener("dragleave", () => el.classList.remove("drag-over"));
+    el.addEventListener("drop", e => {
+      if (_dragKind !== "chat") return;
+      e.preventDefault(); e.stopPropagation();
+      el.classList.remove("drag-over");
+      dropChatBefore(_dragId, el.dataset.id);
+    });
+  });
+  // 폴더 본문 / 폴더 없음 영역 — 채팅을 그 폴더로 옮김
+  $$(".folder-body, .nofolder-zone").forEach(zone => {
+    zone.addEventListener("dragover", e => {
+      if (_dragKind !== "chat") return;
+      e.preventDefault();
+      const g = zone.closest(".folder-group");
+      (g || zone).classList.add("drop-into");
+    });
+    zone.addEventListener("dragleave", () => {
+      const g = zone.closest(".folder-group");
+      (g || zone).classList.remove("drop-into");
+    });
+    zone.addEventListener("drop", e => {
+      if (_dragKind !== "chat") return;
+      e.preventDefault();
+      const g = zone.closest(".folder-group");
+      (g || zone).classList.remove("drop-into");
+      // 빈 영역에 떨어뜨림 → 그 폴더로 이동 (드롭이 chat-item에서 처리 안 됐을 때만)
+      if (e.target.closest(".chat-item")) return;
+      moveChatToFolder(_dragId, zone.dataset.fid || null);
+    });
+  });
+  // 폴더끼리 순서 변경
+  $$(".folder-group").forEach(g => {
+    g.addEventListener("dragstart", e => {
+      if (e.target.closest(".chat-item")) return; // 채팅 드래그는 따로
+      _dragKind = "folder"; _dragId = g.dataset.fid;
+      g.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.stopPropagation();
+    });
+    g.addEventListener("dragend", () => {
+      g.classList.remove("dragging");
+      $$(".drag-over, .drop-into").forEach(x => x.classList.remove("drag-over", "drop-into"));
+      _dragKind = null; _dragId = null;
+    });
+    g.addEventListener("dragover", e => {
+      if (_dragKind !== "folder") return;
+      e.preventDefault();
+      g.classList.add("drag-over");
+    });
+    g.addEventListener("dragleave", () => g.classList.remove("drag-over"));
+    g.addEventListener("drop", e => {
+      if (_dragKind !== "folder") return;
+      e.preventDefault(); e.stopPropagation();
+      g.classList.remove("drag-over");
+      dropFolderBefore(_dragId, g.dataset.fid);
+    });
+  });
+}
+// 모든 채팅에 현재 화면 순서대로 order 부여
+function reorderChats(orderedIds) {
+  orderedIds.forEach((id, i) => {
+    const c = state.chats.find(x => x.id === id);
+    if (c) c.order = i;
+  });
+}
+// dragId 채팅을 targetId 채팅 앞으로 이동 (같은 폴더로 따라감)
+function dropChatBefore(dragId, targetId) {
+  if (dragId === targetId) return;
+  const drag = state.chats.find(c => c.id === dragId);
+  const target = state.chats.find(c => c.id === targetId);
+  if (!drag || !target) return;
+  drag.folderId = target.folderId || null; // 대상과 같은 폴더로
+  // 현재 정렬 순서를 가져와 재배치
+  const sorted = [...state.chats].sort((a, b) => {
+    const ao = a.order, bo = b.order;
+    if (ao != null && bo != null) return ao - bo;
+    if (ao != null) return -1;
+    if (bo != null) return 1;
+    return b.updatedAt - a.updatedAt;
+  });
+  const ids = sorted.map(c => c.id).filter(id => id !== dragId);
+  const ti = ids.indexOf(targetId);
+  ids.splice(ti, 0, dragId);
+  reorderChats(ids);
+  save(); renderSidebar();
+}
+// 채팅을 특정 폴더로 이동 (순서는 끝으로)
+function moveChatToFolder(dragId, folderId) {
+  const drag = state.chats.find(c => c.id === dragId);
+  if (!drag) return;
+  if ((drag.folderId || null) === (folderId || null)) { renderSidebar(); return; }
+  drag.folderId = folderId || null;
+  save(); renderSidebar();
+  toast(folderId ? "폴더로 옮겼어요" : "폴더에서 뺐어요");
+}
+// 폴더 순서 변경
+function dropFolderBefore(dragId, targetId) {
+  if (dragId === targetId) return;
+  const sorted = [...state.folders].sort((a, b) => {
+    const ao = a.order, bo = b.order;
+    if (ao != null && bo != null) return ao - bo;
+    if (ao != null) return -1;
+    if (bo != null) return 1;
+    return 0;
+  });
+  const ids = sorted.map(f => f.id).filter(id => id !== dragId);
+  const ti = ids.indexOf(targetId);
+  ids.splice(ti, 0, dragId);
+  ids.forEach((id, i) => {
+    const f = state.folders.find(x => x.id === id);
+    if (f) f.order = i;
+  });
+  save(); renderSidebar();
 }
 
 function renderMain() {
@@ -1753,6 +2155,9 @@ function bindTurnEvents(chat) {
     if (el.dataset.bound === "1") return;
     el.dataset.bound = "1";
     const tid = el.dataset.tid;
+    const turn = chat.turns.find(x => x.id === tid);
+    // 저장된 형광펜 입히기
+    if (turn) applyHighlights(el, turn);
     el.querySelector(".tt-copy") && el.querySelector(".tt-copy").addEventListener("click", () => {
       const t = chat.turns.find(x => x.id === tid);
       copyText(t.raw);
@@ -1845,6 +2250,43 @@ function renderTurn(turn, idx) {
     '<div class="turn-body">' + (bodyHtml || '<div class="prose"><p style="color:var(--text-dim)">(빈 턴)</p></div>') + '</div>' +
     '</div>';
 }
+// 저장된 형광펜을 turn-body 안 텍스트에 입힌다.
+// 위치가 아니라 텍스트 내용으로 저장하므로, 다시 그려도 유지된다.
+function applyHighlights(turnEl, turn) {
+  if (!turn.highlights || !turn.highlights.length) return;
+  const body = turnEl.querySelector(".turn-body");
+  if (!body) return;
+  for (const hl of turn.highlights) {
+    if (!hl || !hl.text) continue;
+    highlightTextIn(body, hl.text, hl.color || "yellow");
+  }
+}
+// 주어진 요소 안에서 text와 일치하는 부분을 찾아 <mark>로 감싼다
+function highlightTextIn(root, text, color) {
+  const needle = text.trim();
+  if (!needle) return;
+  // 텍스트 노드를 순회하며 일치 지점을 찾는다 (이미 mark 안인 건 건너뜀)
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => (n.parentElement && n.parentElement.closest("mark.hl"))
+      ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+  });
+  const targets = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    let idx = node.nodeValue.indexOf(needle);
+    if (idx !== -1) targets.push({ node, idx });
+  }
+  for (const t of targets) {
+    try {
+      const range = document.createRange();
+      range.setStart(t.node, t.idx);
+      range.setEnd(t.node, t.idx + needle.length);
+      const mark = document.createElement("mark");
+      mark.className = "hl hl-" + color;
+      range.surroundContents(mark);
+    } catch (e) { /* 노드 경계를 넘는 경우 등 — 건너뜀 */ }
+  }
+}
 
 function renderStatus(data) {
   let body = "";
@@ -1910,25 +2352,147 @@ function newChat() {
 
 function openRenameModal() {
   const chat = getActive();
+  if (chat) openChatEditModal(chat.id);
+}
+// 채팅 정보 수정 (제목·이모지·폴더) — id로 임의 채팅 지정 가능
+function openChatEditModal(chatId) {
+  const chat = state.chats.find(c => c.id === chatId);
   if (!chat) return;
+  const curFolder = chat.folderId || "";
+  // 폴더 칩 — "폴더 없음" + 각 폴더
+  let chips = '<button type="button" class="folder-chip ' + (!curFolder ? "sel" : "") + '" data-fid="">' +
+    '<span class="fchip-ic">📂</span>폴더 없음</button>';
+  chips += state.folders.map(f => {
+    const hex = folderColorHex(f.color);
+    return '<button type="button" class="folder-chip ' + (curFolder === f.id ? "sel" : "") + '" ' +
+      'data-fid="' + f.id + '" style="--fc:' + hex + '">' +
+      '<span class="fchip-dot"></span>' + escapeHtml(f.name) + '</button>';
+  }).join("");
   openModal("채팅 정보 수정",
-    '<p class="desc">제목과 이모지를 바꿀 수 있어요.</p>' +
+    '<p class="desc">제목과 이모지, 폴더를 바꿀 수 있어요.</p>' +
     '<div class="field-row">' +
       '<div class="field field-emoji"><label>이모지</label>' +
       '<input type="text" id="m_emoji" maxlength="4" value="' + escapeHtml(chat.emoji || "💬") + '"></div>' +
       '<div class="field field-grow"><label>제목</label>' +
       '<input type="text" id="m_title" value="' + escapeHtml(chat.title) + '"></div>' +
-    '</div>',
+    '</div>' +
+    '<div class="field"><label>폴더</label>' +
+      '<div class="folder-chips" id="m_folderchips">' + chips + '</div></div>',
     [
       { label: "취소", close: true },
       { label: "저장", primary: true, id: "m_save" }
     ]);
+  let pickedFolder = curFolder;
+  $$("#m_folderchips .folder-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      pickedFolder = chip.dataset.fid;
+      $$("#m_folderchips .folder-chip").forEach(x => x.classList.remove("sel"));
+      chip.classList.add("sel");
+    });
+  });
   $("m_save").addEventListener("click", () => {
     chat.title = $("m_title").value.trim() || chat.title;
     chat.emoji = $("m_emoji").value.trim() || "💬";
+    chat.folderId = pickedFolder || null;
     chat.updatedAt = now();
     save(); closeModal(); renderAll();
     toast("수정했어요");
+  });
+}
+// 폴더 색 선택 UI — HTML 문자열을 만든다 (cur: 현재 색)
+function folderColorPickerHtml(cur) {
+  const isCustom = cur[0] === "#";
+  const swatches = Object.keys(FOLDER_COLORS).map(name =>
+    '<button type="button" class="fc-swatch ' + (cur === name ? "sel" : "") + '" data-color="' + name + '" ' +
+    'style="background:' + FOLDER_COLORS[name] + '" title="' + name + '"></button>'
+  ).join("");
+  return '<div class="field"><label>폴더 색</label>' +
+    '<div class="fc-palette" id="m_fcolors">' + swatches +
+      '<label class="fc-custom ' + (isCustom ? "sel picked" : "") + '" id="m_fcustom_wrap" title="직접 색 고르기"' +
+        (isCustom ? ' style="--picked:' + cur + '"' : '') + '>' +
+        '<input type="color" id="m_fcustom" value="' + (isCustom ? cur : "#2f6df0") + '">' +
+      '</label>' +
+    '</div></div>';
+}
+// 색 선택 UI에 이벤트를 걸고, 현재 고른 색을 읽는 getter를 돌려준다
+function bindFolderColorPicker(initial) {
+  let picked = initial;
+  const clearSel = () => $$("#m_fcolors .fc-swatch, #m_fcustom_wrap").forEach(x => x.classList.remove("sel"));
+  $$("#m_fcolors .fc-swatch").forEach(sw => {
+    sw.addEventListener("click", () => {
+      picked = sw.dataset.color;
+      clearSel(); sw.classList.add("sel");
+      // 기본색 선택 → 무지개 원에서 점 제거
+      const wrap = $("m_fcustom_wrap");
+      wrap.classList.remove("picked");
+      wrap.style.removeProperty("--picked");
+    });
+  });
+  $("m_fcustom").addEventListener("input", () => {
+    picked = $("m_fcustom").value;
+    clearSel();
+    const wrap = $("m_fcustom_wrap");
+    wrap.classList.add("sel", "picked");
+    wrap.style.setProperty("--picked", picked);
+  });
+  return () => picked;
+}
+// 새 폴더 만들기
+function openNewFolderModal() {
+  openModal("새 폴더 만들기",
+    '<p class="desc">채팅을 분류할 폴더 이름과 색을 정해 주세요.</p>' +
+    '<div class="field"><label>폴더 이름</label>' +
+    '<input type="text" id="m_fname" placeholder="예: 진행 중, 완결, 즐겨찾기"></div>' +
+    folderColorPickerHtml("blue"),
+    [
+      { label: "취소", close: true },
+      { label: "만들기", primary: true, id: "m_fcreate" }
+    ]);
+  setTimeout(() => { const e = $("m_fname"); if (e) e.focus(); }, 50);
+  const getColor = bindFolderColorPicker("blue");
+  $("m_fcreate").addEventListener("click", () => {
+    const name = $("m_fname").value.trim();
+    if (!name) { toast("폴더 이름을 입력해 주세요"); return; }
+    state.folders.push({ id: uid(), name: name, color: getColor() });
+    save(); closeModal(); renderSidebar();
+    toast("폴더를 만들었어요");
+  });
+  $("m_fname").addEventListener("keydown", e => { if (e.key === "Enter") $("m_fcreate").click(); });
+}
+// 폴더 이름 수정 / 색 변경 / 삭제
+function openFolderEditModal(fid) {
+  const folder = state.folders.find(f => f.id === fid);
+  if (!folder) return;
+  const count = state.chats.filter(c => c.folderId === fid).length;
+  const cur = folder.color || "gray";
+  openModal("폴더 수정",
+    '<p class="desc">폴더 이름과 색을 바꾸거나 폴더를 삭제할 수 있어요. ' +
+    '폴더를 삭제해도 안에 있던 채팅(' + count + '개)은 사라지지 않고 폴더에서만 빠져요.</p>' +
+    '<div class="field"><label>폴더 이름</label>' +
+    '<input type="text" id="m_fname" value="' + escapeHtml(folder.name) + '"></div>' +
+    folderColorPickerHtml(cur),
+    [
+      { label: "폴더 삭제", id: "m_fdel", danger: true },
+      { label: "취소", close: true },
+      { label: "저장", primary: true, id: "m_fsave" }
+    ]);
+  const getColor = bindFolderColorPicker(cur);
+  $("m_fsave").addEventListener("click", () => {
+    const name = $("m_fname").value.trim();
+    if (!name) { toast("폴더 이름을 입력해 주세요"); return; }
+    folder.name = name;
+    folder.color = getColor();
+    save(); closeModal(); renderSidebar();
+    toast("폴더를 수정했어요");
+  });
+  $("m_fdel").addEventListener("click", () => {
+    confirmModal("이 폴더를 삭제할까요?",
+      "안에 있던 채팅은 사라지지 않고 '폴더 없음'으로 옮겨져요.", () => {
+        state.chats.forEach(c => { if (c.folderId === fid) c.folderId = null; });
+        state.folders = state.folders.filter(f => f.id !== fid);
+        save(); closeModal(); renderSidebar();
+        toast("폴더를 삭제했어요");
+      }, null, "삭제하기");
   });
 }
 
@@ -2273,12 +2837,18 @@ function importFile(file) {
         () => {
           const existing = new Set(state.chats.map(c => c.id));
           data.chats.forEach(c => { if (!existing.has(c.id)) state.chats.push(c); });
+          // 폴더도 함께 합친다
+          if (Array.isArray(data.folders)) {
+            const exF = new Set(state.folders.map(f => f.id));
+            data.folders.forEach(f => { if (!exF.has(f.id)) state.folders.push(f); });
+          }
           save(); renderAll();
           toast("채팅을 합쳤어요");
         },
         () => {
           state = data;
           if (!state.chats) state.chats = [];
+          if (!state.folders) state.folders = [];
           activeId = state.chats.length ? state.chats[0].id : null;
           save(); renderAll();
           toast("데이터를 교체했어요");
@@ -2401,6 +2971,7 @@ function updateContentTitleAutoHide() {
 }
 
 $("newChatBtn").addEventListener("click", newChat);
+$("newFolderBtn").addEventListener("click", openNewFolderModal);
 $("exportBtn").addEventListener("click", exportAll);
 $("importBtn").addEventListener("click", () => $("fileInput").click());
 $("fileInput").addEventListener("change", e => {
@@ -2514,7 +3085,7 @@ $("themeBtn").addEventListener("click", () => {
 });
 
 // 케이브덕 로그 추출 북마클릿 (base64로 보관 — HTML 안 따옴표 충돌 방지)
-const CAVEDUCK_BM_B64 = "amF2YXNjcmlwdDooYXN5bmMoKT0+e2NvbnN0IHM9bXM9Pm5ldyBQcm9taXNlKHI9PnNldFRpbWVvdXQocixtcykpO2NvbnN0IGNudD0oKT0+ZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgnW2lkXj0iY2hhdC1tZXNzYWdlLSJdJykubGVuZ3RoO2NvbnN0IGZpbmRCdG49KCk9PlsuLi5kb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCdidXR0b24nKV0uZmluZCh4PT54LnRleHRDb250ZW50LnRyaW0oKT09PSfrjZQg67O06riwJyYmeC5vZmZzZXRQYXJlbnQhPT1udWxsKTtjb25zdCB3YWl0QnRuPWFzeW5jKG1zKT0+e2xldCB3PTA7d2hpbGUodzxtcyl7Y29uc3QgYj1maW5kQnRuKCk7aWYoYilyZXR1cm4gYjthd2FpdCBzKDUwMCk7dys9NTAwO31yZXR1cm4gbnVsbDt9O2xldCBsb29wcz0wLGVuZFRyeT0wO3doaWxlKGxvb3BzPDgwMDApe2xldCBiPWZpbmRCdG4oKTtpZighYil7Y29uc3Qgc2M9ZG9jdW1lbnQuc2Nyb2xsaW5nRWxlbWVudHx8ZG9jdW1lbnQuZG9jdW1lbnRFbGVtZW50O3NjLnNjcm9sbFRvcD0wO2F3YWl0IHMoNzAwKTtiPWF3YWl0IHdhaXRCdG4oMjUwMDApO31pZighYil7ZW5kVHJ5Kys7aWYoZW5kVHJ5Pj0yKWJyZWFrO2F3YWl0IHMoMzAwMCk7Y29udGludWU7fWVuZFRyeT0wO2NvbnN0IGJlZm9yZT1jbnQoKTtiLnNjcm9sbEludG9WaWV3KHtibG9jazonY2VudGVyJ30pO2IuY2xpY2soKTtsb29wcysrO2xldCB3PTA7d2hpbGUodzw5MDAwMCl7YXdhaXQgcyg1MDApO3crPTUwMDtpZihjbnQoKT5iZWZvcmUpYnJlYWs7aWYoZmluZEJ0bigpJiZ3PjE1MDApYnJlYWs7fX1jb25zdCBtc2dzPWRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJ1tpZF49ImNoYXQtbWVzc2FnZS0iXScpO2NvbnN0IG91dD1bXTtjb25zdCB0eHRPZj1lbD0+e2NvbnN0IGNsPWVsLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdicicpLmZvckVhY2goYj0+Yi5yZXBsYWNlV2l0aCgnXG4nKSk7cmV0dXJuIGNsLnRleHRDb250ZW50LnJlcGxhY2UoL1x1MDBhMC9nLCcgJyk7fTtjb25zdCBzcD14PT57Y29uc3QgdD10eHRPZih4KTtpZighdC50cmltKCkpcmV0dXJuJ1xuJztyZXR1cm4geC5jbGFzc0xpc3QuY29udGFpbnMoJ2l0YWxpYycpPycqJyt0LnRyaW0oKSsnKic6dC50cmltKCk7fTtjb25zdCBkZXRUZXh0PWQ9Pntjb25zdCBjbD1kLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdicicpLmZvckVhY2goYj0+Yi5yZXBsYWNlV2l0aCgnXG4nKSk7Y2wucXVlcnlTZWxlY3RvckFsbCgncCxkaXYsbGksdHInKS5mb3JFYWNoKGU9PmUuYXBwZW5kKCdcbicpKTtyZXR1cm4gY2wudGV4dENvbnRlbnQucmVwbGFjZSgvXHUwMGEwL2csJyAnKS5yZXBsYWNlKC9bIFx0XStcbi9nLCdcbicpLnJlcGxhY2UoL1xuezMsfS9nLCdcblxuJyk7fTtjb25zdCBkZXRCbG9jaz1kPT57Y29uc3Qgc209ZC5xdWVyeVNlbGVjdG9yKCdzdW1tYXJ5Jyk7Y29uc3Qgc3U9c20/c20udGV4dENvbnRlbnQudHJpbSgpOicnO2NvbnN0IGNsPWQuY2xvbmVOb2RlKHRydWUpO2NvbnN0IHNtMj1jbC5xdWVyeVNlbGVjdG9yKCdzdW1tYXJ5Jyk7aWYoc20yKXNtMi5yZW1vdmUoKTtsZXQgYmQ9ZGV0VGV4dChjbCk7cmV0dXJuICdcbjxkZXRhaWxzPlxuPHN1bW1hcnk+JytzdSsnPC9zdW1tYXJ5PlxuJytiZC50cmltKCkrJ1xuPC9kZXRhaWxzPic7fTtjb25zdCBwdXNoRGV0YWlscz0ocm9vdCx0Zyk9Pntjb25zdCBzZWVuPVtdO3Jvb3QucXVlcnlTZWxlY3RvckFsbCgnZGV0YWlscycpLmZvckVhY2goZD0+e2lmKHNlZW4uc29tZShwPT5wLmNvbnRhaW5zKGQpKSlyZXR1cm47c2Vlbi5wdXNoKGQpO3RnLnB1c2goZGV0QmxvY2soZCkpO30pO307Y29uc3QgZ3JhYkJvZHk9KHpvbmUsdGcpPT57em9uZS5xdWVyeVNlbGVjdG9yQWxsKCdzcGFuLC5tYXJrZG93bi1ib2R5LGRldGFpbHMnKS5mb3JFYWNoKGVsPT57aWYoZWwuY2xvc2VzdCgnYnV0dG9uJyl8fGVsLmNsb3Nlc3QoJ3N1bW1hcnknKSlyZXR1cm47aWYoZWwudGFnTmFtZS50b0xvd2VyQ2FzZSgpPT09J2RldGFpbHMnKXtpZihlbC5jbG9zZXN0KCcubWFya2Rvd24tYm9keScpKXJldHVybjt0Zy5wdXNoKGRldEJsb2NrKGVsKSk7cmV0dXJuO31pZihlbC5jbG9zZXN0KCdkZXRhaWxzJykpcmV0dXJuO2lmKGVsLmNsYXNzTGlzdC5jb250YWlucygnbWFya2Rvd24tYm9keScpKXtpZihlbC5xdWVyeVNlbGVjdG9yKCdkZXRhaWxzJykpe3B1c2hEZXRhaWxzKGVsLHRnKTtyZXR1cm47fWNvbnN0IGNsPWVsLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdzY3JpcHQnKS5mb3JFYWNoKHM9PnMucmVtb3ZlKCkpO3RnLnB1c2goJ1xuW1tIVE1MXV1cbicrY2wuaW5uZXJIVE1MLnRyaW0oKSsnXG5bWy9IVE1MXV0nKTtyZXR1cm47fWlmKGVsLmNsb3Nlc3QoJy5tYXJrZG93bi1ib2R5JykpcmV0dXJuO2lmKGVsLnF1ZXJ5U2VsZWN0b3ImJmVsLnF1ZXJ5U2VsZWN0b3IoJ2RldGFpbHMnKSlyZXR1cm47dGcucHVzaChzcChlbCkpO30pO307bXNncy5mb3JFYWNoKG09PntsZXQgdT1bXSxhPVtdO20ucXVlcnlTZWxlY3RvckFsbCgnOnNjb3BlID4gZGl2JykuZm9yRWFjaCh6PT57aWYoei5xdWVyeVNlbGVjdG9yKCdidXR0b24nKSYmIXoucXVlcnlTZWxlY3Rvcignc3BhbicpJiYhei5xdWVyeVNlbGVjdG9yKCdkZXRhaWxzJykmJiF6LmNsYXNzTmFtZS5pbmNsdWRlcygnbXQtMicpKXJldHVybjtpZih6LmNsYXNzTmFtZS5pbmNsdWRlcygnbWluLWgtJykpcmV0dXJuO2NvbnN0IGlzVT16LmNsYXNzTGlzdC5jb250YWlucygnbWItNCcpO2lmKHouY2xhc3NOYW1lLmluY2x1ZGVzKCdtdC0yJykpe3oucXVlcnlTZWxlY3RvckFsbCgnOnNjb3BlID4gZGl2JykuZm9yRWFjaChpbm5lcj0+e2NvbnN0IHN0PWlubmVyLmdldEF0dHJpYnV0ZSgnc3R5bGUnKXx8Jyc7aWYoc3QuaW5jbHVkZXMoJ2xldHRlci1zcGFjaW5nJykpe2NvbnN0IGNsPWlubmVyLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdzY3JpcHQnKS5mb3JFYWNoKHM9PnMucmVtb3ZlKCkpO2EucHVzaCgnXG5bW0hUTUxdXVxuJytjbC5pbm5lckhUTUwudHJpbSgpKydcbltbL0hUTUxdXScpO319KTtwdXNoRGV0YWlscyh6LGEpO3JldHVybjt9Z3JhYkJvZHkoeixpc1U/dTphKTt9KTtsZXQgYms9Jyc7Y29uc3QgdXQ9dS5qb2luKCdcbicpLnJlcGxhY2UoL1xuezMsfS9nLCdcblxuJykudHJpbSgpO2NvbnN0IGF0PWEuam9pbignXG4nKS5yZXBsYWNlKC9cbnszLH0vZywnXG5cbicpLnRyaW0oKTtpZih1dCliays9J1vsnKDsoIBdXG4nK3V0KydcblxuJztpZihhdCliays9KHV0Pydb7LqQ66at7YSwXVxuJzonJykrYXQ7aWYoYmsudHJpbSgpKW91dC5wdXNoKGJrLnRyaW0oKSk7fSk7Y29uc3Qgcj1vdXQuam9pbignXG5cbi0tLVxuXG4nKTtjb25zdCB3cmFwPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2RpdicpO3dyYXAuc3R5bGUuY3NzVGV4dD0ncG9zaXRpb246Zml4ZWQ7dG9wOjA7bGVmdDowO3dpZHRoOjEwMCU7aGVpZ2h0OjEwMCU7ei1pbmRleDo5OTk5OTk7YmFja2dyb3VuZDpyZ2JhKDAsMCwwLDAuNCk7ZGlzcGxheTpmbGV4O2ZsZXgtZGlyZWN0aW9uOmNvbHVtbjthbGlnbi1pdGVtczpjZW50ZXI7anVzdGlmeS1jb250ZW50OmNlbnRlcjsnO2NvbnN0IGJhcj1kb2N1bWVudC5jcmVhdGVFbGVtZW50KCdkaXYnKTtiYXIuc3R5bGUuY3NzVGV4dD0nd2lkdGg6OTAlO2Rpc3BsYXk6ZmxleDtqdXN0aWZ5LWNvbnRlbnQ6c3BhY2UtYmV0d2VlbjthbGlnbi1pdGVtczpjZW50ZXI7bWFyZ2luLWJvdHRvbTo4cHg7Jztjb25zdCBpbmZvPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ3NwYW4nKTtpbmZvLnRleHRDb250ZW50PSfstpTstpwg7JmE66OMISBDdHJsK0Eg4oaSIEN0cmwrQyDroZwg67O17IKs7ZWY7IS47JqUICgnK291dC5sZW5ndGgrJ+qwnCDthLQgLyDrqZTsi5zsp4AgJyttc2dzLmxlbmd0aCsn6rCcKSc7aW5mby5zdHlsZS5jc3NUZXh0PSdjb2xvcjojZmZmO2ZvbnQtc2l6ZToxNHB4O2ZvbnQtd2VpZ2h0OjYwMDsnO2NvbnN0IGNsb3NlPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2J1dHRvbicpO2Nsb3NlLnRleHRDb250ZW50PSdYIOuLq+q4sCc7Y2xvc2Uuc3R5bGUuY3NzVGV4dD0nYmFja2dyb3VuZDojZmZmO2NvbG9yOiMyZjZkZjA7Ym9yZGVyOm5vbmU7Ym9yZGVyLXJhZGl1czo2cHg7cGFkZGluZzo4cHggMTZweDtmb250LXNpemU6MTRweDtmb250LXdlaWdodDo3MDA7Y3Vyc29yOnBvaW50ZXI7JztjbG9zZS5vbmNsaWNrPSgpPT53cmFwLnJlbW92ZSgpO2Jhci5hcHBlbmRDaGlsZChpbmZvKTtiYXIuYXBwZW5kQ2hpbGQoY2xvc2UpO2NvbnN0IGJ4PWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ3RleHRhcmVhJyk7YngudmFsdWU9cjtieC5zdHlsZS5jc3NUZXh0PSd3aWR0aDo5MCU7aGVpZ2h0OjgwJTtmb250LXNpemU6MTNweDtwYWRkaW5nOjEycHg7Ym9yZGVyOjNweCBzb2xpZCAjMmY2ZGYwO2JvcmRlci1yYWRpdXM6OHB4O2JhY2tncm91bmQ6I2ZmZjtjb2xvcjojMDAwOyc7d3JhcC5hcHBlbmRDaGlsZChiYXIpO3dyYXAuYXBwZW5kQ2hpbGQoYngpO2RvY3VtZW50LmJvZHkuYXBwZW5kQ2hpbGQod3JhcCk7YnguZm9jdXMoKTtieC5zZWxlY3QoKTt9KSgpOw==";
+const CAVEDUCK_BM_B64 = "amF2YXNjcmlwdDooYXN5bmMoKT0+e2NvbnN0IGFucz1wcm9tcHQoJ+y1nOq3vCDrqocg7YS066eMIOy2lOy2nO2VoOq5jOyalD9cblxu7KCE7LK066W8IOy2lOy2nO2VmOugpOuptCDqt7jrg6Ug67mE7Jqw6rGw64KYIDDsnYQg7J6F66Cl7ZWY7IS47JqULlxu7LWc6re8IDMw7YS066eMIOybkO2VmOuptCAzMCDsspjrn7wg7Iir7J6Q66W8IOyeheugpe2VmOyEuOyalC4nLCcnKTtpZihhbnM9PT1udWxsKXJldHVybjtjb25zdCBsaW1pdD1wYXJzZUludChhbnMsMTApfHwwO2NvbnN0IHM9bXM9Pm5ldyBQcm9taXNlKHI9PnNldFRpbWVvdXQocixtcykpO2NvbnN0IGNudD0oKT0+ZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgnW2lkXj0iY2hhdC1tZXNzYWdlLSJdJykubGVuZ3RoO2NvbnN0IGZpbmRCdG49KCk9PlsuLi5kb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCdidXR0b24nKV0uZmluZCh4PT54LnRleHRDb250ZW50LnRyaW0oKT09PSfrjZQg67O06riwJyYmeC5vZmZzZXRQYXJlbnQhPT1udWxsKTtjb25zdCB3YWl0QnRuPWFzeW5jKG1zKT0+e2xldCB3PTA7d2hpbGUodzxtcyl7Y29uc3QgYj1maW5kQnRuKCk7aWYoYilyZXR1cm4gYjthd2FpdCBzKDUwMCk7dys9NTAwO31yZXR1cm4gbnVsbDt9O2xldCBsb29wcz0wLGVuZFRyeT0wO3doaWxlKGxvb3BzPDgwMDApe2lmKGxpbWl0PjAmJmNudCgpPj1saW1pdClicmVhaztsZXQgYj1maW5kQnRuKCk7aWYoIWIpe2NvbnN0IHNjPWRvY3VtZW50LnNjcm9sbGluZ0VsZW1lbnR8fGRvY3VtZW50LmRvY3VtZW50RWxlbWVudDtzYy5zY3JvbGxUb3A9MDthd2FpdCBzKDcwMCk7Yj1hd2FpdCB3YWl0QnRuKDI1MDAwKTt9aWYoIWIpe2VuZFRyeSsrO2lmKGVuZFRyeT49MilicmVhazthd2FpdCBzKDMwMDApO2NvbnRpbnVlO31lbmRUcnk9MDtjb25zdCBiZWZvcmU9Y250KCk7Yi5zY3JvbGxJbnRvVmlldyh7YmxvY2s6J2NlbnRlcid9KTtiLmNsaWNrKCk7bG9vcHMrKztsZXQgdz0wO3doaWxlKHc8OTAwMDApe2F3YWl0IHMoNTAwKTt3Kz01MDA7aWYoY250KCk+YmVmb3JlKWJyZWFrO2lmKGZpbmRCdG4oKSYmdz4xNTAwKWJyZWFrO319bGV0IG1zZ3M9Wy4uLmRvY3VtZW50LnF1ZXJ5U2VsZWN0b3JBbGwoJ1tpZF49ImNoYXQtbWVzc2FnZS0iXScpXTtpZihsaW1pdD4wJiZtc2dzLmxlbmd0aD5saW1pdCltc2dzPW1zZ3Muc2xpY2UobXNncy5sZW5ndGgtbGltaXQpO2NvbnN0IG91dD1bXTtjb25zdCB0eHRPZj1lbD0+e2NvbnN0IGNsPWVsLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdicicpLmZvckVhY2goYj0+Yi5yZXBsYWNlV2l0aCgnXG4nKSk7cmV0dXJuIGNsLnRleHRDb250ZW50LnJlcGxhY2UoL1x1MDBhMC9nLCcgJyk7fTtjb25zdCBzcD14PT57Y29uc3QgdD10eHRPZih4KTtpZighdC50cmltKCkpcmV0dXJuJ1xuJztyZXR1cm4geC5jbGFzc0xpc3QuY29udGFpbnMoJ2l0YWxpYycpPycqJyt0LnRyaW0oKSsnKic6dC50cmltKCk7fTtjb25zdCBkZXRUZXh0PWQ9Pntjb25zdCBjbD1kLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdicicpLmZvckVhY2goYj0+Yi5yZXBsYWNlV2l0aCgnXG4nKSk7Y2wucXVlcnlTZWxlY3RvckFsbCgncCxkaXYsbGksdHInKS5mb3JFYWNoKGU9PmUuYXBwZW5kKCdcbicpKTtyZXR1cm4gY2wudGV4dENvbnRlbnQucmVwbGFjZSgvXHUwMGEwL2csJyAnKS5yZXBsYWNlKC9bIFx0XStcbi9nLCdcbicpLnJlcGxhY2UoL1xuezMsfS9nLCdcblxuJyk7fTtjb25zdCBkZXRCbG9jaz1kPT57Y29uc3Qgc209ZC5xdWVyeVNlbGVjdG9yKCdzdW1tYXJ5Jyk7Y29uc3Qgc3U9c20/c20udGV4dENvbnRlbnQudHJpbSgpOicnO2NvbnN0IGNsPWQuY2xvbmVOb2RlKHRydWUpO2NvbnN0IHNtMj1jbC5xdWVyeVNlbGVjdG9yKCdzdW1tYXJ5Jyk7aWYoc20yKXNtMi5yZW1vdmUoKTtsZXQgYmQ9ZGV0VGV4dChjbCk7cmV0dXJuICdcbjxkZXRhaWxzPlxuPHN1bW1hcnk+JytzdSsnPC9zdW1tYXJ5PlxuJytiZC50cmltKCkrJ1xuPC9kZXRhaWxzPic7fTtjb25zdCBwdXNoRGV0YWlscz0ocm9vdCx0Zyk9Pntjb25zdCBzZWVuPVtdO3Jvb3QucXVlcnlTZWxlY3RvckFsbCgnZGV0YWlscycpLmZvckVhY2goZD0+e2lmKHNlZW4uc29tZShwPT5wLmNvbnRhaW5zKGQpKSlyZXR1cm47c2Vlbi5wdXNoKGQpO3RnLnB1c2goZGV0QmxvY2soZCkpO30pO307Y29uc3QgZ3JhYkJvZHk9KHpvbmUsdGcpPT57em9uZS5xdWVyeVNlbGVjdG9yQWxsKCdzcGFuLC5tYXJrZG93bi1ib2R5LGRldGFpbHMnKS5mb3JFYWNoKGVsPT57aWYoZWwuY2xvc2VzdCgnYnV0dG9uJyl8fGVsLmNsb3Nlc3QoJ3N1bW1hcnknKSlyZXR1cm47aWYoZWwudGFnTmFtZS50b0xvd2VyQ2FzZSgpPT09J2RldGFpbHMnKXtpZihlbC5jbG9zZXN0KCcubWFya2Rvd24tYm9keScpKXJldHVybjt0Zy5wdXNoKGRldEJsb2NrKGVsKSk7cmV0dXJuO31pZihlbC5jbG9zZXN0KCdkZXRhaWxzJykpcmV0dXJuO2lmKGVsLmNsYXNzTGlzdC5jb250YWlucygnbWFya2Rvd24tYm9keScpKXtpZihlbC5xdWVyeVNlbGVjdG9yKCdkZXRhaWxzJykpe3B1c2hEZXRhaWxzKGVsLHRnKTtyZXR1cm47fWNvbnN0IGNsPWVsLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdzY3JpcHQnKS5mb3JFYWNoKHM9PnMucmVtb3ZlKCkpO3RnLnB1c2goJ1xuW1tIVE1MXV1cbicrY2wuaW5uZXJIVE1MLnRyaW0oKSsnXG5bWy9IVE1MXV0nKTtyZXR1cm47fWlmKGVsLmNsb3Nlc3QoJy5tYXJrZG93bi1ib2R5JykpcmV0dXJuO2lmKGVsLnF1ZXJ5U2VsZWN0b3ImJmVsLnF1ZXJ5U2VsZWN0b3IoJ2RldGFpbHMnKSlyZXR1cm47dGcucHVzaChzcChlbCkpO30pO307bXNncy5mb3JFYWNoKG09PntsZXQgdT1bXSxhPVtdO20ucXVlcnlTZWxlY3RvckFsbCgnOnNjb3BlID4gZGl2JykuZm9yRWFjaCh6PT57aWYoei5xdWVyeVNlbGVjdG9yKCdidXR0b24nKSYmIXoucXVlcnlTZWxlY3Rvcignc3BhbicpJiYhei5xdWVyeVNlbGVjdG9yKCdkZXRhaWxzJykmJiF6LmNsYXNzTmFtZS5pbmNsdWRlcygnbXQtMicpKXJldHVybjtpZih6LmNsYXNzTmFtZS5pbmNsdWRlcygnbWluLWgtJykpcmV0dXJuO2NvbnN0IGlzVT16LmNsYXNzTGlzdC5jb250YWlucygnbWItNCcpO2lmKHouY2xhc3NOYW1lLmluY2x1ZGVzKCdtdC0yJykpe3oucXVlcnlTZWxlY3RvckFsbCgnOnNjb3BlID4gZGl2JykuZm9yRWFjaChpbm5lcj0+e2NvbnN0IHN0PWlubmVyLmdldEF0dHJpYnV0ZSgnc3R5bGUnKXx8Jyc7aWYoc3QuaW5jbHVkZXMoJ2xldHRlci1zcGFjaW5nJykpe2NvbnN0IGNsPWlubmVyLmNsb25lTm9kZSh0cnVlKTtjbC5xdWVyeVNlbGVjdG9yQWxsKCdzY3JpcHQnKS5mb3JFYWNoKHM9PnMucmVtb3ZlKCkpO2EucHVzaCgnXG5bW0hUTUxdXVxuJytjbC5pbm5lckhUTUwudHJpbSgpKydcbltbL0hUTUxdXScpO319KTtwdXNoRGV0YWlscyh6LGEpO3JldHVybjt9Z3JhYkJvZHkoeixpc1U/dTphKTt9KTtsZXQgYms9Jyc7Y29uc3QgdXQ9dS5qb2luKCdcbicpLnJlcGxhY2UoL1xuezMsfS9nLCdcblxuJykudHJpbSgpO2NvbnN0IGF0PWEuam9pbignXG4nKS5yZXBsYWNlKC9cbnszLH0vZywnXG5cbicpLnRyaW0oKTtpZih1dCliays9J1vsnKDsoIBdXG4nK3V0KydcblxuJztpZihhdCliays9KHV0Pydb7LqQ66at7YSwXVxuJzonJykrYXQ7aWYoYmsudHJpbSgpKW91dC5wdXNoKGJrLnRyaW0oKSk7fSk7Y29uc3Qgcj1vdXQuam9pbignXG5cbi0tLVxuXG4nKTtjb25zdCB3cmFwPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ2RpdicpO3dyYXAuc3R5bGUuY3NzVGV4dD0ncG9zaXRpb246Zml4ZWQ7dG9wOjA7bGVmdDowO3dpZHRoOjEwMCU7aGVpZ2h0OjEwMCU7ei1pbmRleDo5OTk5OTk7YmFja2dyb3VuZDpyZ2JhKDAsMCwwLDAuNCk7ZGlzcGxheTpmbGV4O2ZsZXgtZGlyZWN0aW9uOmNvbHVtbjthbGlnbi1pdGVtczpjZW50ZXI7anVzdGlmeS1jb250ZW50OmNlbnRlcjsnO2NvbnN0IGJhcj1kb2N1bWVudC5jcmVhdGVFbGVtZW50KCdkaXYnKTtiYXIuc3R5bGUuY3NzVGV4dD0nd2lkdGg6OTAlO2Rpc3BsYXk6ZmxleDtqdXN0aWZ5LWNvbnRlbnQ6c3BhY2UtYmV0d2VlbjthbGlnbi1pdGVtczpjZW50ZXI7bWFyZ2luLWJvdHRvbTo4cHg7Jztjb25zdCBpbmZvPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoJ3NwYW4nKTtpbmZvLnRleHRDb250ZW50PSfstpTstpwg7JmE66OMISBDdHJsK0Eg4oaSIEN0cmwrQyDroZwg67O17IKs7ZWY7IS47JqUICgnK291dC5sZW5ndGgrJ+qwnCDthLQnKyhsaW1pdD4wPycgLyDstZzqt7wgJytsaW1pdCsn7YS0IOyngOyglSc6JycpKycpJztpbmZvLnN0eWxlLmNzc1RleHQ9J2NvbG9yOiNmZmY7Zm9udC1zaXplOjE0cHg7Zm9udC13ZWlnaHQ6NjAwOyc7Y29uc3QgY2xvc2U9ZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgnYnV0dG9uJyk7Y2xvc2UudGV4dENvbnRlbnQ9J1gg64ur6riwJztjbG9zZS5zdHlsZS5jc3NUZXh0PSdiYWNrZ3JvdW5kOiNmZmY7Y29sb3I6IzJmNmRmMDtib3JkZXI6bm9uZTtib3JkZXItcmFkaXVzOjZweDtwYWRkaW5nOjhweCAxNnB4O2ZvbnQtc2l6ZToxNHB4O2ZvbnQtd2VpZ2h0OjcwMDtjdXJzb3I6cG9pbnRlcjsnO2Nsb3NlLm9uY2xpY2s9KCk9PndyYXAucmVtb3ZlKCk7YmFyLmFwcGVuZENoaWxkKGluZm8pO2Jhci5hcHBlbmRDaGlsZChjbG9zZSk7Y29uc3QgYng9ZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgndGV4dGFyZWEnKTtieC52YWx1ZT1yO2J4LnN0eWxlLmNzc1RleHQ9J3dpZHRoOjkwJTtoZWlnaHQ6ODAlO2ZvbnQtc2l6ZToxM3B4O3BhZGRpbmc6MTJweDtib3JkZXI6M3B4IHNvbGlkICMyZjZkZjA7Ym9yZGVyLXJhZGl1czo4cHg7YmFja2dyb3VuZDojZmZmO2NvbG9yOiMwMDA7Jzt3cmFwLmFwcGVuZENoaWxkKGJhcik7d3JhcC5hcHBlbmRDaGlsZChieCk7ZG9jdW1lbnQuYm9keS5hcHBlbmRDaGlsZCh3cmFwKTtieC5mb2N1cygpO2J4LnNlbGVjdCgpO30pKCk7";
 function caveduckBookmarklet() {
   try { return decodeURIComponent(escape(atob(CAVEDUCK_BM_B64))); }
   catch (e) { return atob(CAVEDUCK_BM_B64); }
@@ -2542,8 +3113,11 @@ function openCaveduckModal() {
     '</div>' +
     '<div class="bm-block">' +
       '<div class="bm-step">사용법</div>' +
-      '<p class="bm-hint">케이브덕 채팅 페이지를 연 상태에서 등록한 즐겨찾기를 누르면, "더 보기"가 자동으로 끝까지 눌리고 로그가 추출돼요. ' +
-      '뜬 창에서 Ctrl+A → Ctrl+C로 복사한 다음, 여기 로그 보관함에 붙여넣으면 돼요.</p>' +
+      '<p class="bm-hint">케이브덕 채팅 페이지를 연 상태에서 등록한 즐겨찾기를 누르면, ' +
+      '<b>몇 턴을 추출할지 묻는 창</b>이 떠요. 비우거나 0을 넣으면 전체, ' +
+      '숫자(예: 30)를 넣으면 최근 그만큼만 추출돼요. ' +
+      '"더 보기"가 자동으로 눌리고 로그가 추출되면, 뜬 창에서 Ctrl+A → Ctrl+C로 복사한 다음 여기 로그 보관함에 붙여넣으면 돼요. ' +
+      '이미 있는 턴은 자동으로 걸러지니, 새 부분만 뽑고 싶을 땐 최근 몇 턴만 추출해서 그대로 붙여넣어도 돼요.</p>' +
     '</div>',
     [{ label: "코드 복사", id: "bmCopyBtn", primary: true }, { label: "닫기", close: true }]
   );
@@ -2557,6 +3131,122 @@ function openCaveduckModal() {
   });
 }
 $("caveduckBtn").addEventListener("click", openCaveduckModal);
+
+// ===== 형광펜 =====
+// 로그 본문에서 텍스트를 드래그하면 색 팔레트가 떠서, 색을 고르면 칠해진다.
+let _hlPalette = null;
+function closeHlPalette() {
+  if (_hlPalette) { _hlPalette.remove(); _hlPalette = null; }
+}
+$("scrollArea").addEventListener("mouseup", e => {
+  // 팔레트 자체를 클릭한 경우는 무시
+  if (e.target.closest && e.target.closest(".hl-palette")) return;
+  setTimeout(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) { closeHlPalette(); return; }
+    const text = sel.toString();
+    if (!text.trim() || text.trim().length < 1) { closeHlPalette(); return; }
+    // 선택 영역이 한 턴의 turn-body 안에 있는지 확인
+    const range = sel.getRangeAt(0);
+    const startEl = range.startContainer.parentElement || range.startContainer;
+    const turnEl = startEl.closest && startEl.closest(".turn");
+    if (!turnEl) { closeHlPalette(); return; }
+    const body = turnEl.querySelector(".turn-body");
+    if (!body || !body.contains(range.startContainer)) { closeHlPalette(); return; }
+    // 클릭한 위치 근처에 팔레트 표시
+    showHlPalette(e.pageX, e.pageY, turnEl.dataset.tid, text);
+  }, 10);
+});
+// 다른 곳을 클릭하면 팔레트 닫기
+document.addEventListener("mousedown", e => {
+  if (_hlPalette && !(e.target.closest && e.target.closest(".hl-palette")))
+    closeHlPalette();
+});
+function showHlPalette(x, y, tid, selText) {
+  closeHlPalette();
+  const colors = [
+    ["yellow", "#fff3a8"], ["green", "#b6f0c4"],
+    ["pink", "#ffc4dd"], ["blue", "#bcdcff"]
+  ];
+  const pal = document.createElement("div");
+  pal.className = "hl-palette";
+  for (const [name, hex] of colors) {
+    const sw = document.createElement("button");
+    sw.className = "hl-swatch";
+    sw.style.background = hex;
+    sw.title = "이 색으로 칠하기";
+    sw.addEventListener("click", () => { addHighlight(tid, selText, name); closeHlPalette(); });
+    pal.appendChild(sw);
+  }
+  // 지우개 — 이 선택 영역에 걸친 형광펜을 지운다
+  const er = document.createElement("button");
+  er.className = "hl-swatch erase";
+  er.textContent = "\u232B";
+  er.title = "형광펜 지우기";
+  er.addEventListener("click", () => { removeHighlight(tid, selText); closeHlPalette(); });
+  pal.appendChild(er);
+  document.body.appendChild(pal);
+  // 화면 밖으로 안 나가게 위치 보정
+  const pw = pal.offsetWidth, ph = pal.offsetHeight;
+  let px = x - pw / 2, py = y + 14;
+  px = Math.max(8, Math.min(px, window.innerWidth - pw - 8));
+  pal.style.left = px + "px";
+  pal.style.top = py + "px";
+  _hlPalette = pal;
+}
+function addHighlight(tid, text, color) {
+  const chat = getActive();
+  if (!chat) return;
+  const turn = chat.turns.find(t => t.id === tid);
+  if (!turn) return;
+  if (!turn.highlights) turn.highlights = [];
+  const clean = text.trim();
+  if (!clean) return;
+  // 같은 텍스트가 이미 있으면 색만 갱신
+  const existing = turn.highlights.find(h => h.text === clean);
+  if (existing) existing.color = color;
+  else turn.highlights.push({ text: clean, color: color });
+  chat.updatedAt = now();
+  save();
+  // 해당 턴만 다시 칠한다 (전체 재렌더 없이)
+  repaintTurnHighlights(tid);
+  window.getSelection().removeAllRanges();
+  toast("형광펜으로 칠했어요");
+}
+function removeHighlight(tid, text) {
+  const chat = getActive();
+  if (!chat) return;
+  const turn = chat.turns.find(t => t.id === tid);
+  if (!turn || !turn.highlights) return;
+  const clean = text.trim();
+  // 선택 영역과 겹치는 형광펜을 제거 (서로 포함 관계면 겹친 것으로 본다)
+  const before = turn.highlights.length;
+  turn.highlights = turn.highlights.filter(h =>
+    !(h.text.includes(clean) || clean.includes(h.text))
+  );
+  if (turn.highlights.length === before) { toast("지울 형광펜이 없어요"); return; }
+  chat.updatedAt = now();
+  save();
+  repaintTurnHighlights(tid);
+  window.getSelection().removeAllRanges();
+  toast("형광펜을 지웠어요");
+}
+// 한 턴의 형광펜만 다시 칠한다 (기존 mark 제거 후 다시 입힘)
+function repaintTurnHighlights(tid) {
+  const turnEl = $$(".turn").find(el => el.dataset.tid === tid);
+  if (!turnEl) return;
+  const chat = getActive();
+  const turn = chat && chat.turns.find(t => t.id === tid);
+  if (!turn) return;
+  // 기존 mark.hl 풀기
+  turnEl.querySelectorAll("mark.hl").forEach(mk => {
+    const parent = mk.parentNode;
+    while (mk.firstChild) parent.insertBefore(mk.firstChild, mk);
+    parent.removeChild(mk);
+    parent.normalize();
+  });
+  applyHighlights(turnEl, turn);
+}
 // 헤더의 "로그 보관함" 로고 클릭 — 메인(환영) 화면으로 돌아간다
 $("brandHome").addEventListener("click", () => {
   if (typeof closeLogSearch === "function" &&
