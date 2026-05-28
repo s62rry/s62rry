@@ -2447,6 +2447,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16l8-5 8 5V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/></svg>
           수집 · 보관
         </div>
+        <div class="side-item" data-folder="etc">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg>
+          그 외
+        </div>
       </div>
       <div class="side-group">
         <div class="side-group-label">기타</div>
@@ -3393,6 +3397,31 @@
         '................',
         '................'
       ]
+    },
+    {
+      name: '포켓몬 트레이너<br>카드 메이커', ext: 'pokemon_card_maker.html',
+      url: 'https://s62rry.github.io/chat/pokemon_card_maker.html',
+      cat: 'etc', color: 'ic-pink', fav: false,
+      // 몬스터볼 — 위 빨강(f) / 아래 흰색(h) / 가운데 띠·버튼 검정(b)
+      pal: { f:'#ee4b4b', b:'#2b2b2b', a:'#d63a3a', h:'#ffffff' },
+      px: [
+        '................',
+        '.....ffffff.....',
+        '...ffffffffff...',
+        '..ffffffffffff..',
+        '.ffffffffffffff.',
+        '.ffffffffffffff.',
+        '.ffffffffffffff.',
+        '.bbbbbhhbbbbbbb.',
+        '.bbbbhhhhbbbbbb.',
+        '.hhhhhbbhhhhhhh.',
+        '.hhhhbbbbhhhhhh.',
+        '.hhhhhbbhhhhhhh.',
+        '..hhhhhhhhhhhh..',
+        '...hhhhhhhhhh...',
+        '.....hhhhhh.....',
+        '................'
+      ]
     }
   ];
 
@@ -3586,7 +3615,8 @@
     all:     { title: '도구함',        filter: () => true },
     fav:     { title: '자주 쓰는 것', filter: isFavTool },
     write:   { title: '작성 · 편집',  filter: t => t.cat === 'write' },
-    collect: { title: '수집 · 보관',  filter: t => t.cat === 'collect' }
+    collect: { title: '수집 · 보관',  filter: t => t.cat === 'collect' },
+    etc:     { title: '그 외',        filter: t => t.cat === 'etc' }
   };
   let curFolder = 'all';
 
